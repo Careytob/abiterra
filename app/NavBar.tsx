@@ -1,8 +1,11 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import React from 'react'
+'use client';
+import Link from 'next/link';
+import Image from 'next/image';
+import React from 'react';
+import { usePathname } from 'next/navigation';
 
 const NavBar = () => {
+    const pathname = usePathname();
 
     const links = [
         {label: 'Home', href: '/'},
@@ -13,22 +16,43 @@ const NavBar = () => {
         {label: 'Contact', href: '/contact'},
     ]
   return (
-   <nav className='flex space-x-6 border-b mb-5 px-5 h-14 items-center'>
-        <Link href='/'>
-          <Image src='/logo.svg' alt='logo' width={70} height={70} />
+    <nav className='flex items-center border-b mb-5 px-24 h-14'>
+    
+    <Link href='/'>
+      <Image src='/logo.svg' alt='logo' width={70} height={70} />
+    </Link>
+  
+    
+    <ul className='flex space-x-6 ml-8'> 
+      {links.map(link => (
+        <Link 
+          key={link.href} 
+          className={`text-zinc-500 hover:text-zinc-900 transition-colors py-4 ${pathname === link.href ? 'border-b-[3px]  border-teal-500 text-teal-600' :  'border-b-transparent'}`}
+          href={link.href}
+        >
+          {link.label}
         </Link>
-        <ul className='flex space-x-6'>
-            {links.map(link => 
-            <Link 
-            key={link.href} 
-            className=' text-zinc-500 hover:text-zinc-900 transition-colors' 
-            href={link.href}>{link.label}
-            </Link> )}
-
-           
-            
-        </ul>
-    </nav>
+      ))}
+    </ul>
+  
+    
+    <div className='flex space-x-4 ml-auto items-center'> 
+      <Link 
+        href='/login' 
+        className='text-zinc-500 hover:text-zinc-900 transition-colors'
+      >
+        Log In
+      </Link>
+      <Link 
+        href='/signup' 
+        className='text-white font-bold  bg-teal-500 px-4 py-2 rounded-3xl hover:bg-teal-700 transition-colors'
+      >
+        Sign Up
+        
+      </Link>
+    </div>
+  </nav>
+  
   )
 }
 
