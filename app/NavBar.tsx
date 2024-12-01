@@ -3,16 +3,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
 import { usePathname } from 'next/navigation';
-
+import classNames from 'classnames';
 
 const NavBar = () => {
-    const pathname = usePathname();
+    const currentPath = usePathname();
 
     const links = [
         {label: 'Home', href: '/'},
         {label: 'Buy', href: '/buy'},
         {label: 'Rent', href: '/rent'},
-        {label: 'About Us', href: '/aboutUs'},
+        {label: 'About Us', href: '/aboutus'},
         {label: 'Blog', href: '/blog'},
         {label: 'Contact', href: '/contact'},
     ]
@@ -28,7 +28,12 @@ const NavBar = () => {
       {links.map(link => (
         <Link 
           key={link.href} 
-          className={`text-zinc-500 hover:text-zinc-900 transition-colors py-4 ${pathname === link.href ? 'border-b-[3px]  border-teal-500 text-teal-600' :  'border-b-transparent'}`}
+          className={classNames({
+            ' border-b-[3px]  border-teal-500 ' : link.href === currentPath,
+            'text-zinc-500 border-b-transparent' : link.href !== currentPath,
+            'hover:text-zinc-900 py-4 ': true
+            
+          })}
           href={link.href}
         >
           {link.label}
