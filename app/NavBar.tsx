@@ -15,6 +15,7 @@ const NavBar = () => {
         {label: 'About Us', href: '/aboutus'},
         {label: 'Blog', href: '/blog'},
         {label: 'Contact', href: '/contact'},
+        {label: 'User', href: '/user'},
     ]
   return (
     <nav className='flex items-center border-b mb-5 px-24 h-14'>
