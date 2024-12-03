@@ -1,18 +1,19 @@
 import "@radix-ui/themes/styles.css";
+import "./theme-config.css";
+import "./globals.css";
 import type { Metadata } from "next";
 import {Roboto} from 'next/font/google';
 import localFont from "next/font/local";
 import { Theme } from "@radix-ui/themes";
-import "./globals.css";
 import NavBar from "./NavBar";
 
 
-//import Roboto font
+
 const roboto = Roboto({
   subsets : ['latin'],
-  weight: ['400', '500', '700'],
   variable: '--font-roboto',
-});
+  weight: ['400', '500', '700'],
+  });
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

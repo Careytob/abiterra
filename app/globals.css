@@ -19,3 +19,9 @@ body {
   background: var(--background);
   font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
 }
+
+@layer base {
+  html {
+    font-family: var(--font-roboto), system-ui, sans-serif;
+  }
+}
