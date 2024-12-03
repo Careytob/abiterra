@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import classNames from 'classnames';
+import { Button } from '@radix-ui/themes'
 
 const NavBar = () => {
     const currentPath = usePathname();
@@ -15,7 +16,6 @@ const NavBar = () => {
         {label: 'About Us', href: '/aboutus'},
         {label: 'Blog', href: '/blog'},
         {label: 'Contact', href: '/contact'},
-        {label: 'User', href: '/user'},
     ]
   return (
     <nav className='flex items-center border-b mb-5 px-24 h-14'>
@@ -54,9 +54,10 @@ const NavBar = () => {
       </Link>
       <Link 
         href='/signup' 
-        className='text-white font-bold  bg-teal-500 px-4 py-2 rounded-3xl hover:bg-teal-700 transition-colors'
+        //className='text-white font-bold  bg-teal-500 px-4 py-2 rounded-3xl hover:bg-teal-700 transition-colors'
       >
-        Sign Up
+        <Button color='teal'>Sign Up</Button>
+        
         
       </Link>
     </div>

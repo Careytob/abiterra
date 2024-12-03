@@ -1,6 +1,8 @@
+import "@radix-ui/themes/styles.css";
 import type { Metadata } from "next";
 import {Roboto} from 'next/font/google';
 import localFont from "next/font/local";
+import { Theme } from "@radix-ui/themes";
 import "./globals.css";
 import NavBar from "./NavBar";
 
@@ -50,12 +52,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
-      > <NavBar/>
-      <main>
-      {children}
-      </main>
-        
+        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}> 
+      <Theme>
+        <NavBar/>
+        <main>
+        {children}
+        </main>
+      </Theme>
       </body>
     </html>
   );
