@@ -14,42 +14,88 @@ datasource db {
 }
 
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String    
-  email     String    @unique
-  password  String
-  phone     String    
-  inquiries Inquiry[] 
-  createdAt DateTime  @default(now())
+  id            String    @id @default(cuid())
+  name          String    
+  email         String    @unique
+  password      String?   // Optional if using OAuth
+  phone         String?   // Made optional since OAuth users won't have this initially
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now())
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  inquiries     Inquiry[]
+
+  @@map("users")
 }
 
 model Property {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(255)
-  description String    @db.Text
-  location    String
-  price       Float
-  type        String    // Options: "house", "land", etc.
-  availability Boolean  @default(true) 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime   @updatedAt  
+  id           Int       @id @default(autoincrement())
+  title        String    @db.VarChar(255)
+  description  String    @db.Text
+  location     String
+  price        Float
+  type         String    // Options: "house", "land", etc.
+  availability Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  inquiries   Inquiry[]  
+  inquiries    Inquiry[]
 }
-
 
 model Inquiry {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  propertyId  Int
-  message     String   @db.Text
-  status      String    @default("pending") // Options: pending, reviewed, contacted
-  createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id])
-  property    Property  @relation(fields: [propertyId], references: [id])
+  id         Int      @id @default(autoincrement())
+  userId     String   // Changed to String to match User id type
+  propertyId Int
+  message    String   @db.Text
+  status     Status   @default(PENDING) // Using the enum
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
 
 enum Status {
   PENDING
