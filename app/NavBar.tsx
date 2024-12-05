@@ -4,12 +4,13 @@ import Image from 'next/image';
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import classNames from 'classnames';
-import { Box, Button, Flex } from '@radix-ui/themes';
+import { Avatar, Box, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
 import { useSession } from 'next-auth/react';
+
 
 const NavBar = () => {
   const currentPath = usePathname();
-  const { status } = useSession(); // Destructure status to check auth state
+  const { status,data: session } = useSession(); 
 
   const links = [
     { label: 'Home', href: '/' },
@@ -47,9 +48,30 @@ const NavBar = () => {
         </Flex>
       <Box className=""> 
         {status === 'authenticated' && (
-          <Link href='/api/auth/signout'>
-            <Button variant="solid" color="red">Log Out</Button>
-          </Link>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <Avatar src={session.user!.image!} fallback='?'
+              size='2'
+              radius='full'
+              className='cursor-pointer'/>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content>
+            <DropdownMenu.Label>
+            <Text size="3">
+              {session.user!.email}
+              </Text> 
+            </DropdownMenu.Label>
+            <DropdownMenu.Label>
+              <Text>
+                Welcome {session.user!.name}
+              </Text>
+            </DropdownMenu.Label>
+            <DropdownMenu.Item color='teal'>
+            <Link href='/api/auth/signout'>Log Out</Link>
+            </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+         
         )}
         {status === 'unauthenticated' && (
           <>
