@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import classNames from 'classnames';
-import { Box, Button } from '@radix-ui/themes';
+import { Box, Button, Flex } from '@radix-ui/themes';
 import { useSession } from 'next-auth/react';
 
 const NavBar = () => {
@@ -21,8 +21,10 @@ const NavBar = () => {
   ];
 
   return (
-    <nav className='flex items-center border-b mb-5 px-24 h-14'>
-      <Link href='/'>
+    <nav className=' border-b mb-5 px-24 py-3'>
+      <Flex justify='between'>
+        <Flex align='center'>
+        <Link href='/'>
         <Image src='/logo.svg' alt='logo' width={70} height={70} />
       </Link>
 
@@ -42,8 +44,8 @@ const NavBar = () => {
           </li>
         ))}
       </ul>
-
-      <Box className="ml-auto"> 
+        </Flex>
+      <Box className=""> 
         {status === 'authenticated' && (
           <Link href='/api/auth/signout'>
             <Button variant="solid" color="red">Log Out</Button>
@@ -60,6 +62,7 @@ const NavBar = () => {
           </>
         )}
       </Box>
+      </Flex>
     </nav>
   );
 };
