@@ -6,6 +6,7 @@ import {Roboto} from 'next/font/google';
 import localFont from "next/font/local";
 import { Theme } from "@radix-ui/themes";
 import NavBar from "./NavBar";
+import AuthProvider from "./auth/Provider";
 
 
 
@@ -54,12 +55,14 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}> 
+        <AuthProvider>
       <Theme>
         <NavBar/>
         <main>
         {children}
         </main>
       </Theme>
+      </AuthProvider>
       </body>
     </html>
   );
