@@ -49,7 +49,7 @@ model User {
   id            String    @id @default(cuid())
   name          String    
   email         String    @unique
-  password      String?   // Optional if using OAuth
+  password      String?   // Now required
   phone         String?   // Made optional since OAuth users won't have this initially
   emailVerified DateTime? @map("email_verified")
   image         String?

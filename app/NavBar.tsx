@@ -53,7 +53,8 @@ const NavBar = () => {
               <Avatar src={session.user!.image!} fallback='?'
               size='2'
               radius='full'
-              className='cursor-pointer'/>
+              className='cursor-pointer'
+              referrerPolicy='no-referrer'/>
             </DropdownMenu.Trigger>
             <DropdownMenu.Content>
             <DropdownMenu.Label>
@@ -79,7 +80,7 @@ const NavBar = () => {
               <Button variant="outline" color="green" className='mr-2'>Log In</Button>
             </Link>
             <Link href='/signup'> {/* Adjust the route for your signup page */}
-              <Button variant="solid" color="teal">Sign Up</Button>
+              <Button variant='solid' color="teal">Sign Up</Button>
             </Link>
           </>
         )}

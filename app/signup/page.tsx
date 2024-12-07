@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Camera, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +18,6 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // Password strength checker
   const checkPasswordStrength = (password: string) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -68,38 +67,34 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
-    
-    if (checkPasswordStrength(formData.password) < 3) {
-      setError('Please use a stronger password');
-      return;
-    }
-
     setIsSubmitting(true);
     setError('');
-
+  
     try {
-      const res = await fetch('/api/auth/signup', {
+      console.log("Sending signup request:", formData);
+      const res = await fetch('/api/signup', { // Ensure this matches your backend route
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
+  
+      const data = await res.json();
+      console.log("Signup response:", data);
+  
       if (!res.ok) {
-        throw new Error('Failed to sign up. Please try again.');
+        setError(data.message || 'Failed to sign up');
+        return;
       }
+  
       router.push('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      console.error("Error during signup:", err);
+      setError('An error occurred during signup');
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const passwordStrength = checkPasswordStrength(formData.password);
 
@@ -178,13 +173,13 @@ const SignupPage = () => {
             )}
 
             <Button variant='teal'
-              type="submit" 
+              type="submit"
               disabled={isSubmitting}
               className="w-full"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center gap-2">
-                  <svg 
+                  <svg
                     className="h-4 w-4 animate-spin"
                     viewBox="0 0 24 24"
                   >
