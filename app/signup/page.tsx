@@ -2,21 +2,26 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import {signIn} from 'next-auth/react'
+
+interface SignupFormInputs {
+  name: string;
+  email: string;
+  password: string;
+}
 
 const SignupPage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupFormInputs>();
 
   const checkPasswordStrength = (password: string) => {
     let strength = 0;
@@ -60,43 +65,31 @@ const SignupPage = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit: SubmitHandler<SignupFormInputs> = async (data) => {
     setIsSubmitting(true);
     setError('');
-  
     try {
-      console.log("Sending signup request:", formData);
-      const res = await fetch('/api/signup', { // Ensure this matches your backend route
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-  
-      const data = await res.json();
-      console.log("Signup response:", data);
-  
-      if (!res.ok) {
-        setError(data.message || 'Failed to sign up');
-        return;
+      const response = await axios.post('/api/signup', data);
+      console.log("Signup response:", response.data);
+
+      await signIn('credentials',{
+        redirect: false,
+        email: data.email,
+        password: data.password,
       }
-  
-      router.push('/');
-    } catch (err) {
+
+      )
+
+      router.push('/'); // Redirect to homepage
+    } catch (err: any) {
       console.error("Error during signup:", err);
-      setError('An error occurred during signup');
+      setError(err.response?.data?.message || 'An error occurred during signup');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
-  const passwordStrength = checkPasswordStrength(formData.password);
+  const passwordStrength = checkPasswordStrength(watch("password") || "");
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -110,37 +103,42 @@ const SignupPage = () => {
               {error}
             </p>
           )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <Input
-                name="name"
                 placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                required
+                {...register("name", { required: "Name is required" })}
               />
+              {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
             </div>
 
             <div>
               <Input
-                name="email"
                 type="email"
                 placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                required
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                    message: "Invalid email format"
+                  }
+                })}
               />
+              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
 
             <div className="relative">
               <Input
-                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter a secure password"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters"
+                  }
+                })}
                 className="pr-10"
               />
               <button
@@ -150,9 +148,10 @@ const SignupPage = () => {
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
 
-            {formData.password && (
+            {watch("password") && (
               <div className="space-y-2">
                 <p className={`text-xs ${getPasswordStrengthColor(passwordStrength)}`}>
                   Password Strength: {getPasswordStrengthText(passwordStrength)}
@@ -172,7 +171,8 @@ const SignupPage = () => {
               </div>
             )}
 
-            <Button variant='teal'
+            <Button
+              variant='teal'
               type="submit"
               disabled={isSubmitting}
               className="w-full"
@@ -183,15 +183,15 @@ const SignupPage = () => {
                     className="h-4 w-4 animate-spin"
                     viewBox="0 0 24 24"
                   >
-                    <circle 
-                      cx="12" 
-                      cy="12" 
-                      r="10" 
-                      stroke="currentColor" 
-                      strokeWidth="4" 
-                      fill="none" 
-                      strokeDasharray="32" 
-                      strokeLinecap="round" 
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray="32"
+                      strokeLinecap="round"
                     />
                   </svg>
                   Signing Up...

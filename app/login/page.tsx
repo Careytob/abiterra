@@ -1,37 +1,35 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import { Spinnaker } from 'next/font/google';
+
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setIsSubmitting(true);
     setError('');
 
     try {
       const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
+        email: data.email,
+        password: data.password,
         redirect: false,
       });
 
@@ -65,27 +63,34 @@ const LoginPage = () => {
               {error}
             </p>
           )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <Input
-                name="email"
                 type="email"
                 placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                required
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                    message: "Invalid email format"
+                  }
+                })}
               />
+              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
 
             <div className="relative">
               <Input
-                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters"
+                  }
+                })}
                 className="pr-10"
               />
               <button
@@ -95,9 +100,11 @@ const LoginPage = () => {
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
 
-            <Button variant='teal'
+            <Button
+              variant='teal'
               type="submit"
               disabled={isSubmitting}
               className="w-full"
