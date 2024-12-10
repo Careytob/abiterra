@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import {signIn} from 'next-auth/react'
+import Link from 'next/link';
 
 interface SignupFormInputs {
   name: string;
@@ -93,7 +94,7 @@ const SignupPage = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center">Sign Up</CardTitle>
         </CardHeader>
@@ -200,6 +201,7 @@ const SignupPage = () => {
                 'Sign Up'
               )}
             </Button>
+            <p className='text-sm'>Already have an account? <Link href='/login' className='text-blue-500'>Log In</Link></p>
           </form>
         </CardContent>
       </Card>

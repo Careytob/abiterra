@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { Spinnaker } from 'next/font/google';
+import Link from 'next/link';
 
 interface LoginFormInputs {
   email: string;
@@ -53,7 +54,7 @@ const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center">Log In</CardTitle>
         </CardHeader>
@@ -111,6 +112,7 @@ const LoginPage = () => {
             >
               {isSubmitting ? 'Logging in...' : 'Log In'}
             </Button>
+            <p className='text-sm'>Don't have an account? <Link href='/signup' className='text-blue-500'>Sign Up</Link></p>
           </form>
 
           <div className="mt-4 flex items-center">

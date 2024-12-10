@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import classNames from 'classnames';
 import { Avatar, Box, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
@@ -10,6 +10,18 @@ import { useSession } from 'next-auth/react';
 const NavBar = () => {
   const currentPath = usePathname();
   const { status, data: session } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
 
   const links = [
     { label: 'Home', href: '/' },
@@ -24,13 +36,12 @@ const NavBar = () => {
     <nav className="border-b bg-white shadow-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <Flex justify="between" align="center" className="py-4">
-
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none"
-            aria-label="Open Menu"
+            aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {/* Hamburger icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -39,27 +50,33 @@ const NavBar = () => {
               stroke="currentColor"
               className="w-6 h-6 text-zinc-600"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={
+                  isMenuOpen
+                    ? 'M6 18L18 6M6 6l12 12'
+                    : 'M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5'
+                }
+              />
             </svg>
           </button>
-          
+
           {/* Logo */}
-          <Link href="/">
+          <Link href="/" className="flex-shrink-0">
             <Image src="/logo.svg" alt="logo" width={70} height={70} />
           </Link>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Desktop */}
           <ul className="hidden md:flex space-x-6 ml-8">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
-                  className={classNames(
-                    'py-2 text-sm font-medium transition-colors',
-                    {
-                      'border-b-2 border-teal-500 text-teal-600': link.href === currentPath,
-                      'text-zinc-600 hover:text-zinc-900 border-b-transparent': link.href !== currentPath,
-                    }
-                  )}
+                  className={classNames({
+                    'border-b-[3px] border-teal-500': link.href === currentPath,
+                    'text-zinc-500 border-b-transparent': link.href !== currentPath,
+                    'hover:text-zinc-900 py-4': true,
+                  })}
                   href={link.href}
                 >
                   {link.label}
@@ -104,7 +121,7 @@ const NavBar = () => {
                     Log In
                   </Button>
                 </Link>
-                <Link href="/signup" className='hidden md:inline'>
+                <Link href="/signup" className="hidden md:inline">
                   <Button variant="solid" color="teal" className="text-sm">
                     Sign Up
                   </Button>
@@ -112,9 +129,39 @@ const NavBar = () => {
               </>
             )}
           </Box>
-
-          
         </Flex>
+
+        {/* Mobile Navigation Menu */}
+        <div 
+          className={classNames(
+            'fixed md:hidden bg-white top-[73px] left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30',
+            {
+              'translate-x-0': isMenuOpen,
+              '-translate-x-full': !isMenuOpen
+            }
+          )}
+        >
+          <ul className="pt-2 pb-4">
+            {links.map((link) => (
+              <li key={link.href} className="mb-0">
+                <Link
+                  className={classNames(
+                    'block px-4 py-2 rounded-lg',
+                    {
+                      'bg-teal-50': link.href === currentPath,
+                      'text-zinc-500 hover:bg-gray-50': link.href !== currentPath
+                    }
+                  )}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
       </div>
     </nav>
   );
