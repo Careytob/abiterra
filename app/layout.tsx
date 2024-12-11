@@ -58,7 +58,7 @@ export default function RootLayout({
         <AuthProvider>
       <Theme>
         <NavBar/>
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <main className=" mx-auto px-4 sm:px-6 lg:px-8">
         {children}
         </main>
       </Theme>

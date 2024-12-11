@@ -33,7 +33,7 @@ const NavBar = () => {
   ];
 
   return (
-    <nav className="border-b bg-white shadow-md">
+    <nav className="border-b bg-white shadow-md fixed w-full z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <Flex justify="between" align="center" className="py-4">
           {/* Mobile Menu Button */}
@@ -53,11 +53,7 @@ const NavBar = () => {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d={
-                  isMenuOpen
-                    ? 'M6 18L18 6M6 6l12 12'
-                    : 'M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5'
-                }
+                d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
               />
             </svg>
           </button>
@@ -134,13 +130,41 @@ const NavBar = () => {
         {/* Mobile Navigation Menu */}
         <div 
           className={classNames(
-            'fixed md:hidden bg-white top-[73px] left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30',
+            'fixed md:hidden bg-white top-0 left-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-30',
             {
               'translate-x-0': isMenuOpen,
               '-translate-x-full': !isMenuOpen
             }
           )}
         >
+          {/* Mobile Menu Header */}
+          <div className="flex justify-between items-center p-4 border-b">
+            <Link href="/" onClick={() => setIsMenuOpen(false)}>
+              <Image src="/logo.svg" alt="logo" width={70} height={50} />
+            </Link>
+            <button
+              className="p-2 rounded-lg hover:bg-gray-100 focus:outline-none"
+              onClick={() => setIsMenuOpen(false)}
+              aria-label="Close Menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-zinc-600"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu Links */}
           <ul className="pt-2 pb-4">
             {links.map((link) => (
               <li key={link.href} className="mb-0">
@@ -161,7 +185,12 @@ const NavBar = () => {
             ))}
           </ul>
         </div>
-        
+        {isMenuOpen && (
+         <div 
+           className="fixed inset-0 bg-black bg-opacity-50 md:hidden"
+           onClick={() => setIsMenuOpen(false)}
+         />
+       )}
       </div>
     </nav>
   );
