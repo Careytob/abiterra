@@ -48,10 +48,7 @@ export default function Home() {
       <section className="relative h-[600px]">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Link href=''>
-            <Image src='/hero_image.webp' alt="Luxury Property" width={1920} height={1080} className="w-full h-full object-cover"/>
-          </Link>
-          
+        <Image src='/hero_image.webp' alt="Luxury Property" width={1920} height={1080} className="w-full h-full object-cover"/>
           {/* Dark overlay for better text readability */}
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         </div>
@@ -67,12 +64,12 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4">
               <Link href='/buy' className="w-full sm:w-auto">
-                <button className="w-full bg-teal-600 text-white rounded-lg text-sm font-bold py-4 px-4 md:px-8 md:text-lg md:font-normal hover:bg-teal-700">
+                <button className="w-full bg-teal-600 text-white rounded-xl text-sm font-bold py-4 px-4 md:px-8 md:text-lg md:font-normal hover:bg-teal-700">
                   Browse Properties for Sale
                 </button>
               </Link>
               <Link href='/rent' className="w-full sm:w-auto">
-                <button className="w-full bg-white text-blue-600 rounded-lg text-sm font-bold py-4 px-4 md:px-8 md:text-lg md:font-normal hover:bg-gray-100">
+                <button className="w-full bg-white text-teal-600 rounded-xl text-sm font-bold py-4 px-4 md:px-8 md:text-lg md:font-normal hover:bg-gray-100">
                   View Rental Properties
                 </button>
               </Link>
@@ -142,48 +139,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">About Us</h3>
-              <p className="text-gray-400">Your trusted partner in finding the perfect property.</p>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-4">Properties</h3>
-              <ul className="space-y-2">
-                <li><Link href="/buy" className="text-gray-400 hover:text-white">Houses for Sale</Link></li>
-                <li><Link href="/rent" className="text-gray-400 hover:text-white">Apartments for Rent</Link></li>
-                <li><Link href="#" className="text-gray-400 hover:text-white">New Developments</Link></li>
-                <li><Link href="#" className="text-gray-400 hover:text-white">Featured Listings</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-4">Contact</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>info@abiterra.com</li>
-                <li>+234 806 019 8071</li>
-                <li>Lagos</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg mb-4">Follow Us</h3>
-              <div className="flex space-x-4">
-                <a href="https://instagram.com/yourhandle" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-gray-400 hover:text-white">Instagram</a>
-                <a href="https://facebook.com/yourpage"
-                target="_blank" 
-                rel="noopener noreferrer"  
-                className="text-gray-400 hover:text-white">Facebook</a>
-                <a href="#" className="text-gray-400 hover:text-white">Twitter</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 };

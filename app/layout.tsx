@@ -7,6 +7,7 @@ import localFont from "next/font/local";
 import { Theme } from "@radix-ui/themes";
 import NavBar from "./NavBar";
 import AuthProvider from "./auth/Provider";
+import Footer from "./Footer";
 
 
 
@@ -58,9 +59,10 @@ export default function RootLayout({
         <AuthProvider>
       <Theme>
         <NavBar/>
-        <main className=" mx-auto px-4 sm:px-6 lg:px-8">
+        <main className="flex-grow ">
         {children}
         </main>
+        <Footer/>
       </Theme>
       </AuthProvider>
       </body>
