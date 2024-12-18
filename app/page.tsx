@@ -24,21 +24,21 @@ export default function Home() {
       price: '₦250,000,000',
       details: '3 Beds • 2 Baths • 1,800 sqft',
       location: 'Downtown Area',
-      image: '/api/placeholder/400/300'
+      image: '/house-1.jpg'
     },
     {
       type: 'For Rent',
       price: '₦7,500,00/yr',
       details: '2 Beds • 2 Baths • 1,200 sqft',
       location: 'West Side',
-      image: '/api/placeholder/400/300'
+      image: '/apartment-1.jpg'
     },
     {
       type: 'For Sale',
       price: '₦230,000,000',
       details: '4 Beds • 3 Baths • 2,400 sqft',
       location: 'Suburban Area',
-      image: '/api/placeholder/400/300'
+      image: '/house-2.jpg'
     }
   ];
 
@@ -85,7 +85,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredProperties.map((property, index) => (
               <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <img src={property.image} alt="Property" className="w-full h-48 object-cover" />
+                <Image src={property.image} alt="Property" width={400}height={300} className="w-full h-48 object-cover" />
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
                     <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
