@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -68,14 +67,43 @@ model Property {
   title        String    @db.VarChar(255)
   description  String    @db.Text
   location     String
+  city         String
+  state        String
   price        Float
-  type         String    // Options: "house", "land", etc.
+  type         PropertyType
+  status       PropertyStatus @default(AVAILABLE)
+  bedrooms     Int
+  bathrooms    Int
+  toilets      Int
+  bq           Int
+  area         Float
   availability Boolean   @default(true)
+  agentId      String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  images       Image[]
+  features     Feature[]  // Relation to Feature model
   inquiries    Inquiry[]
 }
+
+model Feature {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255) // Feature name
+  propertyId Int      // Foreign key to Property
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+
+model Image {
+  id          Int      @id @default(autoincrement())
+  url         String   @db.VarChar(500)
+  propertyId  Int      // Foreign key to Property
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
 
 model Inquiry {
   id         Int      @id @default(autoincrement())
@@ -95,6 +123,18 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+enum PropertyType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+  RENTED
 }
 
 enum Status {

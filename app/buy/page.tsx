@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, 
 import Image from 'next/image';
 import Head from 'next/head';
 import { NextSeo } from 'next-seo';
+import Link from 'next/link';
 
 const BuyPage = () => {
   const [viewMode, setViewMode] = useState('grid');
@@ -305,6 +306,7 @@ const BuyPage = () => {
                   </dl>
 
                   {/* View Details Button */}
+                  <Link href={`/buy/${property.id}`}>
                   <div className="pt-2">
                     <button 
                       className="flex items-center gap-2 text-blue-600 font-medium group-hover:gap-3 transition-all"
@@ -314,6 +316,7 @@ const BuyPage = () => {
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
+                  </Link>
                 </div>
               </article>
             ))}
