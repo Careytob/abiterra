@@ -24,7 +24,7 @@ type PropertyInput = {
 const propertiesToAdd: PropertyInput[] = [
   {
     title: "Luxury 5-Bedroom Villa",
-    description: "Magnificent 5-bedroom luxury villa in the heart of Lekki Phase 1",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 250000000,
     type: "SALE",
     bedrooms: 5,
@@ -42,11 +42,11 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house1-bedroom.jpg",
       "/images/house1-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   },
   {
     title: "Luxury 5-Bedroom",
-    description: "Magnificent 5-bedroom luxury villa in the heart of Lekki Phase 1",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 260000000,
     type: "SALE",
     bedrooms: 5,
@@ -64,11 +64,11 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house2-bedroom.jpg",
       "/images/house2-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   },
   {
     title: "Luxury 5-Bedroom Villa",
-    description: "Magnificent 5-bedroom luxury villa in the heart of Lekki Phase 1",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 290000000,
     type: "SALE",
     bedrooms: 5,
@@ -86,11 +86,11 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house3-bedroom.jpg",
       "/images/house3-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   },
   {
     title: "Luxury 5-Bedroom Villa",
-    description: "Magnificent 5-bedroom luxury in GRA Ikeja, Lagos",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 250000000,
     type: "SALE",
     bedrooms: 5,
@@ -108,11 +108,11 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house4-bedroom.jpg",
       "/images/house4-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   },
   {
     title: "Luxury 5-Bedroom",
-    description: "Magnificent 5-bedroom luxury villa in the heart of Lekki Phase 1",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 300000000,
     type: "SALE",
     bedrooms: 5,
@@ -130,11 +130,11 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house5-bedroom.jpg",
       "/images/house5-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   },
   {
     title: "Luxury 5-Bedroom Villa",
-    description: "Magnificent 5-bedroom luxury villa in the heart of Lekki Phase 1",
+    description: "Luxurious and spacious 5-bedroom villa with modern finishes and excellent facilities. Features include a fully fitted kitchen, spacious living area, and stunning views.",
     price: 280000000,
     type: "SALE",
     bedrooms: 5,
@@ -152,7 +152,7 @@ const propertiesToAdd: PropertyInput[] = [
       "/images/house6-bedroom.jpg",
       "/images/house6-toilet.jpg"
     ],
-    features: ["City View", "Modern Kitchen", "Hardwood Floors"]
+    features: ["Fully Fitted Kitchen", "Swimming Pool", "Hardwood Floors","Gym","Security","24/7 Power Supply","Parking Space"]
   }
 ]
 

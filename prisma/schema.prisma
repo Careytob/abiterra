@@ -82,39 +82,40 @@ model Property {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  images       Image[]
-  features     Feature[]  // Relation to Feature model
-  inquiries    Inquiry[]
+  // Relations
+  images       Image[]   @relation("PropertyImages")
+  features     Feature[] @relation("PropertyFeatures")
+  inquiries    Inquiry[] @relation("PropertyInquiries")
 }
 
 model Feature {
   id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(255) // Feature name
-  propertyId Int      // Foreign key to Property
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String   @db.VarChar(255)
+  propertyId Int
+  property   Property @relation("PropertyFeatures", fields: [propertyId], references: [id], onDelete: Cascade)
 }
-
 
 model Image {
   id          Int      @id @default(autoincrement())
   url         String   @db.VarChar(500)
-  propertyId  Int      // Foreign key to Property
-  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
+  propertyId  Int
+  property    Property @relation("PropertyImages", fields: [propertyId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 }
 
-
 model Inquiry {
   id         Int      @id @default(autoincrement())
-  userId     String   // Changed to String to match User id type
+  userId     String
   propertyId Int
   message    String   @db.Text
-  status     Status   @default(PENDING) // Using the enum
+  status     Status   @default(PENDING)
   createdAt  DateTime @default(now())
+
+  // Relations
   user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation("PropertyInquiries", fields: [propertyId], references: [id], onDelete: Cascade)
 }
+
 
 model VerificationToken {
   identifier String
