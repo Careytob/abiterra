@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Get the session using getServerSession
     const session = await getServerSession(authOptions);
     
-    // Modify this section to handle unauthenticated users
+    // handle unauthenticated users
     if (!session?.user?.email) {
       // Create a new user or get existing user
       const user = await prisma.user.upsert({

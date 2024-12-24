@@ -27,8 +27,8 @@ export default function Home() {
       image: '/house-1.jpg'
     },
     {
-      type: 'For Rent',
-      price: '₦7,500,00/yr',
+      type: 'For Sale',
+      price: '₦230,000,00',
       details: '2 Beds • 2 Baths • 1,200 sqft',
       location: 'West Side',
       image: '/apartment-1.jpg'
@@ -37,6 +37,27 @@ export default function Home() {
       type: 'For Sale',
       price: '₦230,000,000',
       details: '4 Beds • 3 Baths • 2,400 sqft',
+      location: 'Suburban Area',
+      image: '/house-2.jpg'
+    },
+    {
+      type: 'For Rent',
+      price: '₦5,000,000/yr',
+      details: '3 Beds • 2 Baths • 1,800 sqft',
+      location: 'Downtown Area',
+      image: '/house-1.jpg'
+    },
+    {
+      type: 'For Rent',
+      price: '₦3,000,00/yr',
+      details: '2 Beds • 2 Baths • 1,200 sqft',
+      location: 'West Side',
+      image: '/apartment-1.jpg'
+    },
+    {
+      type: 'For Rent',
+      price: '₦4,000,000/yr',
+      details: '3 Beds • 3 Baths • 2,400 sqft',
       location: 'Suburban Area',
       image: '/house-2.jpg'
     }
@@ -88,16 +109,18 @@ export default function Home() {
                 <Image src={property.image} alt="Property" width={400}height={300} className="w-full h-48 object-cover" />
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
+                    <span className="bg-teal-100 text-black  px-3 py-1 rounded-full text-sm">
                       {property.type}
                     </span>
                     <span className="font-bold text-xl">{property.price}</span>
                   </div>
                   <p className="text-gray-600 mb-2">{property.details}</p>
                   <p className="text-gray-500">{property.location}</p>
+                  <Link href="/buy">
                   <button className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
                     View Details
                   </button>
+                  </Link>
                 </div>
               </div>
             ))}
