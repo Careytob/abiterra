@@ -8,6 +8,7 @@ import { Theme } from "@radix-ui/themes";
 import NavBar from "./NavBar";
 import AuthProvider from "./auth/Provider";
 import Footer from "./Footer";
+import { Toaster } from "@/components/ui/toaster"
 
 
 
@@ -55,16 +56,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}> 
+        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+      > 
         <AuthProvider>
-      <Theme>
-        <NavBar/>
-        <main className="flex-grow ">
-        {children}
-        </main>
-        <Footer/>
-      </Theme>
-      </AuthProvider>
+          <Theme>
+            <NavBar/>
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer/>
+            <Toaster /> {/* Move Toaster here, outside of main but inside Theme */}
+          </Theme>
+        </AuthProvider>
       </body>
     </html>
   );

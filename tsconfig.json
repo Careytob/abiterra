@@ -18,8 +18,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",  // Set the base URL to the root of your project
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"]  // Ensure the '@' alias points to the root of the project
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/prisma/client';
+import prisma from '@/lib/prisma';
 
 export async function GET() {
   try {
     const properties = await prisma.property.findMany({
       orderBy: {
-        id: 'asc',
+      id: 'asc',
       },
       include: {
-        images: true, // Include related images
+      images: true, // Include related images
       },
     });
 
