@@ -31,7 +31,8 @@ const BuyPage = () => {
     // Fetch properties from the database
     const fetchProperties = async () => {
       try {
-        const response = await fetch('/api/properties'); // You'll need to create this API route
+        const response = await fetch('/api/properties?type=SALE');
+ 
         const data = await response.json();
         setProperties(data);
       } catch (error) {
@@ -145,7 +146,7 @@ const BuyPage = () => {
           />
           </div>
           <button 
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-blue-700"
           aria-label="Open filters menu"
           >
           <SlidersHorizontal className="w-4 h-4" />
@@ -217,7 +218,7 @@ const BuyPage = () => {
             </button>
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
             <span className="text-white text-2xl font-bold">{property.price}</span>
-            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{property.type}</span>
+            <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">{property.type}</span>
             </div>
           </div>
 
@@ -259,7 +260,7 @@ const BuyPage = () => {
             <Link href={`/buy/${property.id}`}>
             <div className="pt-2">
               <button 
-              className="flex items-center gap-2 text-blue-600 font-medium group-hover:gap-3 transition-all"
+              className="flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all"
               aria-label={`View details for ${property.title}`}
               >
               View Details 
@@ -299,7 +300,7 @@ const BuyPage = () => {
             onClick={() => setCurrentPage(pageNumber)}
             className={`w-10 h-10 rounded-lg ${
               currentPage === pageNumber
-              ? 'bg-blue-600 text-white'
+              ? 'bg-teal-600 text-white'
               : 'hover:bg-gray-100'
             }`}
             aria-label={`Page ${pageNumber}`}

@@ -1,71 +1,91 @@
-
 import Image from "next/image";
 import Link from "next/link";
+import prisma from "@/lib/prisma";
 
-export default function Home() {
+async function getFeaturedProperties() {
+  try {
+    const [saleProperties, rentProperties] = await Promise.all([
+      prisma.property.findMany({
+        take: 3,
+        where: {
+          availability: true,
+          type: 'SALE'
+        },
+        include: {
+          images: {
+            take: 1
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      prisma.property.findMany({
+        take: 3,
+        where: {
+          availability: true,
+          type: 'RENT'
+        },
+        include: {
+          images: {
+            take: 1
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    ]);
+
+    const allProperties = [...saleProperties, ...rentProperties];
+    
+    return allProperties.map(property => ({
+      id: property.id,
+      type: property.type === 'SALE' ? 'For Sale' : 'For Rent',
+      price: formatPrice(property.price, property.type),
+      details: `${property.bedrooms} Beds • ${property.bathrooms} Baths • ${property.toilets} Toilets • ${property.area} sqft${property.bq ? ` • ${property.bq} BQ` : ''}`,
+      location: `${property.city}, ${property.state}`,
+      image: property.images[0]?.url || '/placeholder-property.jpg'
+    }));
+  } catch (error) {
+    console.error('Error fetching properties:', error);
+    return [];
+  }
+}
+
+function formatPrice(price: number, type: string) {
+  const formatter = new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+
+  const formattedPrice = formatter.format(price);
+  return type === 'For Rent' ? `${formattedPrice}/yr` : formattedPrice;
+}
+
+export default async function Home() {
+  const featuredProperties = await getFeaturedProperties();
+
   const StructureData = {
-    '@context' : 'https://schema.org',
-    '@type' : 'RealEstateAgent',
-    '@name' : 'Abiterra',
-    '@description' : 'Find your perfect property for sale or rent. Browse our exclusive collection of properties in prime locations.',
-    'url' : 'https://abiterra.com',
-    'address' : {
-      '@type' : 'PostalAddress',
-      'addressLocality' : 'Lagos',
-      'addressRegion' : 'Lagos',
-      'addressCountry' : 'Nigeria'
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateAgent',
+    '@name': 'Abiterra',
+    '@description': 'Find your perfect property for sale or rent. Browse our exclusive collection of properties in prime locations.',
+    'url': 'https://abiterra.com',
+    'address': {
+      '@type': 'PostalAddress',
+      'addressLocality': 'Lagos',
+      'addressRegion': 'Lagos',
+      'addressCountry': 'Nigeria'
     },
-    'openingHours' : 'Mo - Fr 09:00 - 18:00'
+    'openingHours': 'Mo - Fr 09:00 - 18:00'
   };
-
-  const featuredProperties = [
-    {
-      type: 'For Sale',
-      price: '₦250,000,000',
-      details: '3 Beds • 2 Baths • 1,800 sqft',
-      location: 'Downtown Area',
-      image: '/house-1.jpg'
-    },
-    {
-      type: 'For Sale',
-      price: '₦230,000,00',
-      details: '2 Beds • 2 Baths • 1,200 sqft',
-      location: 'West Side',
-      image: '/apartment-1.jpg'
-    },
-    {
-      type: 'For Sale',
-      price: '₦230,000,000',
-      details: '4 Beds • 3 Baths • 2,400 sqft',
-      location: 'Suburban Area',
-      image: '/house-2.jpg'
-    },
-    {
-      type: 'For Rent',
-      price: '₦5,000,000/yr',
-      details: '3 Beds • 2 Baths • 1,800 sqft',
-      location: 'Downtown Area',
-      image: '/house-1.jpg'
-    },
-    {
-      type: 'For Rent',
-      price: '₦3,000,00/yr',
-      details: '2 Beds • 2 Baths • 1,200 sqft',
-      location: 'West Side',
-      image: '/apartment-1.jpg'
-    },
-    {
-      type: 'For Rent',
-      price: '₦4,000,000/yr',
-      details: '3 Beds • 3 Baths • 2,400 sqft',
-      location: 'Suburban Area',
-      image: '/house-2.jpg'
-    }
-  ];
 
   return (
     <div className="min-h-screen">
-        {/* Hero Section with Property Background */}
+      {/* Hero Section remains the same */}
       <section className="relative h-[600px]">
         {/* Background Image */}
         <div className="absolute inset-0">
@@ -106,20 +126,26 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredProperties.map((property, index) => (
               <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <Image src={property.image} alt="Property" width={400}height={300} className="w-full h-48 object-cover" />
+                <Image 
+                  src={property.image} 
+                  alt="Property" 
+                  width={400} 
+                  height={300} 
+                  className="w-full h-48 object-cover" 
+                />
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="bg-teal-100 text-black  px-3 py-1 rounded-full text-sm">
+                    <span className="bg-teal-100 text-black px-3 py-1 rounded-full text-sm">
                       {property.type}
                     </span>
                     <span className="font-bold text-xl">{property.price}</span>
                   </div>
                   <p className="text-gray-600 mb-2">{property.details}</p>
                   <p className="text-gray-500">{property.location}</p>
-                  <Link href="/buy">
-                  <button className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
-                    View Details
-                  </button>
+                  <Link href={`/buy/${property.id}`}>
+                    <button className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
+                      View Details
+                    </button>
                   </Link>
                 </div>
               </div>
@@ -133,8 +159,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Value Propositions */}
-      <section className="bg-gray-50 py-16">
+      {/* Value Propositions section remains the same */}
+     <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -161,8 +187,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      
     </div>
   );
-};
+}
