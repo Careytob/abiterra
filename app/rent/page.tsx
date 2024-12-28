@@ -1,128 +1,71 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Head from 'next/head';
 import { NextSeo } from 'next-seo';
+import Link from 'next/link';
 
 const RentPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
+  interface Property {
+    id: number;
+    title: string;
+    description: string;
+    price: string;
+    location: string;
+    image: string;
+    type: string;
+    specs: {
+      beds: number;
+      baths: number;
+      area: string;
+    } | null;  // Make specs optional
+  }
+
+  const [properties, setProperties] = useState<Property[]>([]);
   const totalPages = 10;
 
-  const properties = [
-    {
-      id: 1,
-      title: "Modern 3-Bedroom Flat",
-      price: "₦7,500,000/yr",
-      location: "Lekki Phase 1, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartment",
-      image: "/apartment-1.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    {
-      id: 2,
-      title: "3-Bedroom Flat",
-      price: "₦4,500,000/yr",
-      location: "Maryland Estate, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartmenr",
-      image: "/apartment-2.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    {
-      id: 3,
-      title: "3-Bedroom Flat",
-      price: "₦7,000,000/yr",
-      location: "GRA Ikeja, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartment",
-      image: "/apartment-3.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    {
-      id: 4,
-      title: "Modern 3-Bedroom Flat",
-      price: "₦5,000,000/yr",
-      location: "Lekki Phase 1, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartment",
-      image: "/apartment-4.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    {
-      id: 5,
-      title: "3-Bedroom Flat",
-      price: "₦5,000,000/yr",
-      location: "Maryland Estate, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartment",
-      image: "/apartment-5.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    {
-      id: 6,
-      title: "3-Bedroom Flat",
-      price: "₦4,000,000/yr",
-      location: "GRA Ikeja, Lagos",
-      specs: {
-        beds: 3,
-        baths: 3,
-        area: "200m²"
-      },
-      type: "Apartmenr",
-      image: "/apartment-6.jpg",
-      description: "Spacious modern 3-bedroom flat in Lekki Phase 1. Features high-end finishes and excellent amenities."
-    },
-    
-  ];
+  useEffect(() => {
+    // Fetch properties from the database
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch('/api/properties?type=RENT');
+ 
+        const data = await response.json();
+        setProperties(data);
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+      }
+    };
 
-  // structured data for rental listings
-  const structuredData = {
+    fetchProperties();
+  }, []);
+
+   //structured data for the real estate listings
+   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "itemListElement": properties.map((property, index) => ({
       "@type": "ListItem",
       "position": index + 1,
       "item": {
-        "@type": "Apartment",
+        "@type": "RealEstateListing",
         "name": property.title,
         "description": property.description,
-        "priceCurrency": "NGN",
-        "price": property.price.replace(/[^\d]/g, ''),
-        "leaseLength": "1 year",
+        "price": property.price,
         "address": {
           "@type": "PostalAddress",
           "addressLocality": property.location,
           "addressRegion": "Lagos",
           "addressCountry": "NG"
         },
-        "numberOfRooms": property.specs.beds,
-        "numberOfBathroomsFull": property.specs.baths,
+        "numberOfRooms": property.specs ? property.specs.beds : undefined,
+        "numberOfBathrooms": property.specs ? property.specs.baths : undefined,
         "floorSize": {
           "@type": "QuantitativeValue",
-          "value": parseInt(property.specs.area),
+          "value": property.specs ? parseInt(property.specs.area.replace('m²','')) : undefined,
           "unitText": "m²"
         }
       }
@@ -196,11 +139,11 @@ const RentPage = () => {
                   id="property-search"
                   type="text"
                   placeholder="Enter an address, neighborhood, city, or ZIP code"
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-teal-500"
                 />
               </div>
               <button 
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
                 aria-label="Open filters menu"
               >
                 <SlidersHorizontal className="w-4 h-4" />
@@ -275,7 +218,7 @@ const RentPage = () => {
                   </button>
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                     <span className="text-white text-2xl font-bold" itemProp="price">{property.price}</span>
-                    <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{property.type}</span>
+                    <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">{property.type}</span>
                   </div>
                 </div>
 
@@ -296,30 +239,32 @@ const RentPage = () => {
                     <div className="flex items-center gap-1.5">
                       <dt className="sr-only">Bedrooms</dt>
                       <Bed className="w-4 h-4" />
-                      <dd itemProp="numberOfRooms">{property.specs.beds} beds</dd>
+                      <dd itemProp="numberOfRooms">{property.specs?.beds} beds</dd>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <dt className="sr-only">Bathrooms</dt>
                       <Bath className="w-4 h-4" />
-                      <dd itemProp="numberOfBathroomsFull">{property.specs.baths} baths</dd>
+                      <dd itemProp="numberOfBathroomsFull">{property.specs?.baths} baths</dd>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <dt className="sr-only">Floor area</dt>
                       <Square className="w-4 h-4" />
-                      <dd itemProp="floorSize">{property.specs.area}</dd>
+                      <dd itemProp="floorSize">{property.specs?.area}</dd>
                     </div>
                   </dl>
 
                   {/* View Details Button */}
+                  <Link href={`/rent/${property.id}`}>
                   <div className="pt-2">
                     <button 
-                      className="flex items-center gap-2 text-blue-600 font-medium group-hover:gap-3 transition-all"
+                      className="flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all"
                       aria-label={`View details for ${property.title}`}
                     >
                       View Details 
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
+                  </Link>
                 </div>
               </article>
             ))}
@@ -353,7 +298,7 @@ const RentPage = () => {
                     onClick={() => setCurrentPage(pageNumber)}
                     className={`w-10 h-10 rounded-lg ${
                       currentPage === pageNumber
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-teal-600 text-white'
                         : 'hover:bg-gray-100'
                     }`}
                     aria-label={`Page ${pageNumber}`}

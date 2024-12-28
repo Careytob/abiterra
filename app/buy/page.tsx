@@ -146,7 +146,7 @@ const BuyPage = () => {
           />
           </div>
           <button 
-          className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-700"
           aria-label="Open filters menu"
           >
           <SlidersHorizontal className="w-4 h-4" />
