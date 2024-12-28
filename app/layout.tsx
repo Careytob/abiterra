@@ -65,7 +65,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer/>
-            <Toaster /> {/* Move Toaster here, outside of main but inside Theme */}
+            <Toaster /> 
           </Theme>
         </AuthProvider>
       </body>

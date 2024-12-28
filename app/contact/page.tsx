@@ -1,18 +1,19 @@
 'use client'
-import React from 'react'
-import { useState } from 'react';
+import React, { ChangeEvent } from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner' 
 
 interface ContactFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  inquiry: string;
-  message: string;
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  inquiry: string
+  message: string
 }
 
-
 const ContactPage = () => {
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<ContactFormData>({
     firstName: '',
     lastName: '',
@@ -20,21 +21,56 @@ const ContactPage = () => {
     phone: '',
     inquiry: '',
     message: ''
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add your form submission logic here
-    console.log('Form submitted:', formData);
-  };
-
+  })
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submission started');
+    setLoading(true);
+  
+    try {
+      console.log('Sending data:', formData);
+      const response = await fetch('/api/contact-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      console.log('Response received:', response);
+      const data = await response.json();
+      console.log('Response data:', data);
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit form');
+      }
+  
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        inquiry: '',
+        message: ''
+      });
+  
+      toast.success('Message sent successfully! We\'ll be in touch soon.');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <main className="bg-gray-50 min-h-screen pt-10">
       {/* Header */}
@@ -149,11 +185,12 @@ const ContactPage = () => {
                 </div>
 
                 <button
-                  type="submit"
-                  className="w-full bg-teal-800 text-white py-3 px-6 rounded-md hover:bg-teal-900 transition duration-200"
-                >
-                  Send Message
-                </button>
+				type="submit"
+				disabled={loading}
+				className="w-full bg-teal-800 text-white py-3 px-6 rounded-md hover:bg-teal-900 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+			  >
+				{loading ? 'Sending...' : 'Send Message'}
+			  </button>
               </form>
             </div>
           </div>
