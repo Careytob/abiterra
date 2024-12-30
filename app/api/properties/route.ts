@@ -1,27 +1,52 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { PropertyType } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
-    // Extract query parameters from the request URL
+    // Extract query parameters
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // Get 'type' parameter (e.g., 'SALE' or 'RENT')
+    const type = searchParams.get('type');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    
+    // Validate pagination parameters
+    const validPage = page > 0 ? page : 1;
+    const validLimit = limit > 0 && limit <= 50 ? limit : 12;
+    const skip = (validPage - 1) * validLimit;
 
     // Validate and map the 'type' to the Prisma enum
-    const typeFilter = type === 'SALE' || type === 'RENT' ? type : undefined;
+    const typeFilter = type === 'SALE' || type === 'RENT' 
+      ? type as PropertyType 
+      : undefined;
 
-    // Fetch properties from the database
+    // Create where clause with proper typing
+    const whereClause = typeFilter ? {
+      type: typeFilter
+    } : {};
+
+    // Get total count for pagination
+    const totalItems = await prisma.property.count({
+      where: whereClause,
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalItems / validLimit);
+
+    // Fetch paginated properties
     const properties = await prisma.property.findMany({
-      where: typeFilter ? { type: typeFilter } : {}, // Use filter only if valid type is provided
+      where: whereClause,
       orderBy: {
         id: 'asc',
       },
       include: {
-        images: true, // Include related images
+        images: true,
       },
+      skip,
+      take: validLimit,
     });
 
-    // Transform properties for the response
+    // Transform properties
     const transformedProperties = properties.map((property) => ({
       id: property.id,
       title: property.title,
@@ -29,7 +54,6 @@ export async function GET(request: Request) {
       price: property.price,
       location: property.location,
       type: property.type,
-      // Use the first image as the main display image
       image: property.images.length > 0 ? property.images[0].url : null,
       specs: {
         beds: property.bedrooms,
@@ -38,11 +62,26 @@ export async function GET(request: Request) {
       },
     }));
 
-    return NextResponse.json(transformedProperties);
+    // Return paginated response
+    return NextResponse.json({
+      properties: transformedProperties,
+      pagination: {
+        currentPage: validPage,
+        totalPages,
+        totalItems,
+        itemsPerPage: validLimit,
+        hasNextPage: validPage < totalPages,
+        hasPreviousPage: validPage > 1,
+      },
+    });
+
   } catch (error) {
     console.error('Error in GET /api/properties:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch properties' },
+      { 
+        error: 'Failed to fetch properties',
+        details: process.env.NODE_ENV === 'development' ? error : undefined 
+      },
       { status: 500 }
     );
   }
