@@ -35,7 +35,10 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
             </DialogDescription>
           </DialogHeader>
           {status === 'authenticated' ? (
-            <ContactForm propertyId={parseInt(propertyId, 10)} />
+            <div className='w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors'>
+                <ContactForm propertyId={parseInt(propertyId, 10)} />
+            </div>
+            
           ) : (
             <div className="flex flex-col gap-4">
               <p className="text-center text-sm text-gray-600">

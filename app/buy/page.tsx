@@ -122,10 +122,48 @@ const BuyPage = () => {
 
   return (
     <>
-      <NextSeo
+     <NextSeo
         title="Properties for Sale in Lagos | Luxury Real Estate Listings"
         description="Browse luxury properties for sale in Lagos, Nigeria. Find exclusive villas, apartments, and houses in prime locations."
+        openGraph={{
+          url: 'https://yourwebsite.com/buy',
+          title: 'Properties for Sale in Lagos',
+          description: 'Browse luxury properties for sale in Lagos, Nigeria.',
+          images: [
+            {
+              url: '/og-image.jpg',
+              width: 800,
+              height: 600,
+              alt: 'Luxury properties for sale',
+            },
+          ],
+          site_name: 'Your Website Name',
+        }}
+        twitter={{
+          handle: '@yourhandle',
+          site: '@site',
+          cardType: 'summary_large_image',
+        }}
+        canonical="https://yourwebsite.com/buy"
       />
+
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "RealEstateListing",
+          "name": "Properties for Sale in Lagos",
+          "description": "Luxury villas, apartments, and houses available for sale in Lagos, Nigeria.",
+          "url": "https://yourwebsite.com/buy",
+          "offers": properties.map((property) => ({
+            "@type": "Offer",
+            "price": property.price,
+            "priceCurrency": "NGN",
+            "availability": "https://schema.org/InStock",
+            "itemCondition": "https://schema.org/NewCondition",
+            "url": `/buy/${property.id}`
+          })),
+        })}
+      </script>
 
       <main className="bg-gray-50 min-h-screen pt-20">
         {/* Search Section */}
@@ -217,22 +255,25 @@ const BuyPage = () => {
                       <MapPin className="w-4 h-4" />
                       {property.location}
                     </p>
-                    {property.specs && (
-                      <dl className="flex items-center gap-6 text-gray-600 mt-2">
-                        <div className="flex items-center gap-1.5">
-                          <Bed className="w-4 h-4" />
-                          <dd>{property.specs.beds} beds</dd>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Bath className="w-4 h-4" />
-                          <dd>{property.specs.baths} baths</dd>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Square className="w-4 h-4" />
-                          <dd>{property.specs.area}</dd>
-                        </div>
-                      </dl>
-                    )}
+                    {property.specs ? (
+            <dl className="flex items-center gap-6 text-gray-600 mt-2">
+              <div className="flex items-center gap-1.5">
+                <Bed className="w-4 h-4" />
+                <dd>{property.specs.beds} beds</dd>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Bath className="w-4 h-4" />
+                <dd>{property.specs.baths} baths</dd>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Square className="w-4 h-4" />
+                <dd>{property.specs.area}</dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="text-gray-500 mt-2">No property specifications available.</p>
+          )}
+
                     <Link href={`/buy/${property.id}`}>
                       <button className="mt-3 flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
                         View Details 
@@ -290,5 +331,6 @@ const BuyPage = () => {
     </>
   );
 };
+
 
 export default BuyPage;
