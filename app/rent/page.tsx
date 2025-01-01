@@ -1,15 +1,17 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { NextSeo } from 'next-seo';
 import Link from 'next/link';
+import debounce from 'lodash/debounce';
+import { NextResponse } from 'next/server';
 
 interface Property {
   id: number;
   title: string;
   description: string;
-  price: string;
+  price: string | number;
   location: string;
   image: string;
   type: string;
@@ -35,90 +37,138 @@ interface ApiResponse {
 }
 
 const RentPage = () => {
+// Add this function at the beginning of both BuyPage and RentPage components
+const formatPrice = (price: string | number) => {
+  // Convert to string if it's a number
+  const priceString = price.toString();
+  
+  // Remove any existing non-numeric characters except decimals
+  const numericPrice = priceString.replace(/[^0-9.]/g, '');
+  
+  // Split into whole number and decimal parts if any
+  const [wholePart, decimalPart] = numericPrice.split('.');
+  
+  // Add commas to the whole number part
+  const formattedWholePart = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Return formatted price with decimal part if it exists
+  return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
+};
+
   const [viewMode, setViewMode] = useState('grid');
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    currentPage: 1,
-    totalPages: 0,
-    totalItems: 0,
-    itemsPerPage: 12,
-    hasNextPage: false,
-    hasPreviousPage: false
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProperties = async (page: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `/api/properties?type=RENT&page=${page}&limit=${pagination.itemsPerPage}`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch properties');
+    const [properties, setProperties] = useState<Property[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [pagination, setPagination] = useState<PaginationInfo>({
+      currentPage: 1,
+      totalPages: 0,
+      totalItems: 0,
+      itemsPerPage: 12,
+      hasNextPage: false,
+      hasPreviousPage: false
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+  
+  
+    const fetchProperties = async (page: number, search?: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const searchParam = search?.trim() 
+          ? `&search=${encodeURIComponent(search.trim())}` 
+          : '';
+        
+        const url = `/api/properties?type=RENT&page=${page}&limit=${pagination.itemsPerPage}${searchParam}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.properties && Array.isArray(data.properties)) {
+          setProperties(data.properties);
+          setPagination(data.pagination);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
+        console.error('Fetch error:', err);
+      } finally {
+        setIsLoading(false);
       }
-
-      const data: ApiResponse = await response.json();
-      setProperties(Array.isArray(data.properties) ? data.properties : []);
-      setPagination(data.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      console.error('Error fetching properties:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProperties(pagination.currentPage);
-  }, [pagination.currentPage]);
-
-  const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({ ...prev, currentPage: newPage }));
-  };
-
-  // Generate pagination numbers
-  const getPaginationRange = () => {
-    const range: (number | string)[] = [];
-    const { currentPage, totalPages } = pagination;
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    range.push(1);
-
-    let start = Math.max(2, currentPage - 1);
-    let end = Math.min(totalPages - 1, currentPage + 1);
-
-    if (currentPage <= 2) {
-      end = 4;
-    }
-    if (currentPage >= totalPages - 1) {
-      start = totalPages - 3;
-    }
-
-    if (start > 2) {
-      range.push('...');
-    }
-
-    for (let i = start; i <= end; i++) {
-      range.push(i);
-    }
-
-    if (end < totalPages - 1) {
-      range.push('...');
-    }
-
-    if (totalPages > 1) {
-      range.push(totalPages);
-    }
-
-    return range;
-  };
+    };
+  
+      // Debounced search function to prevent too many API calls
+      const debouncedSearch = useCallback(
+        debounce((search: string) => {
+          setPagination(prev => ({ ...prev, currentPage: 1 })); // Reset to first page on search
+          fetchProperties(1, search);
+        }, 500),
+        []
+      );
+  
+        // Update useEffect to depend on searchQuery
+    useEffect(() => {
+      fetchProperties(pagination.currentPage, searchQuery);
+    }, [pagination.currentPage, searchQuery]);
+  
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+      debouncedSearch(value);
+    };
+  
+    const handlePageChange = (newPage: number) => {
+      setPagination(prev => ({ ...prev, currentPage: newPage }));
+    };
+  
+    const getPaginationRange = () => {
+      const range: (number | string)[] = [];
+      const { currentPage, totalPages } = pagination;
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+  
+      range.push(1);
+  
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+  
+      if (currentPage <= 2) {
+        end = 4;
+      }
+      if (currentPage >= totalPages - 1) {
+        start = totalPages - 3;
+      }
+  
+      if (start > 2) {
+        range.push('...');
+      }
+  
+      for (let i = start; i <= end; i++) {
+        range.push(i);
+      }
+  
+      if (end < totalPages - 1) {
+        range.push('...');
+      }
+  
+      if (totalPages > 1) {
+        range.push(totalPages);
+      }
+  
+      return range;
+    };
+  
 
   return (
     <>
@@ -130,29 +180,36 @@ const RentPage = () => {
       <main className="bg-gray-50 min-h-screen pt-20">
         {/* Search Section */}
         <section className="bg-white border-b sticky top-20 z-10">
-          <div className="max-w-7xl mx-auto p-6">
-            <div className="flex gap-4 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Enter an address, neighborhood, city, or ZIP code"
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <button className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-700">
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
-              </button>
-            </div>
-          </div>
-        </section>
+                 <div className="max-w-7xl mx-auto p-6">
+                   <div className="flex gap-4 items-center">
+                     <div className="relative flex-1">
+                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                       <input
+                         type="text"
+                         value={searchQuery}
+                         onChange={handleSearchChange}
+                         placeholder="Enter a location, neighborhood, city, or state"
+                         className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
+                       />
+                       {isLoading && (
+                         <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-teal-500" />
+                         </div>
+                       )}
+                     </div>
+                     <button className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-700">
+                       <SlidersHorizontal className="w-4 h-4" />
+                       Filters
+                     </button>
+                   </div>
+                 </div>
+               </section>
 
         {/* Main Content */}
         <section className="max-w-7xl mx-auto p-6">
           <header className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-2xl font-semibold">Properties for Rent in Lagos</h1>
+              <h1 className="text-2xl font-semibold">Properties for Rent</h1>
               <p className="text-gray-600 mt-1">
                 {isLoading ? (
                   'Loading properties...'
@@ -203,8 +260,7 @@ const RentPage = () => {
                     <button className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
                       <Heart className="w-4 h-4 text-gray-700" />
                     </button>
-                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                      <span className="text-white text-2xl font-bold">{property.price}</span>
+                    <div className="absolute bottom-4 right-4">
                       <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
                         {property.type}
                       </span>
@@ -212,7 +268,10 @@ const RentPage = () => {
                   </div>
 
                   <div className="mt-4">
-                    <h2 className="font-semibold text-gray-900">{property.title}</h2>
+                    <div className="flex justify-between items-start">
+                      <h2 className="font-semibold text-gray-900">{property.title}</h2>
+                      <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+                    </div>
                     <p className="text-gray-600 flex items-center gap-1 mt-1">
                       <MapPin className="w-4 h-4" />
                       {property.location}

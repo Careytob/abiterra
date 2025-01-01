@@ -24,7 +24,7 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
         <DialogTrigger asChild>
           <Button className="w-full py-6 text-lg">
             <Mail className="w-5 h-5 mr-2" />
-            Contact Agent
+            Contact Us
           </Button>
         </DialogTrigger>
         <DialogContent className="bg-white sm:max-w-[425px]">
@@ -35,11 +35,8 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
             </DialogDescription>
           </DialogHeader>
           {status === 'authenticated' ? (
-            <div className='w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors'>
-                <ContactForm propertyId={parseInt(propertyId, 10)} />
-            </div>
-            
-          ) : (
+          <ContactForm propertyId={parseInt(propertyId, 10)} />
+            ) : (
             <div className="flex flex-col gap-4">
               <p className="text-center text-sm text-gray-600">
                 Please log in or sign up to contact the agent

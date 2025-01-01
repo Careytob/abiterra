@@ -24,12 +24,12 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
         <DialogTrigger asChild>
           <Button className="w-full py-6 text-lg">
             <Mail className="w-5 h-5 mr-2" />
-            Contact Agent
+            Contact Us
           </Button>
         </DialogTrigger>
         <DialogContent className="bg-white sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Contact Agent</DialogTitle>
+            <DialogTitle>Contact Us</DialogTitle>
             <DialogDescription>
               Fill out the form below and we'll get back to you as soon as possible.
             </DialogDescription>

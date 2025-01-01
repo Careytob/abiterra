@@ -36,17 +36,25 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
     setCurrentIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
+  const formatPrice = (price: string | number) => {
+    // Convert to string if it's a number
+    const priceString = price.toString();
+    
+    // Remove any existing non-numeric characters except decimals
+    const numericPrice = priceString.replace(/[^0-9.]/g, '');
+    
+    // Split into whole number and decimal parts if any
+    const [wholePart, decimalPart] = numericPrice.split('.');
+    
+    // Add commas to the whole number part
+    const formattedWholePart = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Return formatted price with decimal part if it exists
+    return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-10">
+    <div className="min-h-screen bg-gray-50 pt-8">
       {/* Image Gallery */}
       <div className="w-full bg-gray-900 pt-8">
         <Card className="relative max-w-7xl mx-auto">
@@ -92,8 +100,8 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
                 </div>
               </div>
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <p className="text-3xl font-bold text-black order-first md:order-last">
-                  {formatPrice(property.price)}
+              <p className="text-3xl font-bold text-black order-first md:order-last">
+                  <span className=" font-bold ">₦{formatPrice(property.price)}</span>
                 </p>
                 <div className="flex items-center gap-4">
                   <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors">
@@ -181,9 +189,9 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
             <Card className="sticky top-8">
               <CardContent className="p-8">
                 <h2 className="text-2xl font-semibold mb-6">Interested?</h2>
-            
-                <ContactDialog propertyId={property.id.toString()} />
-                
+                <div className="w-full bg-teal-600 text-white  px-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+                  <ContactDialog propertyId={property.id.toString()} />
+                </div>            
               </CardContent>
             </Card>
           </div>

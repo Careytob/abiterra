@@ -1,88 +1,62 @@
+// app/api/properties/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { PropertyType } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
-    // Extract query parameters
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
+    const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
-    
-    // Validate pagination parameters
-    const validPage = page > 0 ? page : 1;
-    const validLimit = limit > 0 && limit <= 50 ? limit : 12;
-    const skip = (validPage - 1) * validLimit;
 
-    // Validate and map the 'type' to the Prisma enum
-    const typeFilter = type === 'SALE' || type === 'RENT' 
-      ? type as PropertyType 
-      : undefined;
+    // Add debug logging
+    console.log('Query params:', { type, search, page, limit });
 
-    // Create where clause with proper typing
-    const whereClause = typeFilter ? {
-      type: typeFilter
-    } : {};
-
-    // Get total count for pagination
-    const totalItems = await prisma.property.count({
-      where: whereClause,
-    });
-
-    // Calculate total pages
-    const totalPages = Math.ceil(totalItems / validLimit);
-
-    // Fetch paginated properties
     const properties = await prisma.property.findMany({
-      where: whereClause,
-      orderBy: {
-        id: 'asc',
+      where: {
+        type: type as PropertyType,
+        ...(search ? {
+          OR: [
+            { location: { contains: search } },
+            { title: { contains: search } }
+          ]
+        } : {})
       },
-      include: {
-        images: true,
-      },
-      skip,
-      take: validLimit,
+      take: limit,
+      skip: (page - 1) * limit,
+      include: { images: true }
     });
 
-    // Transform properties
-    const transformedProperties = properties.map((property) => ({
-      id: property.id,
-      title: property.title,
-      description: property.description,
-      price: property.price,
-      location: property.location,
-      type: property.type,
-      image: property.images.length > 0 ? property.images[0].url : null,
-      specs: {
-        beds: property.bedrooms,
-        baths: property.bathrooms,
-        area: `${property.area}m²`,
-      },
-    }));
+    const totalItems = await prisma.property.count();
 
-    // Return paginated response
     return NextResponse.json({
-      properties: transformedProperties,
+      properties: properties.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        location: p.location,
+        type: p.type,
+        image: p.images[0]?.url || null,
+        specs: {
+          beds: p.bedrooms,
+          baths: p.bathrooms,
+          area: `${p.area}m²`
+        }
+      })),
       pagination: {
-        currentPage: validPage,
-        totalPages,
+        currentPage: page,
+        totalPages: Math.ceil(totalItems / limit),
         totalItems,
-        itemsPerPage: validLimit,
-        hasNextPage: validPage < totalPages,
-        hasPreviousPage: validPage > 1,
-      },
+        itemsPerPage: limit,
+        hasNextPage: page * limit < totalItems,
+        hasPreviousPage: page > 1
+      }
     });
-
   } catch (error) {
-    console.error('Error in GET /api/properties:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch properties',
-        details: process.env.NODE_ENV === 'development' ? error : undefined 
-      },
-      { status: 500 }
-    );
+    console.error('API Error:', error);
+    return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
   }
 }
