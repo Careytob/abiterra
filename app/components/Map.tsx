@@ -63,38 +63,39 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15 }) => {
   }
 
   return (
-    <div className="h-[600px] w-full rounded-lg overflow-hidden">
-      <MapContainer
-        center={[centerProperty.latitude, centerProperty.longitude]}
-        zoom={zoom}
-        scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
-        />
-        {propertyArray.map(property => {
-          if (property.latitude && property.longitude) {
-            return (
-              <Marker 
-                key={property.id} 
-                position={[property.latitude, property.longitude]}
-              >
-                <Popup>
-                  <div className="p-2">
-                    <h3 className="font-semibold">{property.title}</h3>
-                    <p className="text-sm text-gray-600">{property.location}</p>
-                    <p className="text-sm font-bold mt-1">₦{property.price}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          }
-          return null;
-        })}
-      </MapContainer>
-    </div>
+    <div 
+  className="h-[600px] w-full rounded-lg overflow-hidden relative"
+  style={{ zIndex: 1 }}
+>
+  <MapContainer
+    center={[centerProperty.latitude, centerProperty.longitude]}
+    zoom={zoom}
+    scrollWheelZoom={true}
+    style={{ height: '100%', width: '100%' }}
+  >
+    <TileLayer
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attribution="&copy; OpenStreetMap contributors"
+    />
+    {propertyArray.map(property => (
+      property.latitude && property.longitude && (
+        <Marker 
+          key={property.id} 
+          position={[property.latitude, property.longitude]}
+        >
+          <Popup>
+            <div className="p-2">
+              <h3 className="font-semibold">{property.title}</h3>
+              <p className="text-sm text-gray-600">{property.location}</p>
+              <p className="text-sm font-bold mt-1">₦{property.price}</p>
+            </div>
+          </Popup>
+        </Marker>
+      )
+    ))}
+  </MapContainer>
+</div>
+
   );
 };
 

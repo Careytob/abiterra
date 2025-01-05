@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-console.log('Property Data:', property);
+//console.log('Property Data:', property);
 
 
 interface Property {
@@ -53,38 +53,22 @@ interface FormatPriceOptions {
 }
 
 const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
-  console.log('Property Coordinates:', property.latitude, property.longitude);
+  //console.log('Property Coordinates:', property.latitude, property.longitude);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    console.log('Property data:', property);
-    console.log('Coordinates:', property.latitude, property.longitude);
+    //console.log('Property data:', property);
+    //console.log('Coordinates:', property.latitude, property.longitude);
   }, [property]);
 
-  useEffect(() => {
-    console.log('Full property data in detail view:', property);
-    console.log('Property coordinates:', {
-      lat: property.latitude,
-      lng: property.longitude,
-      types: {
-        lat: typeof property.latitude,
-        lng: typeof property.longitude
-      }
-    });
-  }, [property]);
 
-  useEffect(() => {
-    console.log('Raw property data:', property);
-    console.log('Parsed coordinates:', {
-      lat: Number(property.latitude),
-      lng: Number(property.longitude)
-    });
-  }, [property]);
+
+  
 
   // Add useEffect for map mounting
   useEffect(() => {
-    console.log('MapView mounted');
+    //console.log('MapView mounted');
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
@@ -262,7 +246,7 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
               {/* Location Card */}
          {/* Location Card */}
                   {/* Location Card */}
-                  <Card className="overflow-hidden">
+   <Card className="overflow-hidden">
   <CardContent className="p-8">
     <h2 className="text-2xl font-semibold mb-6">Location</h2>
     {property.latitude && property.longitude ? (
