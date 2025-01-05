@@ -77,6 +77,8 @@ model Property {
   toilets      Int
   bq           Int
   area         Float
+   latitude    Float?
+  longitude   Float?
   availability Boolean   @default(true)
   agentId      String
   createdAt    DateTime  @default(now())

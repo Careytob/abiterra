@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/app/components/ui/card';
 import { MapPin, Share2, BedDouble, Bath, ChevronLeft, ChevronRight, Square } from 'lucide-react';
 import { ContactDialog } from './ContactDialog';
 

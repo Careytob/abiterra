@@ -23,8 +23,7 @@ const Footer = () => {
             <h3 className="font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-400">
               <li>info@abiterra.com</li>
-              <li>+234 806 019 8071</li>
-              <li>Lagos</li>
+              
             </ul>
           </div>
           <div className="text-center sm:text-left">

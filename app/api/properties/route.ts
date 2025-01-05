@@ -1,7 +1,7 @@
-// app/api/properties/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { PropertyType } from '@prisma/client';
+import { DEFAULT_COORDINATES } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +11,6 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
 
-    // Add debug logging
     console.log('Query params:', { type, search, page, limit });
 
     const properties = await prisma.property.findMany({
@@ -31,13 +30,21 @@ export async function GET(request: Request) {
 
     const totalItems = await prisma.property.count();
 
-    return NextResponse.json({
-      properties: properties.map(p => ({
+    // Map properties with validated coordinates
+    const mappedProperties = properties.map(p => {
+      const latitude = p.latitude ? Number(p.latitude) : DEFAULT_COORDINATES.latitude;
+      const longitude = p.longitude ? Number(p.longitude) : DEFAULT_COORDINATES.longitude;
+
+      console.log(`Property ${p.id} coordinates:`, { latitude, longitude });
+
+      return {
         id: p.id,
         title: p.title,
         description: p.description,
         price: p.price,
         location: p.location,
+        latitude,
+        longitude,
         type: p.type,
         image: p.images[0]?.url || null,
         specs: {
@@ -45,7 +52,11 @@ export async function GET(request: Request) {
           baths: p.bathrooms,
           area: `${p.area}m²`
         }
-      })),
+      };
+    });
+
+    return NextResponse.json({
+      properties: mappedProperties,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalItems / limit),

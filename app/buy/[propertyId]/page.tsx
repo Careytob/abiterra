@@ -2,7 +2,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import ViewPropertyDetails from './ViewPropertyDetails';
+import ViewPropertyDetails from './PropertyDetailClient';
 
 interface Props {
   params: { propertyId: string };
@@ -30,6 +30,8 @@ const PropertyDetailPage = async ({ params }: Props) => {
       area: true,
       description: true,
       location: true,
+      latitude: true,
+      longitude: true,
       features: { select: { name: true } },
     },
   });
@@ -38,7 +40,11 @@ const PropertyDetailPage = async ({ params }: Props) => {
     notFound();
   }
 
-  return <ViewPropertyDetails property={property} />;
+  return <ViewPropertyDetails property={{
+    ...property,
+    latitude: property.latitude ?? 0,
+    longitude: property.longitude ?? 0
+  }} />;
 };
 
 export default PropertyDetailPage;

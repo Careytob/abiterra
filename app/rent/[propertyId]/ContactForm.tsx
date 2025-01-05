@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { DialogClose } from "@/components/ui/dialog";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Textarea } from "@/app/components/ui/textarea";
+import { useToast } from "@/app/components/ui/use-toast";
+import { DialogClose } from "@/app/components/ui/dialog";
 
 interface ContactFormProps {
   propertyId: number;

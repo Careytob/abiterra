@@ -6,6 +6,7 @@ import { NextSeo } from 'next-seo';
 import Link from 'next/link';
 import debounce from 'lodash/debounce';
 import { NextResponse } from 'next/server';
+import dynamic from 'next/dynamic';
 
 interface Property {
   id: number;
