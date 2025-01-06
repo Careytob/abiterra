@@ -194,7 +194,7 @@ const handleViewModeChange = (mode: 'grid' | 'map') => {
         ) : (
           <p className="text-gray-500 mt-2">No property specifications available.</p>
         )}
-        <Link href={`/buy/${property.id}`}>
+        <Link href={`/rent/${property.id}`}>
           <button className="mt-3 flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
             View Details 
             <ArrowRight className="w-4 h-4" />

@@ -11,6 +11,7 @@ import L from 'leaflet';
 import MapView from '@/app/components/Map';
 import { formatPrice } from '@/lib/utils';
 import { property } from 'lodash';
+import ShareButton from './ShareButton';
 
 
 
@@ -170,11 +171,12 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
                   </p>
 
                   <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors">
-                      <Share2 className="w-5 h-5" />
-                      Share
-                    </button>
-                   
+                  <ShareButton
+                    title={property.title}
+                    location={property.location}
+                    price={property.price}
+                  />
+                                    
                   </div>
                 </div>
               </div>
