@@ -22,7 +22,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-console.log('Property Data:', property);
+//console.log('Property Data:', property);
 
 
 interface Property {
@@ -54,24 +54,13 @@ interface FormatPriceOptions {
 }
 
 const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
-  console.log('Property Coordinates:', property.latitude, property.longitude);
+  //console.log('Property Coordinates:', property.latitude, property.longitude);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
  
 
-  useEffect(() => {
-    console.log('Full property data in detail view:', property);
-    console.log('Property coordinates:', {
-      lat: property.latitude,
-      lng: property.longitude,
-      types: {
-        lat: typeof property.latitude,
-        lng: typeof property.longitude
-      }
-    });
-  }, [property]);
-
+  
 
 
   // Add useEffect for map mounting

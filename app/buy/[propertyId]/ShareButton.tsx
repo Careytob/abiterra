@@ -23,7 +23,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ title, location, price }) => 
       url: window.location.href
     };
     
-    console.log('Share data:', shareData);
+    //console.log('Share data:', shareData);
 
     try {
       if (navigator.share) {

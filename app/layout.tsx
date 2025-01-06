@@ -8,8 +8,9 @@ import { Theme } from "@radix-ui/themes";
 import NavBar from "./NavBar";
 import AuthProvider from "./auth/Provider";
 import Footer from "./Footer";
-import { Toaster } from "@/app/components/ui/toaster"
+//import { Toaster } from "@/app/components/ui/toaster"
 import 'leaflet/dist/leaflet.css';
+import { Toaster } from 'sonner'
 
 
 
@@ -64,9 +65,9 @@ export default function RootLayout({
             <NavBar/>
             <main className="flex-grow">
               {children}
+              <Toaster position="top-center" richColors />
             </main>
             <Footer/>
-            <Toaster /> 
           </Theme>
         </AuthProvider>
       </body>

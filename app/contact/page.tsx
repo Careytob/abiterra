@@ -32,11 +32,9 @@ const ContactPage = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submission started');
     setLoading(true);
   
     try {
-      console.log('Sending data:', formData);
       const response = await fetch('/api/contact-form', {
         method: 'POST',
         headers: {
@@ -45,11 +43,8 @@ const ContactPage = () => {
         body: JSON.stringify(formData),
       });
   
-      console.log('Response received:', response);
-      const data = await response.json();
-      console.log('Response data:', data);
-  
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to submit form');
       }
   
@@ -63,14 +58,20 @@ const ContactPage = () => {
         message: ''
       });
   
-      toast.success('Message sent successfully! We\'ll be in touch soon.');
+      toast.success('Message sent successfully!', {
+        duration: 3000,
+        position: 'top-center',
+      });
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.', {
+        duration: 3000,
+        position: 'top-center',
+      });
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <main className="bg-gray-50 min-h-screen pt-10">
       {/* Header */}
@@ -159,7 +160,7 @@ const ContactPage = () => {
                     value={formData.inquiry}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 !important"
+                    className="w-full text-black px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 !important"
                   >
                     <option value="">Select an option</option>
                     <option value="buying">Buying Property</option>
