@@ -1,15 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,17 +13,17 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -40,94 +34,24 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
-
 model User {
   id            String    @id @default(cuid())
-  name          String    
+  name          String
   email         String    @unique
-  password      String?   // Now required
-  phone         String?   // Made optional since OAuth users won't have this initially
+  password      String?
+  phone         String?
   emailVerified DateTime? @map("email_verified")
   image         String?
   createdAt     DateTime  @default(now())
-  
-  // Relations
   accounts      Account[]
+  inquiry       inquiry[]
   sessions      Session[]
-  inquiries     Inquiry[]
 
   @@map("users")
-}
-
-model Property {
-  id           Int       @id @default(autoincrement())
-  title        String    @db.VarChar(255)
-  description  String    @db.Text
-  location     String
-  city         String
-  state        String
-  price        Float
-  type         PropertyType
-  status       PropertyStatus @default(AVAILABLE)
-  bedrooms     Int
-  bathrooms    Int
-  toilets      Int
-  bq           Int
-  area         Float
-   latitude    Float?
-  longitude   Float?
-  availability Boolean   @default(true)
-  agentId      String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  // Relations
-  images       Image[]   @relation("PropertyImages")
-  features     Feature[] @relation("PropertyFeatures")
-  inquiries    Inquiry[] @relation("PropertyInquiries")
-}
-
-model Feature {
-  id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(255)
-  propertyId Int
-  property   Property @relation("PropertyFeatures", fields: [propertyId], references: [id], onDelete: Cascade)
-}
-
-model Image {
-  id          Int      @id @default(autoincrement())
-  url         String   @db.VarChar(500)
-  propertyId  Int
-  property    Property @relation("PropertyImages", fields: [propertyId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-}
-
-model Inquiry {
-  id         Int      @id @default(autoincrement())
-  userId     String
-  propertyId Int
-  message    String   @db.Text
-  status     Status   @default(PENDING)
-  createdAt  DateTime @default(now())
-
-  // Relations
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation("PropertyInquiries", fields: [propertyId], references: [id], onDelete: Cascade)
-}
-
-model Contact {
-  id        Int         @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String
-  phone     String?     
-  inquiry   InquiryType
-  message   String      @db.Text
-  status    Status      @default(PENDING) 
-  createdAt DateTime    @default(now())
 }
 
 model VerificationToken {
@@ -139,27 +63,104 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-enum PropertyType {
-  SALE
-  RENT
+model contact {
+  id        Int             @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  inquiry   contact_inquiry
+  message   String
+  status    contact_status  @default(PENDING)
+  createdAt DateTime        @default(now())
 }
 
-enum PropertyStatus {
-  AVAILABLE
-  PENDING
-  SOLD
-  RENTED
+model feature {
+  id         Int      @id @default(autoincrement())
+  name       String
+  propertyId Int
+  property   property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
 }
 
-enum Status {
+model image {
+  id         Int      @id @default(autoincrement())
+  url        String
+  propertyId Int
+  createdAt  DateTime @default(now())
+  property   property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model inquiry {
+  id         Int            @id @default(autoincrement())
+  userId     String
+  propertyId Int
+  message    String
+  status     inquiry_status @default(PENDING)
+  createdAt  DateTime       @default(now())
+  property   property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  users      User          @relation(fields: [userId], references: [id])
+
+  @@index([propertyId])
+  @@index([userId])
+}
+
+model property {
+  id           Int             @id @default(autoincrement())
+  title        String
+  description  String
+  location     String
+  price        Float
+  type         property_type
+  availability Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  agentId      String
+  area         Float
+  bathrooms    Int
+  bedrooms     Int
+  bq           Int
+  city         String
+  state        String
+  status       property_status @default(AVAILABLE)
+  toilets      Int
+  latitude     Float?
+  longitude    Float?
+  feature      feature[]
+  image        image[]
+  inquiry      inquiry[]
+}
+
+enum inquiry_status {
   PENDING
   REVIEWED
   CONTACTED
 }
 
-enum InquiryType {
+enum contact_inquiry {
   BUYING
   LAND
   RENTING
   OTHER
+}
+
+enum property_type {
+  SALE
+  RENT
+}
+
+enum contact_status {
+  PENDING
+  REVIEWED
+  CONTACTED
+}
+
+enum property_status {
+  AVAILABLE
+  PENDING
+  SOLD
+  RENTED
 }
