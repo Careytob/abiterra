@@ -1,4 +1,3 @@
-// Mark the component as a client component
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -200,7 +199,7 @@ const BuyPage = () => {
       />
 
       <main className="bg-gray-50 min-h-screen pt-20">
-        {/* Your component JSX... */}
+        {/* Add your search bar, filters, map, and pagination here */}
       </main>
     </>
   );
