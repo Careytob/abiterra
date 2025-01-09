@@ -119,7 +119,7 @@ const VALUES = [
   {
     icon: "↗",
     title: "Innovation",
-    description: "Continuously improving the real estate experience"
+    description: "We are continuously improving the real estate experience"
   }
 ];
 
