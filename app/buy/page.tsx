@@ -1,4 +1,4 @@
-// Example of getServerSideProps or getStaticProps for dynamic fetching
+'use client';
 import { GetServerSideProps } from 'next';
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
