@@ -74,8 +74,15 @@ const BuyPage = () => {
       const data = await response.json();
       if (!data.properties || !Array.isArray(data.properties)) throw new Error('Invalid response format');
       
-      setProperties(data.properties);
-      setPagination(data.pagination);
+      setProperties(data.properties || []);
+      setPagination(data.pagination || {
+        currentPage: 1,
+        totalPages: 0,
+        totalItems: 0,
+        itemsPerPage: 12,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Fetch error:', err);
@@ -112,7 +119,6 @@ const BuyPage = () => {
     }
   }, [viewMode]);
 
-
   const getPaginationRange = () => {
     const range: (number | string)[] = [];
     const { currentPage, totalPages } = pagination;
@@ -137,16 +143,15 @@ const BuyPage = () => {
     return range;
   };
 
-  // In your BuyPage component, modify the view mode switching:
-const handleViewModeChange = (mode: 'grid' | 'map') => {
-  if (mode === 'map') {
-    setTimeout(() => {
-      setViewMode('map');
-    }, 100);
-  } else {
-    setViewMode('grid');
-  }
-};
+  const handleViewModeChange = (mode: 'grid' | 'map') => {
+    if (mode === 'map') {
+      setTimeout(() => {
+        setViewMode('map');
+      }, 100);
+    } else {
+      setViewMode('grid');
+    }
+  };
 
   const PropertyCard = ({ property }: { property: Property }) => (
     <article className="group cursor-pointer">
@@ -232,109 +237,62 @@ const handleViewModeChange = (mode: 'grid' | 'map') => {
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
                 />
                 {isLoading && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-teal-500" />
+                  <div className="absolute top-1/2 right-4 text-gray-500 -translate-y-1/2">
+                    <div className="w-3 h-3 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
                   </div>
                 )}
               </div>
-              <button className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-700">
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
+              <button onClick={() => handleViewModeChange(viewMode === 'grid' ? 'map' : 'grid')}>
+                {viewMode === 'grid' ? <Map className="w-6 h-6 text-teal-600" /> : <LayoutGrid className="w-6 h-6 text-teal-600" />}
               </button>
             </div>
           </div>
         </section>
 
-        <section className="max-w-7xl mx-auto p-6">
-          <header className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-2xl font-semibold">Properties for Sale</h1>
-              <p className="text-gray-600 mt-1">
-                {isLoading ? 'Loading properties...' : 
-                 error ? 'Error loading properties' :
-                 `Showing ${properties.length} of ${pagination.totalItems} properties`}
-              </p>
-            </div>
+        {error && (
+          <div className="text-red-500 text-center mt-6">{error}</div>
+        )}
 
-            <div className="flex gap-2">
-    <button
-      onClick={() => setViewMode('grid')}
-      className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
-    >
-      <LayoutGrid className="w-5 h-5" />
-    </button>
-    <button
-      onClick={() => {
-        setViewMode('grid'); // First set to grid
-        setTimeout(() => {
-          setMapKey(Date.now().toString()); // Generate new key
-          setViewMode('map'); // Then switch to map
-        }, 100);
-      }}
-      className={`p-2 rounded-lg ${viewMode === 'map' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
-    >
-      <Map className="w-5 h-5" />
-    </button>
-  </div>
+        {viewMode === 'grid' && (
+          <section className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </section>
+        )}
 
-          </header>
+        {viewMode === 'map' && (
+          <section className="max-w-7xl mx-auto p-6">
+            <MapView properties={properties} key={mapKey} />
+          </section>
+        )}
 
-          {error && (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          )}
-
-          {isLoading ? (
-  <div className="flex justify-center items-center min-h-[400px]">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500" />
-  </div>
-) : viewMode === 'grid' ? (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {properties.map((property) => (
-      <PropertyCard key={property.id} property={property} />
-    ))}
-  </div>
-) : viewMode === 'map' ? (
-  <div key={mapKey}>
-    <MapView 
-      properties={properties}
-    />
-  </div>
-) : null}
-          {!isLoading && !error && pagination.totalPages > 1 && (
-            <nav className="mt-12 flex justify-center items-center gap-2">
-              <button 
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={!pagination.hasPreviousPage}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent"
+        <section className="max-w-7xl mx-auto p-6 flex justify-center">
+          <nav className="flex items-center gap-2">
+            <button
+              className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:bg-gray-400"
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={!pagination.hasPreviousPage}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            {getPaginationRange().map((page, index) => (
+              <button
+                key={index}
+                onClick={() => typeof page === 'number' && handlePageChange(page)}
+                className={`p-2 rounded-full ${typeof page === 'string' ? 'text-gray-400' : pagination.currentPage === page ? 'bg-teal-600 text-white' : 'bg-white hover:bg-gray-100'}`}
               >
-                <ChevronLeft className="w-5 h-5" />
+                {page}
               </button>
-              
-              {getPaginationRange().map((pageNum, index) => (
-                pageNum === '...' ? (
-                  <span key={`ellipsis-${index}`} className="px-2">...</span>
-                ) : (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum as number)}
-                    className={`w-10 h-10 rounded-lg ${
-                      pagination.currentPage === pageNum ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              ))}
-              
-              <button 
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={!pagination.hasNextPage}
-                className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </nav>
-          )}
+            ))}
+            <button
+              className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:bg-gray-400"
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </nav>
         </section>
       </main>
     </>
