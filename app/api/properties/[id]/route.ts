@@ -12,8 +12,8 @@ export async function GET(
         id: parseInt(params.id)
       },
       include: {
-        images: true,
-        features: true
+        image: true,
+        feature: true
       }
     });
 
@@ -41,8 +41,8 @@ export async function GET(
       toilets: property.toilets,
       bq: property.bq,
       area: property.area,
-      images: property.images,
-      features: property.features
+      image: property.image,
+      feature: property.feature
     };
 
     // Debug log the response

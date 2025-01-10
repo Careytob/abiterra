@@ -21,7 +21,7 @@ const PropertyDetailPage = async ({ params }: Props) => {
     select: {
       id: true,
       price: true,
-      images: true,
+      image: true,
       title: true,
       bathrooms: true,
       bedrooms: true,
@@ -32,7 +32,7 @@ const PropertyDetailPage = async ({ params }: Props) => {
       location: true,
       latitude: true,
       longitude: true,
-      features: { select: { name: true } },
+      feature: { select: { name: true } },
     },
   });
 

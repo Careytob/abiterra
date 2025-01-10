@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { PropertyType } from '@prisma/client';
+import { property_type } from '@prisma/client';
 import { DEFAULT_COORDINATES } from '@/lib/constants';
 
 export async function GET(request: Request) {
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     const properties = await prisma.property.findMany({
       where: {
-        type: type as PropertyType,
+        type: type as property_type,
         ...(search ? {
           OR: [
             { location: { contains: search } },
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       },
       take: limit,
       skip: (page - 1) * limit,
-      include: { images: true }
+      include: { image: true }
     });
 
     const totalItems = await prisma.property.count();
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         latitude,
         longitude,
         type: p.type,
-        image: p.images[0]?.url || null,
+        image: p.image[0]?.url || null,
         specs: {
           beds: p.bedrooms,
           baths: p.bathrooms,

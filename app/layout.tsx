@@ -2,23 +2,20 @@ import "@radix-ui/themes/styles.css";
 import "./theme-config.css";
 import "./globals.css";
 import type { Metadata } from "next";
-import {Roboto} from 'next/font/google';
+import { Roboto } from "next/font/google";
 import localFont from "next/font/local";
 import { Theme } from "@radix-ui/themes";
 import NavBar from "./NavBar";
 import AuthProvider from "./auth/Provider";
 import Footer from "./Footer";
-//import { Toaster } from "@/app/components/ui/toaster"
-import 'leaflet/dist/leaflet.css';
-import { Toaster } from 'sonner'
-
-
+import "leaflet/dist/leaflet.css";
+import { Toaster } from "sonner";
 
 const roboto = Roboto({
-  subsets : ['latin'],
-  variable: '--font-roboto',
-  weight: ['400', '500', '700'],
-  });
+  subsets: ["latin"],
+  variable: "--font-roboto",
+  weight: ["400", "500", "700"],
+});
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,6 +29,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.abiterra.com"), // Added metadataBase
   title: "Abiterra Real Estate Platform",
   description: "Your go-to platform for buying and renting properties.",
   keywords: ["real estate", "buy home", "buy land", "rent property"],
@@ -41,7 +39,7 @@ export const metadata: Metadata = {
     url: "https://www.abiterra.com",
     images: [
       {
-        url: "/images/hero-image.jpg",
+        url: "/images/hero-image.jpg", // Relative URL will be resolved with metadataBase
         width: 800,
         height: 600,
         alt: "Real Estate Hero Image",
@@ -59,15 +57,15 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
-      > 
+      >
         <AuthProvider>
           <Theme>
-            <NavBar/>
+            <NavBar />
             <main className="flex-grow">
               {children}
               <Toaster position="top-center" richColors />
             </main>
-            <Footer/>
+            <Footer />
           </Theme>
         </AuthProvider>
       </body>

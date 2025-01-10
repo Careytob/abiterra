@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  
 }
 
 model Account {
@@ -66,14 +65,14 @@ model VerificationToken {
 
 model contact {
   id        Int             @id @default(autoincrement())
-  firstName String
-  lastName  String
   email     String
   phone     String?
   inquiry   contact_inquiry
   message   String
   status    contact_status  @default(PENDING)
   createdAt DateTime        @default(now())
+  firstName String
+  lastName  String
 }
 
 model feature {
@@ -88,8 +87,8 @@ model feature {
 model image {
   id         Int      @id @default(autoincrement())
   url        String
-  propertyId Int
   createdAt  DateTime @default(now())
+  propertyId Int
   property   property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
@@ -97,13 +96,13 @@ model image {
 
 model inquiry {
   id         Int            @id @default(autoincrement())
-  userId     String
-  propertyId Int
   message    String
   status     inquiry_status @default(PENDING)
   createdAt  DateTime       @default(now())
+  propertyId Int
+  userId     String
   property   property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  users      User          @relation(fields: [userId], references: [id])
+  users      User           @relation(fields: [userId], references: [id])
 
   @@index([propertyId])
   @@index([userId])
@@ -117,9 +116,6 @@ model property {
   price        Float
   type         property_type
   availability Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  agentId      String
   area         Float
   bathrooms    Int
   bedrooms     Int
@@ -130,6 +126,9 @@ model property {
   toilets      Int
   latitude     Float?
   longitude    Float?
+  agentId      String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
   feature      feature[]
   image        image[]
   inquiry      inquiry[]

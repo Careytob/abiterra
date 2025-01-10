@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import { NextSeo } from 'next-seo';
 import Link from 'next/link';
 import debounce from 'lodash/debounce';
 import dynamic from 'next/dynamic';
@@ -11,6 +10,15 @@ import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('../components/Map').then(mod => mod.default), {
   ssr: false
 });
+
+// Utility function for price formatting
+const formatPrice = (price: string | number) => {
+  const priceString = price.toString();
+  const numericPrice = priceString.replace(/[^0-9.]/g, '');
+  const [wholePart, decimalPart] = numericPrice.split('.');
+  const formattedWholePart = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
+};
 
 interface Property {
   id: number;
@@ -39,8 +47,62 @@ interface PaginationInfo {
   hasPreviousPage: boolean;
 }
 
-const BuyPage = () => {
-  const [viewMode, setViewMode] = useState('grid');
+const PropertyCard: React.FC<{ property: Property }> = ({ property }) => (
+  <article className="group cursor-pointer">
+    <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
+      <Image 
+        src={property.image || '/placeholder.jpg'}
+        alt={property.title}
+        fill
+        className="object-cover group-hover:scale-110 transition-transform duration-300"
+      />
+      <button className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
+        <Heart className="w-4 h-4 text-gray-700" />
+      </button>
+      <div className="absolute bottom-4 right-4">
+        <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
+          {property.type}
+        </span>
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className="flex justify-between items-start">
+        <h2 className="font-semibold text-gray-900">{property.title}</h2>
+        <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+      </div>
+      <p className="text-gray-600 flex items-center gap-1 mt-1">
+        <MapPin className="w-4 h-4" />
+        {property.location}
+      </p>
+      {property.specs && (
+        <dl className="flex items-center gap-6 text-gray-600 mt-2">
+          <div className="flex items-center gap-1.5">
+            <Bed className="w-4 h-4" />
+            <dd>{property.specs.beds} beds</dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Bath className="w-4 h-4" />
+            <dd>{property.specs.baths} baths</dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Square className="w-4 h-4" />
+            <dd>{property.specs.area}</dd>
+          </div>
+        </dl>
+      )}
+      <Link href={`/buy/${property.id}`}>
+        <button className="mt-3 flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
+          View Details 
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </Link>
+    </div>
+  </article>
+);
+
+const BuyPage: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [mapKey, setMapKey] = useState(Date.now().toString());
   const [properties, setProperties] = useState<Property[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,14 +116,6 @@ const BuyPage = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const formatPrice = (price: string | number) => {
-    const priceString = price.toString();
-    const numericPrice = priceString.replace(/[^0-9.]/g, '');
-    const [wholePart, decimalPart] = numericPrice.split('.');
-    const formattedWholePart = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
-  };
 
   const fetchProperties = async (page: number, search?: string) => {
     setIsLoading(true);
@@ -92,7 +146,7 @@ const BuyPage = () => {
 
   useEffect(() => {
     fetchProperties(pagination.currentPage, searchQuery);
-  }, [pagination.currentPage, searchQuery]);
+  }, [pagination.currentPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -128,80 +182,114 @@ const BuyPage = () => {
     return range;
   };
 
-  const PropertyCard = ({ property }: { property: Property }) => (
-    <article className="group cursor-pointer">
-      <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
-        <Image 
-          src={property.image || '/placeholder.jpg'}
-          alt={property.title}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-300"
-        />
-        <button className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
-          <Heart className="w-4 h-4 text-gray-700" />
-        </button>
-        <div className="absolute bottom-4 right-4">
-          <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
-            {property.type}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="flex justify-between items-start">
-          <h2 className="font-semibold text-gray-900">{property.title}</h2>
-          <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
-        </div>
-        <p className="text-gray-600 flex items-center gap-1 mt-1">
-          <MapPin className="w-4 h-4" />
-          {property.location}
-        </p>
-        {property.specs ? (
-          <dl className="flex items-center gap-6 text-gray-600 mt-2">
-            <div className="flex items-center gap-1.5">
-              <Bed className="w-4 h-4" />
-              <dd>{property.specs.beds} beds</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Bath className="w-4 h-4" />
-              <dd>{property.specs.baths} baths</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Square className="w-4 h-4" />
-              <dd>{property.specs.area}</dd>
-            </div>
-          </dl>
-        ) : (
-          <p className="text-gray-500 mt-2">No property specifications available.</p>
-        )}
-        <Link href={`/buy/${property.id}`}>
-          <button className="mt-3 flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
-            View Details 
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </Link>
-      </div>
-    </article>
-  );
-
   return (
-    <>
-      <NextSeo
-        title="Properties for Sale in Lagos | Luxury Real Estate Listings"
-        description="Browse luxury properties for sale in Lagos, Nigeria."
-        openGraph={{
-          url: 'https://yourwebsite.com/buy',
-          title: 'Properties for Sale in Lagos',
-          description: 'Browse luxury properties for sale in Lagos, Nigeria.',
-          images: [{ url: '/og-image.jpg', width: 800, height: 600, alt: 'Luxury properties for sale' }],
-          site_name: 'Your Website Name',
-        }}
-      />
+    <main className="bg-gray-50 min-h-screen pt-20">
+      <div className="container mx-auto px-4">
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="Search properties..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full p-3 pl-10 rounded-lg border focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          </div>
+          <button className="flex items-center gap-2 px-4 py-3 border rounded-lg hover:bg-gray-50">
+            <SlidersHorizontal className="w-5 h-5" />
+            Filters
+          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-3 rounded-lg ${viewMode === 'grid' ? 'bg-teal-600 text-white' : 'bg-white border'}`}
+            >
+              <LayoutGrid className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('map');
+                setMapKey(Date.now().toString());
+              }}
+              className={`p-3 rounded-lg ${viewMode === 'map' ? 'bg-teal-600 text-white' : 'bg-white border'}`}
+            >
+              <Map className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
 
-      <main className="bg-gray-50 min-h-screen pt-20">
-        {/* Add your search bar, filters, map, and pagination here */}
-      </main>
-    </>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">Loading properties...</div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8 text-red-600">{error}</div>
+        )}
+
+        {/* Properties Display */}
+        {!isLoading && !error && (
+          viewMode === 'grid' ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {properties.map(property => (
+                  <PropertyCard key={property.id} property={property} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {properties.length > 0 && (
+                <div className="flex justify-center gap-2 py-8">
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPreviousPage}
+                    className="p-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  {getPaginationRange().map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => typeof page === 'number' && handlePageChange(page)}
+                      className={`px-4 py-2 rounded ${
+                        page === pagination.currentPage
+                          ? 'bg-teal-600 text-white'
+                          : page === '...'
+                          ? 'cursor-default'
+                          : 'border hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNextPage}
+                    className="p-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden">
+              <MapView key={mapKey} properties={properties} />
+            </div>
+          )
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && properties.length === 0 && (
+          <div className="text-center py-8">
+            No properties found. Try adjusting your search criteria.
+          </div>
+        )}
+      </div>
+    </main>
   );
 };
 

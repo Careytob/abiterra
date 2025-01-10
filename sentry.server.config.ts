@@ -13,3 +13,15 @@ Sentry.init({
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
 });
+
+const { withSentryConfig } = require('@sentry/nextjs');
+
+const sentryWebpackPluginOptions = {
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true, // Ensures source maps are not included in the build
+  },
+};
+
+module.exports = withSentryConfig({
+  // Your Next.js config
+}, sentryWebpackPluginOptions);
