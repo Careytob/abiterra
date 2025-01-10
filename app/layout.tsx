@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     url: "https://www.abiterra.com",
     images: [
       {
-        url: "/images/hero-image.jpg", // Relative URL will be resolved with metadataBase
+        url: "/images/hero-image.jpg", 
         width: 800,
         height: 600,
         alt: "Real Estate Hero Image",
