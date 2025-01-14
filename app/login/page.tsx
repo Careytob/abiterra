@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/ca
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
-import { Spinnaker } from 'next/font/google';
 import Link from 'next/link';
 
 interface LoginFormInputs {
@@ -32,6 +31,7 @@ const LoginPage = () => {
         email: data.email,
         password: data.password,
         redirect: false,
+        callbackUrl: '/'
       });
 
       if (result?.error) {
@@ -39,8 +39,10 @@ const LoginPage = () => {
         return;
       }
 
-      router.push('/'); // Redirect to home page after successful login
-      router.refresh();
+      if (result?.ok) {
+        router.push('/');
+        router.refresh();
+      }
     } catch (err) {
       setError('An error occurred during login');
     } finally {
@@ -48,8 +50,15 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/' });
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google', {
+        callbackUrl: '/',
+        redirect: true
+      });
+    } catch (error) {
+      setError('An error occurred during Google sign in');
+    }
   };
 
   return (

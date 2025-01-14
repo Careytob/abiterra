@@ -1,8 +1,7 @@
-// ViewPropertyDetails.tsx
 'use client';
 
 import { useEffect } from 'react';
-import PropertyDetailClient from '../buy/[propertyId]/PropertyDetailClient';
+import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 
 interface ViewPropertyDetailsProps {
@@ -22,9 +21,16 @@ interface ViewPropertyDetailsProps {
     area: number;
     features: { name: string }[];
   };
+  type: 'buy' | 'rent';  
 }
 
-const ViewPropertyDetails: React.FC<ViewPropertyDetailsProps> = ({ property }) => {
+const ViewPropertyDetails: React.FC<ViewPropertyDetailsProps> = ({ property, type }) => {
+  const PropertyDetailClient = dynamic(() => 
+    type === 'buy' || type === 'rent'
+      ? import('@/app/components/ViewPropertyDetails')
+      : import('@/app/components/ViewPropertyDetails')
+  );
+
   useEffect(() => {
     console.log('ViewPropertyDetails received property:', {
       id: property.id,
@@ -35,7 +41,7 @@ const ViewPropertyDetails: React.FC<ViewPropertyDetailsProps> = ({ property }) =
     });
   }, [property]);
 
-  return <PropertyDetailClient property={property} />;
+  return <PropertyDetailClient property={property} type={'buy'} />;
 };
 
 export default ViewPropertyDetails;

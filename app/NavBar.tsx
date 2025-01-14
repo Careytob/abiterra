@@ -2,13 +2,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import classNames from 'classnames';
 import { Avatar, Box, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
 import { useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 
 const NavBar = () => {
   const currentPath = usePathname();
+  const router = useRouter();
   const { status, data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -112,17 +114,20 @@ const NavBar = () => {
               </DropdownMenu.Root>
             ) : (
               <>
-                <Link href="/api/auth/signin">
-                  <Button variant="outline" color="green" className="text-sm">
-                    Log In
-                  </Button>
-                </Link>
-                <Link href="/signup" className="hidden md:inline">
-                  <Button variant="solid" color="teal" className="text-sm">
-                    Sign Up
-                  </Button>
-                </Link>
-              </>
+              <Button 
+                variant="outline" 
+                color="green" 
+                className="text-sm"
+                onClick={() => router.push('/login')}
+              >
+                Log In
+              </Button>
+              <Link href="/signup" className="hidden md:inline">
+                <Button variant="solid" color="teal" className="text-sm">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
             )}
           </Box>
         </Flex>

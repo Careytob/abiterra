@@ -13,7 +13,7 @@ async function getFeaturedProperties() {
           type: 'SALE'
         },
         include: {
-          image: {
+          images: {
             take: 1
           }
         },
@@ -28,7 +28,7 @@ async function getFeaturedProperties() {
           type: 'RENT'
         },
         include: {
-          image: {
+          images: {
             take: 1
           }
         },
@@ -46,7 +46,7 @@ async function getFeaturedProperties() {
       price: formatPrice(property.price, property.type),
       details: `${property.bedrooms} Beds • ${property.bathrooms} Baths • ${property.toilets} Toilets • ${property.area} sqft${property.bq ? ` • ${property.bq} BQ` : ''}`,
       location: `${property.city}, ${property.state}`,
-      image: property.image[0]?.url || '/placeholder-property.jpg'
+      image: property.images[0]?.url || '/placeholder-property.jpg'
     }));
   } catch (error) {
     console.error('Error fetching properties:', error);

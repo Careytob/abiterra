@@ -25,28 +25,26 @@ export async function GET(request: Request) {
       },
       take: limit,
       skip: (page - 1) * limit,
-      include: { image: true }
+      include: { images: true }
     });
 
     const totalItems = await prisma.property.count();
 
     // Map properties with validated coordinates
     const mappedProperties = properties.map(p => {
-      const latitude = p.latitude ? Number(p.latitude) : DEFAULT_COORDINATES.latitude;
-      const longitude = p.longitude ? Number(p.longitude) : DEFAULT_COORDINATES.longitude;
-
-      console.log(`Property ${p.id} coordinates:`, { latitude, longitude });
-
+      const latitude = !isNaN(Number(p.latitude)) ? Number(p.latitude) : DEFAULT_COORDINATES.latitude;
+      const longitude = !isNaN(Number(p.longitude)) ? Number(p.longitude) : DEFAULT_COORDINATES.longitude;
+    
       return {
         id: p.id,
-        title: p.title,
-        description: p.description,
-        price: p.price,
+        title: p.title || 'No title available',
+        description: p.description || 'No description available',
+        price: p.price || 0, // Ensure price is a valid number
         location: p.location,
         latitude,
         longitude,
         type: p.type,
-        image: p.image[0]?.url || null,
+        images: p.images[0]?.url || '/placeholder.jpg', // Fallback image URL
         specs: {
           beds: p.bedrooms,
           baths: p.bathrooms,
@@ -54,6 +52,7 @@ export async function GET(request: Request) {
         }
       };
     });
+    
 
     return NextResponse.json({
       properties: mappedProperties,

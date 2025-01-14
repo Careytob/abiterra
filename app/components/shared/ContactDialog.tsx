@@ -15,7 +15,7 @@ import ContactForm from './ContactForm';
 import Link from 'next/link';
 
 export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
-  // Move the useSession hook inside the component
+  
   const { status, data: session } = useSession();
 
   return (

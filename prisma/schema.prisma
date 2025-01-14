@@ -129,8 +129,8 @@ model property {
   agentId      String
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  feature      feature[]
-  image        image[]
+  features      feature[]
+  images        image[]
   inquiry      inquiry[]
 }
 

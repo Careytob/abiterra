@@ -1,8 +1,8 @@
-// app/buy/[propertyId]/page.tsx
+
 import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import ViewPropertyDetails from './PropertyDetailClient';
+import ViewPropertyDetails from '../../components/shared/PropertyDetailClient';
 
 interface Props {
   params: { propertyId: string };
@@ -21,7 +21,7 @@ const PropertyDetailPage = async ({ params }: Props) => {
     select: {
       id: true,
       price: true,
-      image: true,
+      images: true,
       title: true,
       bathrooms: true,
       bedrooms: true,
@@ -32,7 +32,7 @@ const PropertyDetailPage = async ({ params }: Props) => {
       location: true,
       latitude: true,
       longitude: true,
-      feature: { select: { name: true } },
+      features: { select: { name: true } },
     },
   });
 
@@ -43,7 +43,9 @@ const PropertyDetailPage = async ({ params }: Props) => {
   return <ViewPropertyDetails property={{
     ...property,
     latitude: property.latitude ?? 0,
-    longitude: property.longitude ?? 0
+    longitude: property.longitude ?? 0,
+    features: property.features,
+    images: property.images
   }} />;
 };
 

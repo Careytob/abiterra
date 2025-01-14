@@ -2,6 +2,8 @@ import NextAuth, { AuthOptions, Session, DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -10,10 +12,7 @@ declare module "next-auth" {
     } & DefaultSession["user"]
   }
 }
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 
-// Define the expected structure of session.user
 interface UserSession {
   id: string;
   email: string;
@@ -65,24 +64,27 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
+  pages: {
+    signIn: '/login',
+  },
   session: {
     strategy: "jwt",
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id; // Attach id to the token
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }: { session: Session; token: any }) {
       if (session.user) {
-        session.user.id = token.id; // Attach id to session.user
+        session.user.id = token.id;
       }
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };
-
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
