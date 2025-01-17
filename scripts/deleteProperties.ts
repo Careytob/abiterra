@@ -22,11 +22,12 @@ async function deletePropertiesByTitlesAndLocations(properties: { title: string;
 
 // Properties to delete
 const propertiesToDelete = [
-  { title: "Luxury 5-Bedroom Villa", location: "Lekki Phase 1, Lagos" },
-  { title: "Luxury 5-Bedroom", location: "Lekki Phase 1, Lagos" },
-  { title: "Luxury 5-Bedroom Villa", location: "GRA Ikeja, Lagos" },
-  { title: "Luxury 5-Bedroom Villa", location: "Maryland Estate, Lagos" },
-  { title: "Luxury 5-Bedroom", location: "Lekki Phase 1, Lagos" },
+  { title: "Modern 4-Bedroom Duplex in Maryland", location: "Maryland Estate, Lagos" },
+  { title: "Luxurious 5-Bedroom Detached House", location: "Lekki Phase 1, Lagos" },
+  { title: "Luxurious 5-Bedroom Detached House", location: "GRA Ikeja, Lagos" },
+  { title: "Contemporary 3-Bedroom Apartment", location: "Victoria Island, Lagos" },
+  { title: "Affordable 3-Bedroom Terrace", location: "Mende Maryland, Lagos" },
+  { title: "6-Bedroom Mansion with Swimming Pool", location: "Banana Island, Lagos" },
 ];
 
 async function main() {

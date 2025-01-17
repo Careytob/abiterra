@@ -48,6 +48,8 @@ interface FormatPriceOptions {
 }
 
 const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
+  //console.log(property.latitude, property.longitude); // Log the coordinates
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -263,7 +265,7 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
             <Card className="sticky top-8">
               <CardContent className="p-8">
                 <h2 className="text-2xl font-semibold mb-6">Interested?</h2>
-                <div className="w-full bg-teal-600 text-white px-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+                <div className='bg-teal-500'>
                   <ContactDialog propertyId={property.id.toString()} />
                 </div>
               </CardContent>

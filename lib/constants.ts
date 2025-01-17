@@ -1,5 +1,4 @@
-// lib/constants.ts
 export const DEFAULT_COORDINATES = {
-    latitude: 6.4281, // Lagos coordinates
-    longitude: 3.4219
-  } as const;
+  latitude: 9.0765,  // Default coordinates for Nigeria or your preferred location
+  longitude: 7.3986
+};

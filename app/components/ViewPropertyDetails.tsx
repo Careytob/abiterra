@@ -21,14 +21,13 @@ interface ViewPropertyDetailsProps {
     area: number;
     features: { name: string }[];
   };
-  type: 'buy' | 'rent';  
+  type: 'buy' | 'rent'; // Distinguish between property types
 }
 
 const ViewPropertyDetails: React.FC<ViewPropertyDetailsProps> = ({ property, type }) => {
   const PropertyDetailClient = dynamic(() => 
-    type === 'buy' || type === 'rent'
-      ? import('@/app/components/ViewPropertyDetails')
-      : import('@/app/components/ViewPropertyDetails')
+    import('@/app/components/ViewPropertyDetails'), 
+    
   );
 
   useEffect(() => {
@@ -37,11 +36,11 @@ const ViewPropertyDetails: React.FC<ViewPropertyDetailsProps> = ({ property, typ
       latitude: property.latitude,
       longitude: property.longitude,
       hasLatitude: !!property.latitude,
-      hasLongitude: !!property.longitude
+      hasLongitude: !!property.longitude,
     });
   }, [property]);
 
-  return <PropertyDetailClient property={property} type={'buy'} />;
+  return <PropertyDetailClient property={property} type={type} />;
 };
 
 export default ViewPropertyDetails;

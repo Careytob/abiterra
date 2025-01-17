@@ -21,7 +21,7 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
   return (
     <>
       <Dialog>
-        <DialogTrigger asChild>
+        <DialogTrigger asChild className='bg-teal-600 text-white hover:bg-teal-800 transition duration-300 ease-in-out'>
           <Button className="w-full py-6 text-lg">
             <Mail className="w-5 h-5 mr-2" />
             Contact Us
@@ -39,7 +39,7 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
           ) : (
             <div className="flex flex-col gap-4">
               <p className="text-center text-sm text-gray-600">
-                Please log in or sign up to contact the agent
+                Please log in or sign up to contact us.
               </p>
               <div className="flex justify-center gap-4">
                 <Link href="/api/auth/signin">
@@ -48,7 +48,7 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button variant="default" className="w-full">
+                  <Button variant="teal" className="w-full">
                     Sign Up
                   </Button>
                 </Link>

@@ -14,6 +14,7 @@ const areaCoordinates: Record<string, { lat: number; lng: number }> = {
   'Gbagada': { lat: 6.5608, lng: 3.3897 },
   'Maryland': { lat: 6.5761, lng: 3.3661 },
   'Magodo': { lat: 6.6179, lng: 3.3773 },
+  'Banana Island': { lat: 6.4474, lng: 3.4215 },
   
   // Abuja Areas
   'Maitama': { lat: 9.0833, lng: 7.5000 },

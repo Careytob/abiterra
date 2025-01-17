@@ -7,6 +7,7 @@ import Link from 'next/link';
 import debounce from 'lodash/debounce';
 import dynamic from 'next/dynamic';
 
+
 // Separate the Map component import
 const MapView = dynamic(() => import('../components/Map'), {
   ssr: false,
@@ -26,7 +27,7 @@ interface Property {
   location: string;
   latitude: number | null;
   longitude: number | null;
-  image: string;
+  images: string;
   type: string;
   specs: {
     area: string;
@@ -54,57 +55,76 @@ const formatPrice = (price: string | number): string => {
 };
 
 // Separate PropertyCard into a client component
-const PropertyCard = ({ property }: { property: Property }) => (
-  <article className="group cursor-pointer">
-    <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
-      <Image 
-        src={property.image || '/placeholder.jpg'}
-        alt={property.title}
-        fill
-        className="object-cover group-hover:scale-110 transition-transform duration-300"
-      />
-      <button aria-label="Add to favorites" className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
-        <Heart className="w-4 h-4 text-gray-700" />
-      </button>
-      <div className="absolute bottom-4 right-4">
-        <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
-          {property.type}
-        </span>
-      </div>
-    </div>
+const PropertyCard = ({ property }: { property: Property }) => {
+  //console.log(property.images);
 
-    <div className="mt-4">
-      <div className="flex justify-between items-start">
-        <h2 className="font-semibold text-gray-900">{property.title}</h2>
-        <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+  return (
+    <article className="group cursor-pointer">
+      <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
+        {/* Check if images exist, then display the first image */}
+        {property.images && property.images.length > 0 ? (
+          <Image 
+            src={property.images[0]}  // Using the first image in the array
+            alt={property.title}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => {
+              console.error('Image load error:', e);
+              // @ts-ignore
+              e.target.src = '/placeholder.jpg';
+            }}
+          />
+        ) : (
+          <Image
+            src="/placeholder.jpg"  // Fallback image if no images exist
+            alt="No image available"
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+        )}
+        <button aria-label="Add to favorites" className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
+          <Heart className="w-4 h-4 text-gray-700" />
+        </button>
+        <div className="absolute bottom-4 right-4">
+          <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
+            {property.type}
+          </span>
+        </div>
       </div>
-      <div className="text-gray-600 flex items-center gap-1 mt-1">
-        <MapPin className="w-4 h-4" />
-        {property.location}
+
+      <div className="mt-4">
+        <div className="flex justify-between items-start">
+          <h2 className="font-semibold text-gray-900">{property.title}</h2>
+          <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+        </div>
+        <div className="text-gray-600 flex items-center gap-1 mt-1">
+          <MapPin className="w-4 h-4" />
+          {property.location}
+        </div>
+        {property.specs && (
+          <dl className="flex items-center gap-6 text-gray-600 mt-2">
+            <div className="flex items-center gap-1.5">
+              <Bed className="w-4 h-4" />
+              <dd>{property.specs.beds} beds</dd>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Bath className="w-4 h-4" />
+              <dd>{property.specs.baths} baths</dd>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Square className="w-4 h-4" />
+              <dd>{property.specs.area}</dd>
+            </div>
+          </dl>
+        )}
+        <Link href={`/rent/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
+          View Details 
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
-      {property.specs && (
-        <dl className="flex items-center gap-6 text-gray-600 mt-2">
-          <div className="flex items-center gap-1.5">
-            <Bed className="w-4 h-4" />
-            <dd>{property.specs.beds} beds</dd>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Bath className="w-4 h-4" />
-            <dd>{property.specs.baths} baths</dd>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Square className="w-4 h-4" />
-            <dd>{property.specs.area}</dd>
-          </div>
-        </dl>
-      )}
-      <Link href={`/buy/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
-        View Details 
-        <ArrowRight className="w-4 h-4" />
-      </Link>
-    </div>
-  </article>
-);
+    </article>
+  );
+};
 
 export default function BuyPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
@@ -123,22 +143,36 @@ export default function BuyPage() {
   });
 
   const fetchProperties = useCallback(async (page: number, search?: string) => {
+    const type = 'SALE'; // Add this line
     setIsLoading(true);
     setError(null);
     try {
       const searchParam = search?.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
-      const response = await fetch(`/api/properties?type=SALE&page=${page}&limit=${pagination.itemsPerPage}${searchParam}`);
+      const url = `/api/properties?type=${type}&page=${page}&limit=${pagination.itemsPerPage}${searchParam}`;
+      console.log('Fetching properties from:', url);
+  
+      const response = await fetch(url);
+      console.log('API Response status:', response.status);
       
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        console.error('Response not OK:', response.status, response.statusText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       const data = await response.json();
-      if (!data.properties || !Array.isArray(data.properties)) throw new Error('Invalid response format');
+      //console.log('API Response data:', data);
       
+      if (!data.properties || !Array.isArray(data.properties)) {
+        console.error('Invalid data format:', data);
+        throw new Error('Invalid response format');
+      }
+      
+      console.log('Setting properties:', data.properties.length, 'items');
       setProperties(data.properties);
       setPagination(data.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Fetch error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
