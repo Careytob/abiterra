@@ -43,10 +43,11 @@ async function getFeaturedProperties() {
     return allProperties.map(property => ({
       id: property.id,
       type: property.type === 'SALE' ? 'For Sale' : 'For Rent',
-      price: formatPrice(property.price, property.type),
+      price: property.price,
       details: `${property.bedrooms} Beds • ${property.bathrooms} Baths • ${property.toilets} Toilets • ${property.area} sqft${property.bq ? ` • ${property.bq} BQ` : ''}`,
       location: `${property.city}, ${property.state}`,
-      image: property.images[0]?.url || '/placeholder-property.jpg'
+      image: property.images[0]?.url || '/placeholder-property.jpg',
+      propertyType: property.type // Add this to help with routing
     }));
   } catch (error) {
     console.error('Error fetching properties:', error);
@@ -54,7 +55,7 @@ async function getFeaturedProperties() {
   }
 }
 
-function formatPrice(price: number, type: string) {
+function formatPrice(price: number) {
   const formatter = new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency: 'NGN',
@@ -62,13 +63,12 @@ function formatPrice(price: number, type: string) {
     maximumFractionDigits: 0
   });
 
-  const formattedPrice = formatter.format(price);
-  return type === 'For Rent' ? `${formattedPrice}/yr` : formattedPrice;
+  return formatter.format(price);
 }
 
 export default async function Home() {
   const featuredProperties = await getFeaturedProperties();
-
+  
   const StructureData = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
@@ -85,7 +85,7 @@ export default async function Home() {
   };
 
   return (
-    <div className="min-h-screen">
+	 <div className="min-h-screen">
       {/* Hero Section remains the same */}
       <section className="relative h-[600px]">
         {/* Background Image */}
@@ -119,40 +119,45 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      {/* Featured Properties */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12">Featured Properties</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProperties.map((property, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <Image 
-                  src={property.image} 
-                  alt="Property" 
-                  width={400} 
-                  height={300} 
-                  className="w-full h-48 object-cover" 
-                />
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="bg-teal-100 text-black px-3 py-1 rounded-full text-sm">
-                      {property.type}
-                    </span>
-                    <span className="font-bold text-xl">{property.price}</span>
+    
+    {/* Featured Properties */}
+    <section className="py-16">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-bold mb-12">Featured Properties</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {featuredProperties.map((property, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <Image 
+                src={property.image} 
+                alt="Property" 
+                width={400} 
+                height={300} 
+                className="w-full h-48 object-cover" 
+              />
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="bg-teal-100 text-black px-3 py-1 rounded-full text-sm">
+                    {property.type}
+                  </span>
+                  <div className="font-bold text-xl flex items-center">
+                    {formatPrice(property.price)}
+                    {property.type === 'For Rent' && 
+                      <span className="text-sm text-gray-600 ml-1">/yr</span>
+                    }
                   </div>
-                  <p className="text-gray-600 mb-2">{property.details}</p>
-                  <p className="text-gray-500">{property.location}</p>
-                  <Link href={`/buy/${property.id}`}>
-                    <button className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
-                      View Details
-                    </button>
-                  </Link>
                 </div>
+                <p className="text-gray-600 mb-2">{property.details}</p>
+                <p className="text-gray-500">{property.location}</p>
+                <Link href={`/${property.propertyType === 'SALE' ? 'buy' : 'rent'}/${property.id}`}>
+                  <button className="mt-4 w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
+                    View Details
+                  </button>
+                </Link>
               </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-12">
             <button className="bg-gray-100 text-gray-800 px-8 py-3 rounded-lg hover:bg-gray-200">
               View All Properties
             </button>

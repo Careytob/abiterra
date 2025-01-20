@@ -18,6 +18,8 @@ export interface Property {
 export interface PropertyDetailProps {
   property: Property;
 }
+
+
   
   export interface PaginationInfo {
     currentPage: number;

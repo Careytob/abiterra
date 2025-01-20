@@ -3,12 +3,19 @@ import React, { ChangeEvent } from 'react'
 import { useState } from 'react'
 import { toast } from 'sonner' 
 
+enum ContactInquiry {
+  BUYING = 'BUYING',
+  LAND = 'LAND',
+  RENTING = 'RENTING',
+  OTHER = 'OTHER'
+}
+
 interface ContactFormData {
   firstName: string
   lastName: string
   email: string
   phone: string
-  inquiry: string
+  inquiry: ContactInquiry | ''  // Allow empty string for initial state
   message: string
 }
 
@@ -155,19 +162,19 @@ const ContactPage = () => {
                     Type of Inquiry*
                   </label>
                   <select
-                    id="inquiry"
-                    name="inquiry"
-                    value={formData.inquiry}
-                    onChange={handleChange}
-                    required
-                    className="w-full text-black px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 !important"
-                  >
-                    <option value="">Select an option</option>
-                    <option value="buying">Buying Property</option>
-                    <option value="land">Land Investment</option>
-                    <option value="renting">Renting Property</option>
-                    <option value="other">Other</option>
-                  </select>
+                  id="inquiry"
+                  name="inquiry"
+                  value={formData.inquiry}
+                  onChange={handleChange}
+                  required
+                  className="w-full text-black px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 !important"
+                >
+                  <option value="">Select an option</option>
+                  <option value="BUYING">Buying Property</option>
+                  <option value="LAND">Land Investment</option>
+                  <option value="RENTING">Renting Property</option>
+                  <option value="OTHER">Other</option>
+                </select>
                 </div>
 
                 <div>

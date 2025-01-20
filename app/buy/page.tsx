@@ -117,7 +117,7 @@ const PropertyCard = ({ property }: { property: Property }) => {
             </div>
           </dl>
         )}
-        <Link href={`/rent/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
+        <Link href={`/buy/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
           View Details 
           <ArrowRight className="w-4 h-4" />
         </Link>

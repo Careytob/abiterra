@@ -3,13 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { Card, CardContent } from '@/app/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, BedDouble, Bath, ChevronLeft, ChevronRight, Square } from 'lucide-react';
 import { ContactDialog } from './ContactDialog';
 import ShareButton from './ShareButton';
 import 'leaflet/dist/leaflet.css';
 
-// Dynamically import MapView with SSR disabled
 const MapView = dynamic(() => import('@/app/components/Map'), {
   ssr: false,
   loading: () => (
@@ -40,21 +39,11 @@ interface PropertyDetailClientProps {
   property: Property;
 }
 
-interface FormatPriceOptions {
-  currency?: string;
-  locale?: string;
-  minimumFractionDigits?: number;
-  maximumFractionDigits?: number;
-}
-
-const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
-  //console.log(property.latitude, property.longitude); // Log the coordinates
-
+const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Initialize Leaflet only on client side
     if (typeof window !== 'undefined') {
       const initLeaflet = async () => {
         const L = await import('leaflet');
@@ -79,32 +68,24 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
     setCurrentIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
   };
 
-  const formatPrice = (price: number, options: FormatPriceOptions = {}) => {
-    const {
-      currency = '₦',
-      locale = 'en-NG',
-      minimumFractionDigits = 0,
-      maximumFractionDigits = 0
-    } = options;
-  
+  const formatPrice = (price: number) => {
+    //console.log('Formatting price in BuyPropertyDetailClient:', price);
+
     try {
-      const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-      
-      if (isNaN(numericPrice)) {
-        return `${currency}0`;
-      }
-      
-      const formatter = new Intl.NumberFormat(locale, {
-        minimumFractionDigits,
-        maximumFractionDigits,
+      const formatter = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
       });
   
-      return `${currency}${formatter.format(numericPrice)}`;
+      return <span className="text-3xl font-bold">{formatter.format(price)}</span>;
     } catch (error) {
       console.error('Error formatting price:', error);
-      return `${currency}0`;
+      return '₦0';
     }
   };
+  
 
   if (!isMounted) {
     return <div>Loading...</div>;
@@ -155,9 +136,9 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
                 </div>
               </div>
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <p className="text-3xl font-bold text-black order-first md:order-last">
-                  <span className="font-bold">{formatPrice(property.price)}</span>
-                </p>
+                <div className="order-first md:order-last">
+                  {formatPrice(property.price)}
+                </div>
                 <div className="flex items-center gap-4">
                   <ShareButton
                     title={property.title}
@@ -170,7 +151,8 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
           </div>
         </Card>
       </div>
-    
+
+      {/* Property details grid */}
       <div className="max-w-7xl mx-auto px-4 mb-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="p-6 bg-white shadow-lg">
@@ -211,6 +193,7 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
         </div>
       </div>
 
+      {/* Description, Features, and Contact sections */}
       <div className="max-w-7xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
@@ -277,4 +260,4 @@ const PropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property })
   );
 };
 
-export default PropertyDetailClient;
+export default BuyPropertyDetailClient;

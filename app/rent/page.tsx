@@ -95,7 +95,10 @@ const PropertyCard = ({ property }: { property: Property }) => {
       <div className="mt-4">
         <div className="flex justify-between items-start">
           <h2 className="font-semibold text-gray-900">{property.title}</h2>
-          <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+            <span className="text-sm text-gray-600 mt-1">/yr</span>
+          </div>
         </div>
         <div className="text-gray-600 flex items-center gap-1 mt-1">
           <MapPin className="w-4 h-4" />
