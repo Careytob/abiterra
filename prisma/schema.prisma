@@ -104,6 +104,7 @@ model image {
 model inquiry {
   id         Int            @id @default(autoincrement())
   message    String
+  phone      String         
   status     inquiry_status @default(PENDING)
   createdAt  DateTime       @default(now())
   propertyId Int
