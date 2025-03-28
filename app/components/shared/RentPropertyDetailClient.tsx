@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,24 +42,7 @@ interface PropertyDetailClientProps {
 
 const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const initLeaflet = async () => {
-        const L = await import('leaflet');
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-        });
-      };
-      initLeaflet();
-    }
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
+  const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % property.images.length);
@@ -69,8 +53,6 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
   };
 
   const formatPrice = (price: number) => {
-    //console.log('Formatting price in RentPropertyDetailClient:', price);
-
     try {
       const formatter = new Intl.NumberFormat('en-NG', {
         style: 'currency',
@@ -79,11 +61,10 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
         maximumFractionDigits: 0,
       });
   
-      const formattedPrice = formatter.format(price);
       return (
-        <div className="flex flex-col items-end">
-          <span className="text-3xl font-bold">{formattedPrice}</span>
-          <span className="text-sm text-gray-600">per year</span>
+        <div className="flex flex-col">
+          <span className="text-xl md:text-3xl font-bold">{formatter.format(price)}</span>
+          <span className="text-xs md:text-sm text-gray-600">per year</span>
         </div>
       );
     } catch (error) {
@@ -91,54 +72,113 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
       return '₦0';
     }
   };
-  
 
-  if (!isMounted) {
-    return <div>Loading...</div>;
-  }
+  const toggleFullscreen = (index?: number) => {
+    setFullscreenIndex(index !== undefined ? index : null);
+  };
+
+  // Select up to 4 thumbnails, prioritizing images after the current one
+  const thumbnailImages = [
+    ...property.images.slice(currentIndex + 1, property.images.length),
+    ...property.images.slice(0, Math.max(0, 4 - (property.images.length - currentIndex - 1)))
+  ].slice(0, 4);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="w-full bg-gray-900 pt-3">
-        <Card className="relative max-w-7xl mx-auto">
-          <div className="relative aspect-[16/9] w-full">
+      {/* Fullscreen Modal */}
+      {fullscreenIndex !== null && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
+          <button 
+            onClick={() => toggleFullscreen()}
+            className="absolute top-4 right-4 text-white bg-black/50 p-2 rounded-full z-10"
+          >
+            Close
+          </button>
+          <div className="max-w-[90%] max-h-[90%] relative w-full h-full">
             <Image
-              src={property.images[currentIndex].url}
-              alt={`${property.title} - Image ${currentIndex + 1}`}
+              src={property.images[fullscreenIndex].url}
+              alt={`${property.title} - Fullscreen Image`}
               fill
-              className="object-cover rounded-lg"
-              priority
+              className="object-contain"
             />
-            <button 
-              onClick={previousImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-800" />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-            >
-              <ChevronRight className="w-6 h-6 text-gray-800" />
-            </button>
-            <div className="absolute bottom-4 right-4 bg-white/90 px-3 py-1 rounded-full">
-              <span className="text-sm font-medium">
-                {currentIndex + 1} / {property.images.length}
-              </span>
+          </div>
+        </div>
+      )}
+
+      {/* Image Gallery Section */}
+      <div className="w-full bg-gray-900 pt-3 md:pt-8 ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Large Main Image */}
+            <div className="md:col-span-4 relative aspect-video group">
+              <Image
+                src={property.images[currentIndex].url}
+                alt={`${property.title} - Main Image`}
+                fill
+                className="object-cover rounded-lg"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                onClick={() => toggleFullscreen(currentIndex)}
+              />
+              <div className="absolute inset-0 flex items-center justify-between px-2 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button 
+                  onClick={previousImage}
+                  className="bg-white/90 p-1 md:p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="bg-white/90 p-1 md:p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
+                </button>
+              </div>
+              <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 px-2 py-1 md:px-3 md:py-1 rounded-full">
+                <span className="text-xs md:text-sm font-medium">
+                  {currentIndex + 1} / {property.images.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Thumbnail Strip */}
+            <div className="md:col-span-1 hidden md:flex flex-col gap-2 h-full">
+              {thumbnailImages.map((image, index) => {
+                // Calculate the actual index in the original images array
+                const actualIndex = (currentIndex + index + 1) % property.images.length;
+                return (
+                  <div 
+                    key={actualIndex}
+                    className={`relative aspect-video flex-shrink-0 w-full cursor-pointer 
+                      ${actualIndex === currentIndex ? 'border-2 border-blue-500' : 'opacity-60 hover:opacity-100'}
+                      transition-all duration-300`}
+                    onClick={() => setCurrentIndex(actualIndex)}
+                  >
+                    <Image
+                      src={image.url}
+                      alt={`Thumbnail ${actualIndex + 1}`}
+                      fill
+                      className="object-cover rounded"
+                      sizes="(max-width: 768px) 25vw, 10vw"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <Card className="p-6">
+      {/* Property Title and Price Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        <Card className="p-4 md:p-6">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold">{property.title}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">{property.title}</h1>
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                  <p className="text-lg text-gray-600">{property.location}</p>
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0" />
+                  <p className="text-sm md:text-lg text-gray-600">{property.location}</p>
                 </div>
               </div>
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -158,77 +198,63 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
         </Card>
       </div>
 
-      {/* Property details grid */}
-      <div className="max-w-7xl mx-auto px-4 mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Card className="p-6 bg-white shadow-lg">
-            <div className="flex flex-col items-center text-center">
-              <BedDouble className="w-8 h-8 text-blue-600 mb-2" />
-              <span className="text-3xl font-bold mb-1">{property.bedrooms}</span>
-              <span className="text-gray-600">Bedrooms</span>
-            </div>
-          </Card>
-          <Card className="p-6 bg-white shadow-lg">
-            <div className="flex flex-col items-center text-center">
-              <Bath className="w-8 h-8 text-blue-600 mb-2" />
-              <span className="text-3xl font-bold mb-1">{property.bathrooms}</span>
-              <span className="text-gray-600">Bathrooms</span>
-            </div>
-          </Card>
-          <Card className="p-6 bg-white shadow-lg">
-            <div className="flex flex-col items-center text-center">
-              <Bath className="w-8 h-8 text-blue-600 mb-2" />
-              <span className="text-3xl font-bold mb-1">{property.toilets}</span>
-              <span className="text-gray-600">Toilets</span>
-            </div>
-          </Card>
-          <Card className="p-6 bg-white shadow-lg">
-            <div className="flex flex-col items-center text-center">
-              <BedDouble className="w-8 h-8 text-blue-600 mb-2" />
-              <span className="text-3xl font-bold mb-1">{property.bq}</span>
-              <span className="text-gray-600">BQ</span>
-            </div>
-          </Card>
-          <Card className="p-6 bg-white shadow-lg md:col-span-2 lg:col-span-2">
-            <div className="flex flex-col items-center text-center">
-              <Square className="w-8 h-8 text-blue-600 mb-2" />
-              <span className="text-3xl font-bold mb-1">{property.area}</span>
-              <span className="text-gray-600">Sq Ft</span>
-            </div>
-          </Card>
+      {/* Property Details Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 md:mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
+          {[
+            { icon: BedDouble, value: property.bedrooms, label: 'Bedrooms' },
+            { icon: Bath, value: property.bathrooms, label: 'Bathrooms' },
+            { icon: Bath, value: property.toilets, label: 'Toilets' },
+            { icon: BedDouble, value: property.bq, label: 'BQ' },
+            { icon: Square, value: property.area, label: 'Sq Ft', fullWidth: true }
+          ].map((detail, index) => (
+            <Card 
+              key={index} 
+              className={`p-3 md:p-6 bg-white shadow-lg ${detail.fullWidth ? 'md:col-span-2 lg:col-span-2' : ''}`}
+            >
+              <div className="flex flex-col items-center text-center">
+                <detail.icon className="w-6 h-6 md:w-8 md:h-8 text-blue-600 mb-1 md:mb-2" />
+                <span className="text-xl md:text-3xl font-bold mb-0 md:mb-1">{detail.value}</span>
+                <span className="text-xs md:text-sm text-gray-600">{detail.label}</span>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 
-      {/* Description, Features, and Contact sections */}
-      <div className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+      {/* Description, Features, and Contact Sections */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+          <div className="lg:col-span-2 space-y-4 md:space-y-8">
+            {/* Description Card */}
             <Card className="overflow-hidden">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-semibold mb-6">Description</h2>
-                <p className="text-gray-600 leading-relaxed">{property.description}</p>
+              <CardContent className="p-4 md:p-8">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Description</h2>
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed">{property.description}</p>
               </CardContent>
             </Card>
 
+            {/* Features Card */}
             <Card className="overflow-hidden">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-semibold mb-6">Features</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+              <CardContent className="p-4 md:p-8">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Features</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 md:gap-y-4 gap-x-4 md:gap-x-8">
                   {property.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                      <span className="text-gray-600">{feature.name}</span>
+                    <div key={index} className="flex items-center gap-2 md:gap-3">
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-600 rounded-full" />
+                      <span className="text-xs md:text-base text-gray-600">{feature.name}</span>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Location Card */}
             <Card className="overflow-hidden">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-semibold mb-6">Location</h2>
+              <CardContent className="p-4 md:p-8">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Location</h2>
                 {property.latitude && property.longitude ? (
-                  <div className="h-[400px] w-full">
+                  <div className="h-[200px] md:h-[400px] w-full">
                     <MapView
                       properties={{
                         id: property.id,
@@ -242,18 +268,19 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
                     />
                   </div>
                 ) : (
-                  <div className="h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
-                    <p className="text-gray-500">Location coordinates not available.</p>
+                  <div className="h-[200px] md:h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+                    <p className="text-sm md:text-base text-gray-500">Location coordinates not available.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          <div>
+          {/* Contact Section */}
+          <div className="hidden lg:block">
             <Card className="sticky top-8">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-semibold mb-6">Interested?</h2>
+              <CardContent className="p-4 md:p-8">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>
                 <div className='bg-teal-500'>
                   <ContactDialog propertyId={property.id.toString()} />
                 </div>

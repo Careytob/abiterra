@@ -63,21 +63,23 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col lg:flex-row container">
       {/* Image Section - Hidden on small screens, visible on large screens */}
-      <div className="hidden lg:block relative w-1/2   md:mt-4 lg:mt-0">
-        <Image 
-          src='/images/login-image.jpeg' 
-          alt="Luxury Property" 
-          fill
-          className="object-cover"
-          priority
-          sizes="50vw"
-        />
+      <div className="hidden lg:flex lg:w-3/5 items-center justify-center bg-white md:mt-4 lg:mt-0">
+        <div className="relative w-full max-w-4xl h-[600px]">
+          <Image 
+            src='/images/login-image.jpeg' 
+            alt="Luxury Property" 
+            fill
+            className="object-contain"
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+          />
+        </div>
       </div>
 
       {/* Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 lg:p-12 bg-white pt-24">
+      <div className="w-full lg:w-2/5 flex items-center justify-center px-4 py-8 lg:p-12 bg-white pt-24">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl lg:text-3xl font-bold text-center">Welcome Back</CardTitle>
