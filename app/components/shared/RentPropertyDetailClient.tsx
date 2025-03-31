@@ -106,7 +106,7 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
       )}
 
       {/* Image Gallery Section */}
-      <div className="w-full bg-gray-900 pt-3 md:pt-8 ">
+      <div className="w-full bg-gray-900 pt-3 md:pt-7 pb-3 md:pb-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Large Main Image */}
@@ -277,7 +277,7 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
           </div>
 
           {/* Contact Section */}
-          <div className="hidden lg:block">
+          <div className=" lg:block">
             <Card className="sticky top-8">
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>

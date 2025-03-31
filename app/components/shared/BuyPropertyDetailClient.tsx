@@ -78,7 +78,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
   ].slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-gray-50 pt-20 md:pt-12">
       {/* Fullscreen Modal */}
       {fullscreenIndex !== null && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
@@ -100,7 +100,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
       )}
 
       {/* Image Gallery Section */}
-      <div className="w-full bg-gray-900 pt-3 md:pt-4 ">
+      <div className="w-full bg-gray-900 pt-3 md:pt-7 pb-3 md:pb-3 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Large Main Image */}
@@ -271,7 +271,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
           </div>
 
           {/* Contact Section */}
-          <div className="hidden lg:block">
+          <div className=" lg:block">
             <Card className="sticky top-8">
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>
