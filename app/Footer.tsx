@@ -22,7 +22,7 @@ const Footer = () => {
           <div className="text-center sm:text-left">
             <h3 className="font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>info@abiterra.com</li>
+              <li>contact@abiterra.com</li>
               
             </ul>
           </div>
