@@ -217,11 +217,17 @@ export default async function BlogPage({
           </form>
         </div>
 
-        <div className="text-center mt-12">
-          <Link href="/buy" className="bg-teal-600 text-white px-6 py-3 rounded hover:bg-teal-700 mr-4">
+        <div className="mt-12 flex flex-col sm:flex-row sm:justify-center gap-4">
+          <Link 
+            href="/buy" 
+            className="w-full sm:w-auto bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 text-center"
+          >
             Explore Properties for Sale
           </Link>
-          <Link href="/rent" className="bg-white text-teal-600 border border-teal-600 px-6 py-3 rounded hover:bg-gray-50">
+          <Link 
+            href="/rent" 
+            className="w-full sm:w-auto bg-white text-teal-600 border border-teal-600 px-6 py-3 rounded-lg hover:bg-gray-50 text-center"
+          >
             Find Rental Properties
           </Link>
         </div>
