@@ -12,7 +12,7 @@ async function uploadLocalImages() {
   const publicDir = path.join(process.cwd(), 'public');
   const propertiesDir = path.join(publicDir, 'images', 'properties');
 
-  async function processDirectory(dir) {
+  async function processDirectory(dir: string) {
     const files = fs.readdirSync(dir);
 
     for (const file of files) {

@@ -10,6 +10,7 @@ import { DialogClose } from "@/app/components/ui/dialog";
 
 interface ContactFormProps {
   propertyId: number;
+  onSubmitSuccess?: () => void; // Add this prop
 }
 
 interface FormData {
@@ -18,7 +19,7 @@ interface FormData {
   propertyId: number;  
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ propertyId }) => {
+const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }) => {
   const { toast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
   
@@ -33,7 +34,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId }) => {
     try {
       const formData = {
         message: data.message,
-        phone: data.phone, // ✅ Now sending phone number
+        phone: data.phone,
         propertyId: Number(propertyId),
       };
 
@@ -55,6 +56,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId }) => {
 
       setIsSuccess(true);
       reset();
+      
+      // Call the parent's onSubmitSuccess callback if provided
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      }
 
     } catch (error: any) {
       toast({

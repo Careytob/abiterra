@@ -1,11 +1,19 @@
 ---
-title: "The True Cost of Buying Property in Nigeria (Beyond the Asking Price)"
-author: "Property Expert"
-publishDate: "April 12, 2025"
-category: "Buying Guide"
-tags: ["property costs", "nigerian real estate", "hidden costs", "property taxes", "legal fees"]
-excerpt: "Discover the complete financial picture of buying property in Nigeria. Beyond the asking price, learn about all the additional costs that impact your real estate investment budget."
-coverImage: "/images/blog/cost-buying-property.jpg"
+title: The True Cost of Buying Property in Nigeria (Beyond the Asking Price)
+author: Property Expert
+publishDate: 'April 12, 2025'
+category: Buying Guide
+tags:
+  - property costs
+  - nigerian real estate
+  - hidden costs
+  - property taxes
+  - legal fees
+excerpt: >-
+  Discover the complete financial picture of buying property in Nigeria. Beyond
+  the asking price, learn about all the additional costs that impact your real
+  estate investment budget.
+coverImage: images/blog/cost-buying-property.jpg
 ---
 
 # The True Cost of Buying Property in Nigeria (Beyond the Asking Price)

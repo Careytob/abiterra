@@ -7,6 +7,39 @@ import { marked } from 'marked';
 
 const BLOG_DIR = path.join(process.cwd(), 'content/blog');
 
+async function getSignedUrl(path: string): Promise<string> {
+  if (path.startsWith('http')) {
+    return path;
+  }
+
+  const defaultImage = '/images/blog/default-cover.jpg';
+  if (!path) {
+    console.warn('Image path is empty, returning default image');
+    return defaultImage;
+  }
+
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const res = await fetch(`${baseUrl}/api/blog-images?path=${encodeURIComponent(path)}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch signed URL for ${path}: ${res.status} ${res.statusText}`);
+      return defaultImage;
+    }
+
+    const data = await res.json();
+    return data.url || defaultImage;
+  } catch (error: any) {
+    console.error(`Error fetching signed URL for ${path}:`, error.message);
+    return defaultImage;
+  }
+}
+
 async function ensureBlogDir() {
   try {
     await fs.access(BLOG_DIR);
@@ -27,58 +60,46 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
 }> {
   try {
     await ensureBlogDir();
-    
-    let files;
-    try {
-      files = await fs.readdir(BLOG_DIR);
-    } catch (error) {
-      console.warn('Could not read blog directory:', error);
-      return { posts: [], totalPages: 0, length: 0 };
-    }
-    
-    if (!files || files.length === 0) {
-      console.log('No blog posts found');
-      return { posts: [], totalPages: 0, length: 0 };
-    }
-    
+    let files = await fs.readdir(BLOG_DIR);
+    files = files.filter(filename => filename.endsWith('.mdx') || filename.endsWith('.md'));
+
     const allPosts = await Promise.all(
-      files
-        .filter(filename => filename.endsWith('.mdx') || filename.endsWith('.md'))
-        .map(async filename => {
-          const filePath = path.join(BLOG_DIR, filename);
-          const fileContent = await fs.readFile(filePath, 'utf8');
-          
-          const { data, content } = matter(fileContent);
-          const slug = filename.replace(/\.(mdx|md)$/, '');
-          
-          const htmlContent = marked(content);
-          
-          return {
-            id: slug,
-            slug,
-            content,
-            htmlContent,
-            title: data.title || 'Untitled Post',
-            author: data.author || 'Admin',
-            publishDate: data.publishDate || new Date().toISOString(),
-            category: data.category || 'Real Estate',
-            tags: data.tags || [],
-            excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
-            coverImage: data.coverImage || '/images/blog/default-cover.jpg',
-            readTime: data.readTime || calculateReadTime(content)
-          } as BlogPost;
-        })
+      files.map(async filename => {
+        const filePath = path.join(BLOG_DIR, filename);
+        const fileContent = await fs.readFile(filePath, 'utf8');
+        const { data, content } = matter(fileContent);
+        const slug = filename.replace(/\.(mdx|md)$/, '');
+        const htmlContent = marked(content);
+
+        const coverImage = data.coverImage || 'images/blog/default-cover.jpg';
+        const signedCoverImage = await getSignedUrl(coverImage);
+
+        return {
+          id: slug,
+          slug,
+          content,
+          htmlContent,
+          title: data.title || 'Untitled Post',
+          author: data.author || 'Admin',
+          publishDate: data.publishDate || new Date().toISOString(),
+          category: data.category || 'Real Estate',
+          tags: data.tags || [],
+          excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
+          coverImage: signedCoverImage,
+          readTime: data.readTime || calculateReadTime(content)
+        } as BlogPost;
+      })
     );
-    
+
     const sortedPosts = allPosts.sort((a, b) => {
       return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();
     });
-    
+
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedPosts = sortedPosts.slice(startIndex, endIndex);
     const totalPages = Math.ceil(sortedPosts.length / limit);
-    
+
     return {
       posts: paginatedPosts,
       totalPages,
@@ -93,10 +114,9 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
     await ensureBlogDir();
-    
     let filePath = path.join(BLOG_DIR, `${slug}.mdx`);
     let fileExists = false;
-    
+
     try {
       await fs.access(filePath);
       fileExists = true;
@@ -110,16 +130,18 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
         return null;
       }
     }
-    
+
     if (!fileExists) {
       return null;
     }
-    
+
     const fileContent = await fs.readFile(filePath, 'utf8');
     const { data, content } = matter(fileContent);
-    
     const htmlContent = marked(content);
-    
+
+    const coverImage = data.coverImage || 'images/blog/default-cover.jpg';
+    const signedCoverImage = await getSignedUrl(coverImage);
+
     return {
       id: slug,
       slug,
@@ -131,7 +153,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       category: data.category || 'Real Estate',
       tags: data.tags || [],
       excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
-      coverImage: data.coverImage || '/images/blog/default-cover.jpg',
+      coverImage: signedCoverImage,
       readTime: data.readTime || calculateReadTime(content)
     } as BlogPost;
   } catch (error) {

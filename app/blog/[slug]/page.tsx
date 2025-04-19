@@ -157,6 +157,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 height={630}
                 className="w-full h-64 object-cover rounded-lg mt-4"
                 priority
+                unoptimized
               />
             )}
           </header>

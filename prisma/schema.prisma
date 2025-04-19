@@ -125,7 +125,7 @@ model property {
   price         Float
   type          property_type
   availability  Boolean         @default(true)
-  area          Float
+  area          Float?          // Changed from Float to Float? to make it nullable
   bathrooms     Int
   bedrooms      Int
   bq            Int
@@ -152,6 +152,17 @@ model property {
   @@index([state])
   @@index([availability])
   @@index([search_vector], type: Gin)
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("password_resets")
 }
 
 enum inquiry_status {

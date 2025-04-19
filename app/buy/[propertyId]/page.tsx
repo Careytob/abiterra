@@ -1,7 +1,10 @@
+
+// app/buy/[propertyId]/page.tsx
 import { Metadata } from 'next';
 import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { createClient } from '@supabase/supabase-js';
 import BuyPropertyDetailClient from '@/app/components/shared/BuyPropertyDetailClient';
 
 type PageProps = {
@@ -9,6 +12,11 @@ type PageProps = {
     propertyId: string;
   };
 };
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
@@ -27,6 +35,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       return { title: 'Property Not Found' };
     }
 
+    const formattedImages = await Promise.all(
+      property.images.map(async (image) => {
+        if (!image.url) return { url: `/api/placeholder/1200/630` };
+        const { data, error } = await supabase.storage
+          .from('properties')
+          .createSignedUrl(image.url, 7200);
+        if (error || !data?.signedUrl) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error(`Signed URL error for ${image.url}:`, error?.message);
+          }
+          return { url: `/api/placeholder/1200/630` };
+        }
+        return { url: data.signedUrl };
+      })
+    );
+
     const formattedPrice = new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
@@ -36,9 +60,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${property.title} For Sale | Your Brand`,
       description: `Property for sale in ${property.location}. ${property.description?.substring(0, 150)}...`,
       openGraph: {
-        title: `${property.title} - ${formattedPrice} | Your Brand`, // No "/Year"
+        title: `${property.title} - ${formattedPrice} | Your Brand`,
         description: property.description,
-        images: property.images.map((image) => ({
+        images: formattedImages.map((image) => ({
           url: image.url,
           width: 1200,
           height: 630,
@@ -48,7 +72,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/buy/${params.propertyId}`,
       },
     };
-    
   } catch (error) {
     console.error('Error generating metadata:', error);
     return { title: 'Property For Sale | Your Brand' };
@@ -71,7 +94,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     select: {
       id: true,
       price: true,
-      images: { select: { url: true } },
+      images: { select: { id: true, url: true } },
       title: true,
       bathrooms: true,
       bedrooms: true,
@@ -90,14 +113,31 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     notFound();
   }
 
+  const formattedImages = await Promise.all(
+    property.images.map(async (image) => {
+      if (!image.url) return { id: image.id, url: `/api/placeholder/1200/800` };
+      const { data, error } = await supabase.storage
+        .from('properties')
+        .createSignedUrl(image.url, 7200);
+      if (error || !data?.signedUrl) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`Signed URL error for ${image.url}:`, error?.message);
+        }
+        return { id: image.id, url: `/api/placeholder/1200/800` };
+      }
+      return { id: image.id, url: data.signedUrl };
+    })
+  );
+
   return (
-    <BuyPropertyDetailClient 
+    <BuyPropertyDetailClient
       property={{
         ...property,
         latitude: property.latitude ?? 0,
         longitude: property.longitude ?? 0,
+        area: property.area ?? 0,
         features: property.features,
-        images: property.images,
+        images: formattedImages,
       }}
     />
   );

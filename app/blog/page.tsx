@@ -163,6 +163,7 @@ export default async function BlogPage({
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"
                     priority
+                    unoptimized
                   />
                 </div>
                 <div className="p-6 md:w-1/2">

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import classNames from 'classnames';
 import { Avatar, Box, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
 import { useSession } from 'next-auth/react';
-import { signIn } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 
 const NavBar = () => {
   const currentPath = usePathname();
@@ -28,7 +28,7 @@ const NavBar = () => {
   const links = [
     { label: 'Home', href: '/' },
     { label: 'Buy', href: '/buy' },
-    { label: 'Rent', href: '/rent' },
+    
     { label: 'About Us', href: '/aboutus' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },
@@ -107,8 +107,11 @@ const NavBar = () => {
                   <DropdownMenu.Label>
                     <Text>Welcome {session.user!.name}</Text>
                   </DropdownMenu.Label>
-                  <DropdownMenu.Item color="teal">
-                    <Link href="/api/auth/signout">Log Out</Link>
+                  <DropdownMenu.Item 
+                    color="teal"
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                  >
+                    Log Out
                   </DropdownMenu.Item>
                 </DropdownMenu.Content>
               </DropdownMenu.Root>

@@ -15,6 +15,11 @@ const areaCoordinates: Record<string, { lat: number; lng: number }> = {
   'Maryland': { lat: 6.5761, lng: 3.3661 },
   'Magodo': { lat: 6.6179, lng: 3.3773 },
   'Banana Island': { lat: 6.4474, lng: 3.4215 },
+  'Chevron Drive, Lekki': { lat: 6.4418, lng: 3.5209 },
+  'Ikota Lagos': { lat: 6.4641, lng: 3.5644 },
+  'Osapa London': { lat:  6.4312, lng: 3.5504 },
+  'Osapa Lekki': { lat:  6.4372, lng: 3.5385 },
+  'Lekki Phase 1': { lat:   6.4698, lng: 3.5852 },
   
   // Abuja Areas
   'Maitama': { lat: 9.0833, lng: 7.5000 },

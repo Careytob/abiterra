@@ -7,8 +7,6 @@ import Link from 'next/link';
 import debounce from 'lodash/debounce';
 import dynamic from 'next/dynamic';
 
-
-// Separate the Map component import
 const MapView = dynamic(() => import('../components/Map'), {
   ssr: false,
   loading: () => (
@@ -18,7 +16,6 @@ const MapView = dynamic(() => import('../components/Map'), {
   )
 });
 
-// Type definitions
 interface Property {
   id: number;
   title: string;
@@ -27,7 +24,6 @@ interface Property {
   location: string;
   latitude: number | null;
   longitude: number | null;
-  images: string;
   type: string;
   specs: {
     area: string;
@@ -35,6 +31,7 @@ interface Property {
     baths: number;
     size: number;
   };
+  images: { id: number; url: string }[];
 }
 
 interface PaginationInfo {
@@ -54,34 +51,60 @@ const formatPrice = (price: string | number): string => {
   return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
 };
 
-// Separate PropertyCard into a client component
 const PropertyCard = ({ property }: { property: Property }) => {
-  //console.log(property.images);
+  const [imageError, setImageError] = useState(false);
+  
+  const getImageUrl = useCallback(() => {
+    if (!property.images || property.images.length === 0) {
+      return `/api/placeholder/800/600`;
+    }
+    
+    const firstImage = property.images[0];
+    if (!firstImage.url || typeof firstImage.url !== 'string') {
+      return `/api/placeholder/800/600`;
+    }
+    
+    try {
+      if (firstImage.url.startsWith('http')) {
+        return firstImage.url;
+      }
+      
+      if (firstImage.url.startsWith('/api/supabase-image/')) {
+        return firstImage.url;
+      }
+      
+      const cleanPath = firstImage.url.startsWith('/')
+        ? firstImage.url.substring(1)
+        : firstImage.url;
+        
+      return `/api/supabase-image/${encodeURIComponent(cleanPath)}`;
+    } catch (e) {
+      console.error('Error processing image URL:', e);
+      return `/api/placeholder/800/600`;
+    }
+  }, [property.images]);
+  
+  const imageUrl = imageError ? `/api/placeholder/800/600` : getImageUrl();
+
+  const handleImageError = () => {
+    console.warn('Image load error for:', property.title, imageUrl);
+    setImageError(true);
+  };
 
   return (
     <article className="group cursor-pointer">
       <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
-        {/* Check if images exist, then display the first image */}
-        {property.images && property.images.length > 0 ? (
-          <Image 
-            src={property.images[0]}  // Using the first image in the array
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-300"
-            onError={(e) => {
-              console.error('Image load error:', e);
-              // @ts-ignore
-              e.target.src = '/placeholder.jpg';
-            }}
-          />
-        ) : (
-          <Image
-            src="/placeholder.jpg"  // Fallback image if no images exist
-            alt="No image available"
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-        )}
+        <Image 
+          src={imageError ? `/api/placeholder/800/600` : imageUrl}
+          alt={property.title || 'Property image'}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
+          onError={handleImageError}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={false}
+          loading="lazy"
+          unoptimized
+        />
         <button aria-label="Add to favorites" className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
           <Heart className="w-4 h-4 text-gray-700" />
         </button>
@@ -91,7 +114,6 @@ const PropertyCard = ({ property }: { property: Property }) => {
           </span>
         </div>
       </div>
-
       <div className="mt-4">
         <div className="flex justify-between items-start">
           <h2 className="font-semibold text-gray-900">{property.title}</h2>
@@ -143,36 +165,50 @@ export default function BuyPage() {
   });
 
   const fetchProperties = useCallback(async (page: number, search?: string) => {
-    const type = 'SALE'; // Add this line
+    const type = 'SALE';
     setIsLoading(true);
     setError(null);
     try {
       const searchParam = search?.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
       const url = `/api/properties?type=${type}&page=${page}&limit=${pagination.itemsPerPage}${searchParam}`;
       console.log('Fetching properties from:', url);
-  
-      const response = await fetch(url);
-      console.log('API Response status:', response.status);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
+      const response = await fetch(url, {
+        signal: controller.signal,
+        next: { revalidate: 300 }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('API Response status:', response.status);
       if (!response.ok) {
         console.error('Response not OK:', response.status, response.statusText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const data = await response.json();
-      //console.log('API Response data:', data);
-      
       if (!data.properties || !Array.isArray(data.properties)) {
         console.error('Invalid data format:', data);
         throw new Error('Invalid response format');
       }
-      
       console.log('Setting properties:', data.properties.length, 'items');
-      setProperties(data.properties);
+      
+      const sanitizedProperties = data.properties.map((property: Property) => ({
+        ...property,
+        images: Array.isArray(property.images) ? property.images : []
+      }));
+      
+      setProperties(sanitizedProperties);
       setPagination(data.pagination);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Fetch error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timed out. Please try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -211,23 +247,18 @@ export default function BuyPage() {
     const { currentPage, totalPages } = pagination;
     const maxVisiblePages = 5;
     const range: (number | string)[] = [];
-    
     if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-
     range.push(1);
     let start = Math.max(2, currentPage - 1);
     let end = Math.min(totalPages - 1, currentPage + 1);
-
     if (currentPage <= 2) end = 4;
     if (currentPage >= totalPages - 1) start = totalPages - 3;
-
     if (start > 2) range.push('...');
     for (let i = start; i <= end; i++) range.push(i);
     if (end < totalPages - 1) range.push('...');
     range.push(totalPages);
-
     return range;
   };
 
@@ -252,7 +283,7 @@ export default function BuyPage() {
               )}
             </div>
             <button 
-              className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-700"
+              className="flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
               aria-label="Open filters"
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -261,7 +292,6 @@ export default function BuyPage() {
           </div>
         </div>
       </section>
-
       <section className="max-w-7xl mx-auto p-6">
         <header className="flex justify-between items-center mb-8">
           <div>
@@ -272,7 +302,6 @@ export default function BuyPage() {
                `Showing ${properties.length} of ${pagination.totalItems} properties`}
             </p>
           </div>
-
           <div className="flex gap-2">
             <button
               onClick={() => handleViewModeChange('grid')}
@@ -292,11 +321,9 @@ export default function BuyPage() {
             </button>
           </div>
         </header>
-
         {error && (
           <div className="text-red-500 text-center py-8" role="alert">{error}</div>
         )}
-
         {isLoading ? (
           <div className="flex justify-center items-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500" />
@@ -312,7 +339,6 @@ export default function BuyPage() {
             <MapView key={mapKey} properties={properties} />
           </div>
         )}
-
         {!isLoading && !error && pagination.totalPages > 1 && (
           <nav className="mt-12 flex justify-center items-center gap-2" aria-label="Pagination">
             <button 
@@ -323,7 +349,6 @@ export default function BuyPage() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            
             {paginationRange().map((pageNum, index) => (
               typeof pageNum === 'string' ? (
                 <span key={`ellipsis-${index}`} className="px-2">...</span>
@@ -341,7 +366,6 @@ export default function BuyPage() {
                 </button>
               )
             ))}
-            
             <button 
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}

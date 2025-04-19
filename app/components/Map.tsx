@@ -1,6 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
+import L, { Map } from 'leaflet';
+import { useMap } from 'react-leaflet';
+
+// Fix default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  iconUrl: '/leaflet/marker-icon.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
+});
 
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
@@ -37,51 +47,70 @@ interface MapProps {
   className?: string;
 }
 
-/*
-const debugCoordinates = (stage: string, properties: Property[]) => {
-  properties.forEach(prop => {
-    console.log(`[${stage}] Property ${prop.id}:`, {
-      latitude: prop.latitude,
-      longitude: prop.longitude,
-      rawLat: typeof prop.latitude === 'number' ? prop.latitude.toString() : null,
-      rawLong: typeof prop.longitude === 'number' ? prop.longitude.toString() : null,
-      precision: {
-        lat: typeof prop.latitude === 'number' ? prop.latitude.toString().split('.')[1]?.length : null,
-        long: typeof prop.longitude === 'number' ? prop.longitude.toString().split('.')[1]?.length : null
-      }
-    });
-  });
-};
-*/
+const MapUpdater: React.FC<{ properties: Property | Property[]; zoom: number }> = ({
+  properties,
+  zoom,
+}) => {
+  const map = useMap();
+  const [initialized, setInitialized] = useState(false);
 
-const MapView: React.FC<MapProps> = ({ properties, zoom = 15 }) => {
+  useEffect(() => {
+    const propertyArray = Array.isArray(properties) ? properties : [properties];
+    const centerProperty = propertyArray.find(
+      (p) => p.latitude != null && p.longitude != null
+    );
+
+    if (centerProperty?.latitude && centerProperty?.longitude) {
+      if (!initialized) {
+        map.setView([centerProperty.latitude, centerProperty.longitude], zoom);
+        setInitialized(true);
+      } else {
+        map.flyTo([centerProperty.latitude, centerProperty.longitude], zoom, {
+          duration: 0.5,
+        });
+      }
+    }
+  }, [map, properties, zoom, initialized]);
+
+  return null;
+};
+
+const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
   const [mounted, setMounted] = useState(false);
+  const mapRef = useRef<Map | null>(null);
+  const mapId = useRef(`map-${Math.random().toString(36).substring(2, 11)}`).current;
 
   useEffect(() => {
     setMounted(true);
+
+    return () => {
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove();
+          mapRef.current = null;
+          console.log(`Cleaned up map ${mapId}`);
+        } catch (error) {
+          console.error(`Error cleaning up map ${mapId}:`, error);
+        }
+      }
+    };
   }, []);
 
-  // Add debugging on properties change
-  /*
-  useEffect(() => {
-    if (mounted) {
-      const propsArray = Array.isArray(properties) ? properties : [properties];
-      debugCoordinates('MAP_COMPONENT', propsArray);
-    }
-  }, [properties, mounted]);
-*/
-  if (typeof window === 'undefined' || !mounted) return null;
+  if (typeof window === 'undefined' || !mounted) {
+    return null;
+  }
 
-  // Handle both single property and array of properties
   const propertyArray = Array.isArray(properties) ? properties : [properties];
-  
-  // Find center coordinates from first valid property
-  const centerProperty = propertyArray.find(p => p.latitude != null && p.longitude != null);
-  
+  const centerProperty = propertyArray.find(
+    (p) => p.latitude != null && p.longitude != null
+  );
+
   if (!centerProperty?.latitude || !centerProperty?.longitude) {
-    console.warn('No valid coordinates found for center property:', centerProperty);
     return (
-      <div className="h-[600px] w-full flex items-center justify-center bg-gray-200 rounded-lg">
+      <div
+        className={`h-64 w-full flex items-center justify-center bg-gray-200 rounded-lg ${className || ''}`}
+        aria-label="Map unavailable"
+      >
         <p className="text-gray-600">
           Location coordinates not available for this property.
         </p>
@@ -89,16 +118,12 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15 }) => {
     );
   }
 
-  // Log the coordinates being used for the map center
- // console.log('Map center coordinates:', {
-    //latitude: centerProperty.latitude,
-    //longitude: centerProperty.longitude
-  //});
-
   return (
-    <div 
-      className="h-[600px] w-full rounded-lg overflow-hidden relative"
+    <div
+      id={mapId}
+      className={`h-64 w-full rounded-lg overflow-hidden relative ${className || ''}`}
       style={{ zIndex: 1 }}
+      aria-label="Property location map"
     >
       <MapContainer
         center={[centerProperty.latitude, centerProperty.longitude]}
@@ -108,19 +133,14 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15 }) => {
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
+          attribution="© OpenStreetMap contributors"
         />
-        {propertyArray.map(property => {
-          if (property.latitude && property.longitude) {
-            // Log each marker's coordinates
-            //console.log(`Marker coordinates for property ${property.id}:`, {
-             // latitude: property.latitude,
-              //longitude: property.longitude
-            //});
-            
+        <MapUpdater properties={properties} zoom={zoom} />
+        {propertyArray.map((property) => {
+          if (property.latitude != null && property.longitude != null) {
             return (
-              <Marker 
-                key={property.id} 
+              <Marker
+                key={property.id}
                 position={[property.latitude, property.longitude]}
               >
                 <Popup>
