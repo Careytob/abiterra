@@ -1,5 +1,5 @@
-// app/api/placeholder/[width]/[height]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+{/*
+    import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
 // Cache response headers - long cache for placeholders
@@ -9,20 +9,16 @@ const cacheControl = {
   'Vercel-CDN-Cache-Control': 'public, max-age=604800, immutable',
 };
 
-// Important: This is now an async function
 export async function GET(
   request: NextRequest,
-  context: { params: { width: string; height: string } }
-) {
+  { params }: { params: { width: string; height: string } }
+): Promise<NextResponse> {
   try {
-    // With Next.js 14, we need to get params from context
-    const { params } = context;
-    
-    // Parse dimensions
-    const width = Math.min(parseInt(params.width, 10) || 400, 1200); // Limit max size
+    // Parse dimensions with defaults and limits
+    const width = Math.min(parseInt(params.width, 10) || 400, 1200);
     const height = Math.min(parseInt(params.height, 10) || 300, 1200);
-    
-    // Generate a placeholder image with property text
+
+    // Generate SVG placeholder
     const svgBuffer = Buffer.from(`
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#f0f0f0"/>
@@ -37,14 +33,14 @@ export async function GET(
           fill="#999" text-anchor="middle" dominant-baseline="middle">Property Image</text>
       </svg>
     `);
-    
+
     // Convert SVG to PNG with Sharp
     const pngBuffer = await sharp(svgBuffer)
       .resize(width, height)
       .png()
       .toBuffer();
-    
-    // Return the PNG image
+
+    // Return PNG image
     return new NextResponse(pngBuffer, {
       headers: {
         'Content-Type': 'image/png',
@@ -53,8 +49,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error generating placeholder:', error);
-    
-    // Create a simple fallback image if Sharp fails
+
+    // Fallback SVG
     const fallbackSvg = Buffer.from(`
       <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#f0f0f0"/>
@@ -62,7 +58,7 @@ export async function GET(
           fill="#999" text-anchor="middle" dominant-baseline="middle">Property Image</text>
       </svg>
     `);
-    
+
     return new NextResponse(fallbackSvg, {
       headers: {
         'Content-Type': 'image/svg+xml',
@@ -71,3 +67,5 @@ export async function GET(
     });
   }
 }
+  
+  */}

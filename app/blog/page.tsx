@@ -225,12 +225,17 @@ export default async function BlogPage({
           >
             Explore Properties for Sale
           </Link>
-          <Link 
+
+          {/*
+              <Link 
             href="/rent" 
             className="w-full sm:w-auto bg-white text-teal-600 border border-teal-600 px-6 py-3 rounded-lg hover:bg-gray-50 text-center"
           >
             Find Rental Properties
           </Link>
+          
+          */}
+          
         </div>
       </div>
     </>

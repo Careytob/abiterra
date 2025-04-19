@@ -171,9 +171,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             <Link href="/buy" className="block bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 mb-2 text-center">
               Browse Properties for Sale
             </Link>
-            <Link href="/rent" className="block bg-white text-teal-600 border border-teal-600 px-4 py-2 rounded hover:bg-gray-50 text-center">
+
+            {/* 
+            
+              <Link href="/rent" className="block bg-white text-teal-600 border border-teal-600 px-4 py-2 rounded hover:bg-gray-50 text-center">
               View Rental Properties
             </Link>
+            
+            */}
+
+            
           </div>
         </aside>
       </div>

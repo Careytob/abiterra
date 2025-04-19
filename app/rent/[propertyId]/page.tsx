@@ -112,6 +112,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           ...property,
           latitude: property.latitude ?? 0,
           longitude: property.longitude ?? 0,
+          area: property.area ?? 0,
           features: property.features,
           images: property.images,
         }}
