@@ -44,15 +44,16 @@ export const metadata = {
   },
 };
 
-export default async function BlogPage({ 
-  searchParams 
-}: { 
-  searchParams?: { page?: string } 
-}) {
-  const currentPage = searchParams?.page ? parseInt(searchParams.page) : 1;
+interface BlogPageProps {
+  searchParams: Promise<{ page?: string }>; // Updated to handle searchParams as a Promise
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const resolvedSearchParams = await searchParams; // Await the Promise
+  const currentPage = resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1;
   const { posts: blogPosts, totalPages } = await getBlogPosts(currentPage, 9);
   const categories = await getAllCategories();
-  
+
   const blogStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -106,7 +107,7 @@ export default async function BlogPage({
       keywords: post.tags.join(', '),
     })),
   };
-  
+
   return (
     <>
       <script
@@ -123,7 +124,7 @@ export default async function BlogPage({
           )}
         </>
       )}
-      
+
       <div className="container mx-auto px-4 pt-28 pb-16 max-w-6xl">
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">Real Estate Blog</h1>
@@ -133,15 +134,15 @@ export default async function BlogPage({
         </div>
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">
-          <Link 
+          <Link
             href="/blog"
             className="bg-teal-600 text-white px-4 py-2 rounded-full text-sm hover:bg-teal-700"
           >
             All Posts
           </Link>
           {categories.map(category => (
-            <Link 
-              key={category} 
+            <Link
+              key={category}
               href={`/blog/category/${encodeURIComponent(category.toLowerCase())}`}
               className="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm hover:bg-gray-200"
             >
@@ -156,14 +157,13 @@ export default async function BlogPage({
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="md:flex">
                 <div className="md:w-1/2 relative h-64">
-                  <Image 
-                    src={blogPosts[0].coverImage || '/images/blog/default-cover.jpg'} 
-                    alt={`${blogPosts[0].title} - Lagos real estate guide`} 
+                  <Image
+                    src={blogPosts[0].coverImage || '/images/blog/default-cover.jpg'}
+                    alt={`${blogPosts[0].title} - Lagos real estate guide`}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"
                     priority
-                    unoptimized
                   />
                 </div>
                 <div className="p-6 md:w-1/2">
@@ -175,7 +175,7 @@ export default async function BlogPage({
                   </div>
                   <h3 className="text-2xl font-bold mb-2">{blogPosts[0].title}</h3>
                   <p className="text-gray-600 mb-4">{blogPosts[0].excerpt}</p>
-                  <Link 
+                  <Link
                     href={`/blog/${blogPosts[0].slug}`}
                     className="inline-block bg-teal-600 text-white font-medium py-2 px-4 rounded hover:bg-teal-700 transition duration-300"
                   >
@@ -202,15 +202,15 @@ export default async function BlogPage({
           <h3 className="text-2xl font-bold mb-3">Stay Updated</h3>
           <p className="mb-6">Subscribe to our newsletter for the latest property insights and market updates.</p>
           <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto" aria-label="Newsletter subscription">
-            <input 
-              type="email" 
-              placeholder="Your email address" 
+            <input
+              type="email"
+              placeholder="Your email address"
               className="flex-grow px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
               aria-label="Email address"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="bg-teal-600 text-white font-medium py-2 px-6 rounded hover:bg-teal-700 transition duration-300"
             >
               Subscribe
@@ -219,23 +219,12 @@ export default async function BlogPage({
         </div>
 
         <div className="mt-12 flex flex-col sm:flex-row sm:justify-center gap-4">
-          <Link 
-            href="/buy" 
+          <Link
+            href="/buy"
             className="w-full sm:w-auto bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 text-center"
           >
             Explore Properties for Sale
           </Link>
-
-          {/*
-              <Link 
-            href="/rent" 
-            className="w-full sm:w-auto bg-white text-teal-600 border border-teal-600 px-6 py-3 rounded-lg hover:bg-gray-50 text-center"
-          >
-            Find Rental Properties
-          </Link>
-          
-          */}
-          
         </div>
       </div>
     </>

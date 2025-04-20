@@ -1,5 +1,5 @@
 // app/api/properties/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
 
@@ -9,15 +9,14 @@ const supabase = createClient(
 );
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const propertyId = parseInt(params.id, 10);
 
     if (isNaN(propertyId)) {
-      return NextResponse.json({ error: 'Invalid property ID' }, { status: 400 });
+      return Response.json({ error: 'Invalid property ID' }, { status: 400 });
     }
 
     const property = await prisma.property.findUnique({
@@ -31,7 +30,7 @@ export async function GET(
     });
 
     if (!property) {
-      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
+      return Response.json({ error: 'Property not found' }, { status: 404 });
     }
 
     const processedImages = await Promise.all(
@@ -65,9 +64,9 @@ export async function GET(
       features: property.features,
     };
 
-    return NextResponse.json(response);
+    return Response.json(response);
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch property' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch property' }, { status: 500 });
   }
 }

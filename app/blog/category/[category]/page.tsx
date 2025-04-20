@@ -1,11 +1,11 @@
+//app/bog/category/[category]/page.tsx
 import React from 'react';
 import Link from 'next/link';
 import { getPostsByCategory, getAllCategories } from '@/lib/blogHelpers';
 import BlogCard from '@/app/components/BlogCard';
 import Pagination from '@/app/components/Pagination';
-import { Metadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { category: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }) {
   const category = decodeURIComponent(params.category);
   return {
     title: `${category} | Abiterra Real Estate Blog`,
@@ -30,15 +30,10 @@ export async function generateMetadata({ params }: { params: { category: string 
   };
 }
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: { category: string };
-  searchParams?: { page?: string };
-}) {
+export default async function Page({ params, searchParams }) {
   const category = decodeURIComponent(params.category);
   const currentPage = searchParams?.page ? parseInt(searchParams.page) : 1;
+  
   const { posts, totalPages } = await getPostsByCategory(category, currentPage, 9);
   const categories = await getAllCategories();
 

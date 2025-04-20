@@ -32,8 +32,9 @@ async function getProperty(id: string) {
   }
 }
 
-export default async function PropertyPage({ params }: { params: { id: string } }) {
-  const property = await getProperty(params.id);
+export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params; // Await the params Promise
+  const property = await getProperty(resolvedParams.id);
   
   // Debug log before passing to component
   console.log('Property data being passed to ViewPropertyDetails:', {

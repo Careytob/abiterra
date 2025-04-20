@@ -5,14 +5,19 @@ import BlogCard from '@/app/components/BlogCard';
 import Pagination from '@/app/components/Pagination';
 import { Metadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
-  const tag = decodeURIComponent(params.tag);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ tag: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params; // Await the params Promise
+  const tag = decodeURIComponent(resolvedParams.tag);
   return {
     title: `#${tag} | Abiterra Real Estate Blog`,
     description: `Explore articles tagged with ${tag} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
     keywords: [tag.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
     alternates: {
-      canonical: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`
+      canonical: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
     },
     openGraph: {
       title: `#${tag} | Abiterra Real Estate Blog`,
@@ -34,11 +39,13 @@ export default async function TagPage({
   params,
   searchParams,
 }: {
-  params: { tag: string };
-  searchParams?: { page?: string };
+  params: Promise<{ tag: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const tag = decodeURIComponent(params.tag);
-  const currentPage = searchParams?.page ? parseInt(searchParams.page) : 1;
+  const resolvedParams = await params; // Await the params Promise
+  const resolvedSearchParams = await searchParams; // Await the searchParams Promise
+  const tag = decodeURIComponent(resolvedParams.tag);
+  const currentPage = resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1;
   const { posts, totalPages } = await getPostsByTag(tag, currentPage, 9);
   const categories = await getAllCategories();
 
@@ -82,10 +89,10 @@ export default async function TagPage({
       {totalPages > 1 && (
         <>
           {currentPage > 1 && (
-            <link rel="prev" href={`/blog/tag/${params.tag}?page=${currentPage - 1}`} />
+            <link rel="prev" href={`/blog/tag/${encodeURIComponent(resolvedParams.tag)}?page=${currentPage - 1}`} />
           )}
           {currentPage < totalPages && (
-            <link rel="next" href={`/blog/tag/${params.tag}?page=${currentPage + 1}`} />
+            <link rel="next" href={`/blog/tag/${encodeURIComponent(resolvedParams.tag)}?page=${currentPage + 1}`} />
           )}
         </>
       )}
@@ -98,15 +105,15 @@ export default async function TagPage({
         </div>
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">
-          <Link 
+          <Link
             href="/blog"
             className="bg-teal-600 text-white px-4 py-2 rounded-full text-sm hover:bg-teal-700"
           >
             All Posts
           </Link>
           {categories.map(cat => (
-            <Link 
-              key={cat} 
+            <Link
+              key={cat}
               href={`/blog/category/${encodeURIComponent(cat.toLowerCase())}`}
               className="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm hover:bg-gray-200"
             >
@@ -124,7 +131,7 @@ export default async function TagPage({
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          baseUrl={`/blog/tag/${params.tag}`}
+          baseUrl={`/blog/tag/${encodeURIComponent(resolvedParams.tag)}`}
         />
       </div>
     </>
