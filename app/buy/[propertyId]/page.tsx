@@ -4,10 +4,10 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
-import RentPropertyDetailClient from '@/app/components/shared/RentPropertyDetailClient'; // Assumed component for rentals
+import BuyPropertyDetailClient from '@/app/components/shared/BuyPropertyDetailClient';
 
 type PageProps = {
-  params: Promise<{ propertyId: string }>; // Updated to use Promise
+  params: Promise<{ propertyId: string }>; 
 };
 
 const supabase = createClient(
@@ -16,7 +16,7 @@ const supabase = createClient(
 );
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params; // Await the params Promise
+  const resolvedParams = await params; 
   try {
     const property = await prisma.property.findUnique({
       where: { id: parseInt(resolvedParams.propertyId, 10) },
@@ -55,10 +55,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }).format(property.price);
 
     return {
-      title: `${property.title} For Rent | Your Brand`,
-      description: `Property for rent in ${property.location}. ${property.description?.substring(0, 150)}...`,
+      title: `${property.title} For Sale | Abiterra`,
+      description: `Property for sale in ${property.location}. ${property.description?.substring(0, 150)}...`,
       openGraph: {
-        title: `${property.title} - ${formattedPrice} | Your Brand`,
+        title: `${property.title} - ${formattedPrice} | Abiterra`,
         description: property.description,
         images: formattedImages.map((image) => ({
           url: image.url,
@@ -72,12 +72,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return { title: 'Property For Rent | Your Brand' };
+    return { title: 'Property For Sale | Abiterra' };
   }
 }
 
 const PropertyDetailPage = async ({ params }: PageProps) => {
-  const resolvedParams = await params; // Await the params Promise
+  const resolvedParams = await params; 
   if (!resolvedParams?.propertyId) {
     notFound();
   }
@@ -129,7 +129,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
   );
 
   return (
-    <RentPropertyDetailClient
+    <BuyPropertyDetailClient
       property={{
         ...property,
         latitude: property.latitude ?? 0,

@@ -28,7 +28,7 @@ const ResetPasswordContent = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams?.get('token');
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm<ResetPasswordFormInputs>();
   const password = watch('password', '');

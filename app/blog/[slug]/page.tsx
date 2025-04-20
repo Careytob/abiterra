@@ -7,8 +7,13 @@ import BlogCard from '@/app/components/BlogCard';
 import SocialShareButtons from '@/app/components/SocialShareButtons';
 
 // Minimal version to get past type checking
-export default async function BlogPostPage({ params }: any) {
-  const post = await getBlogPostBySlug(params.slug);
+export default async function BlogPostPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
   
   if (!post) {
     return (
