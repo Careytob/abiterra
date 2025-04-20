@@ -63,7 +63,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row container">
+    <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Image Section - Hidden on small screens, visible on large screens */}
       <div className="hidden lg:flex lg:w-3/5 items-center justify-center bg-white md:mt-4 lg:mt-0">
         <div className="relative w-full max-w-4xl h-[600px]">

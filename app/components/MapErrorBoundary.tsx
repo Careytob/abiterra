@@ -11,15 +11,15 @@ interface State {
 
 class MapErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
-
+  
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-
+  
   componentDidCatch(error: Error) {
     console.error('Map error:', error);
   }
-
+  
   render() {
     if (this.state.hasError) {
       return (

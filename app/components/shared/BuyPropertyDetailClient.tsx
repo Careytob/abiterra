@@ -1,3 +1,4 @@
+//app/components/shared/BuyPropertyDetailClient.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -7,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, BedDouble, Bath, ChevronLeft, ChevronRight, Square } from 'lucide-react';
 import { ContactDialog } from './ContactDialog';
 import ShareButton from './ShareButton';
+import MapErrorBoundary from '@/app/components/MapErrorBoundary';
 import 'leaflet/dist/leaflet.css';
 
 const MapView = dynamic(() => import('@/app/components/Map'), {
@@ -248,17 +250,19 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Location</h2>
                 {property.latitude && property.longitude ? (
                   <div className="h-[200px] md:h-[400px] w-full">
-                    <MapView
-                      properties={{
-                        id: property.id,
-                        title: property.title,
-                        price: property.price,
-                        location: property.location,
-                        latitude: Number(property.latitude),
-                        longitude: Number(property.longitude),
-                      }}
-                      zoom={15}
-                    />
+                    <MapErrorBoundary>
+                      <MapView
+                        properties={{
+                          id: property.id,
+                          title: property.title,
+                          price: property.price,
+                          location: property.location,
+                          latitude: Number(property.latitude),
+                          longitude: Number(property.longitude),
+                        }}
+                        zoom={15}
+                      />
+                    </MapErrorBoundary>
                   </div>
                 ) : (
                   <div className="h-[200px] md:h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">

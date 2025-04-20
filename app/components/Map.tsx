@@ -1,15 +1,17 @@
+
+//app/components/Map.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import L, { Map } from 'leaflet';
 import { useMap } from 'react-leaflet';
 
-// Fix default marker icons
+// Fix default marker icons - update paths to point to where they actually are
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  iconUrl: '/leaflet/marker-icon.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
+  iconRetinaUrl: '/images/marker-icon-2x-blue.png',
+  iconUrl: '/images/marker-icon-blue.png',
+  shadowUrl: '/images/marker-shadow.png',
 });
 
 const MapContainer = dynamic(
@@ -130,6 +132,9 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
         zoom={zoom}
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
+        ref={(map) => {
+          mapRef.current = map;
+        }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
