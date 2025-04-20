@@ -2,8 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables:', {
+    supabaseUrl: !!supabaseUrl,
+    supabaseServiceKey: !!supabaseServiceKey,
+  });
+  throw new Error('Supabase configuration is incomplete. Please check environment variables.');
+}
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: Request) {
@@ -13,24 +22,15 @@ export async function GET(request: Request) {
 
     if (!path) {
       console.error('Image path missing in request');
-      return NextResponse.json(
-        { error: 'Image path is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Image path is required' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .storage
-      .from('properties')
-      .createSignedUrl(path, 7200);
+    const { data, error } = await supabase.storage.from('properties').createSignedUrl(path, 7200);
 
     if (error) {
       console.error(`Supabase signed URL error for path ${path}:`, error.message);
       if (error.message.includes('Object not found')) {
-        return NextResponse.json(
-          { url: '/images/blog/default-cover.jpg' },
-          { status: 200 }
-        );
+        return NextResponse.json({ url: '/images/blog/default-cover.jpg' }, { status: 200 });
       }
       return NextResponse.json(
         { error: 'Failed to generate signed URL', details: error.message },
@@ -40,10 +40,7 @@ export async function GET(request: Request) {
 
     if (!data?.signedUrl) {
       console.error(`No signed URL returned for path ${path}`);
-      return NextResponse.json(
-        { url: '/images/blog/default-cover.jpg' },
-        { status: 200 }
-      );
+      return NextResponse.json({ url: '/images/blog/default-cover.jpg' }, { status: 200 });
     }
 
     return NextResponse.json({ url: data.signedUrl });

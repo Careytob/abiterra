@@ -1,5 +1,8 @@
 import { getSitemapUrls } from '@/lib/blogHelpers';
 
+// Force dynamic rendering to allow runtime fetches
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const urls = await getSitemapUrls();
 

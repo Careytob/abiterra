@@ -1,12 +1,14 @@
+
+//app/reset-password/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Updated import path
+import { Input } from '@/components/ui/input'; // Updated import path
+import { Button } from '@/components/ui/button'; // Updated import path
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -15,7 +17,7 @@ interface ResetPasswordFormInputs {
   confirmPassword: string;
 }
 
-const ResetPasswordPage = () => {
+const ResetPasswordContent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -23,16 +25,15 @@ const ResetPasswordPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isValidToken, setIsValidToken] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  
+
   const { register, handleSubmit, formState: { errors }, watch } = useForm<ResetPasswordFormInputs>();
   const password = watch('password', '');
 
   useEffect(() => {
-    // Validate the token when the component mounts
     if (!token) {
       setIsLoading(false);
       setMessage('Invalid or missing reset token');
@@ -76,9 +77,9 @@ const ResetPasswordPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           token,
-          password: data.password 
+          password: data.password,
         }),
       });
 
@@ -109,12 +110,12 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row container">
-      {/* Image Section - Hidden on small screens, visible on large screens */}
+      {/* Image Section */}
       <div className="hidden lg:flex lg:w-3/5 items-center justify-center bg-white md:mt-4 lg:mt-0">
         <div className="relative w-full max-w-4xl h-[600px]">
-          <Image 
-            src='/images/login-image.jpeg' 
-            alt="Luxury Property" 
+          <Image
+            src="/images/login-image.jpeg"
+            alt="Luxury Property"
             fill
             className="object-contain"
             priority
@@ -145,18 +146,19 @@ const ResetPasswordPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                   <div className="relative">
                     <Input
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter new password"
-                      {...register("password", {
-                        required: "Password is required",
+                      {...register('password', {
+                        required: 'Password is required',
                         minLength: {
                           value: 8,
-                          message: "Password must be at least 8 characters"
+                          message: 'Password must be at least 8 characters',
                         },
                         pattern: {
                           value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                          message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-                        }
+                          message:
+                            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+                        },
                       })}
                       className="w-full pr-10"
                     />
@@ -175,11 +177,11 @@ const ResetPasswordPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                   <div className="relative">
                     <Input
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm new password"
-                      {...register("confirmPassword", {
-                        required: "Please confirm your password",
-                        validate: value => value === password || "Passwords do not match"
+                      {...register('confirmPassword', {
+                        required: 'Please confirm your password',
+                        validate: (value) => value === password || 'Passwords do not match',
                       })}
                       className="w-full pr-10"
                     />
@@ -191,37 +193,26 @@ const ResetPasswordPage = () => {
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-sm text-red-500 mt-1">{errors.confirmPassword.message}</p>}
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-red-500 mt-1">{errors.confirmPassword.message}</p>
+                  )}
                 </div>
 
-                <Button
-                  variant='teal'
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full"
-                >
+                <Button variant="default" type="submit" disabled={isSubmitting} className="w-full bg-teal-600 hover:bg-teal-700">
                   {isSubmitting ? 'Resetting...' : 'Reset Password'}
                 </Button>
               </form>
             ) : isSuccess ? (
               <div className="text-center">
                 <p className="mb-4">Your password has been reset successfully!</p>
-                <Button 
-                  variant="teal" 
-                  className="mt-4" 
-                  asChild
-                >
+                <Button variant="default" className="mt-4 bg-teal-600 hover:bg-teal-700" asChild>
                   <Link href="/login">Login with New Password</Link>
                 </Button>
               </div>
             ) : (
               <div className="text-center">
                 <p className="mb-4">This password reset link is invalid or has expired.</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4" 
-                  asChild
-                >
+                <Button variant="outline" className="mt-4" asChild>
                   <Link href="/forgot-password">Request New Reset Link</Link>
                 </Button>
               </div>
@@ -232,5 +223,12 @@ const ResetPasswordPage = () => {
     </div>
   );
 };
+
+// Wrap the component in Suspense
+const ResetPasswordPage = () => (
+  <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+    <ResetPasswordContent />
+  </Suspense>
+);
 
 export default ResetPasswordPage;
