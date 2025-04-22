@@ -8,7 +8,18 @@ const nextConfig = {
         hostname: 'szeqlqhzewvrdeerdamx.supabase.co',
         pathname: '/storage/v1/object/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '/**',
+      }
     ],
+    unoptimized: true, // This will bypass Next.js image optimization for all images
     minimumCacheTTL: 3600,
   },
   typescript: {
