@@ -17,12 +17,12 @@ export async function generateMetadata({
     description: `Explore articles tagged with ${tag} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
     keywords: [tag.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
     alternates: {
-      canonical: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+      canonical: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
     },
     openGraph: {
       title: `#${tag} | Abiterra Real Estate Blog`,
       description: `Explore articles tagged with ${tag} in the Lagos real estate market.`,
-      url: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+      url: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
       images: [
         {
           url: '/images/blog/blog-cover.jpg',
@@ -54,7 +54,7 @@ export default async function TagPage({
     '@type': 'CollectionPage',
     name: `#${tag} - Abiterra Real Estate Blog`,
     description: `Articles tagged with ${tag} in the Lagos real estate market.`,
-    url: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+    url: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -62,19 +62,19 @@ export default async function TagPage({
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://www.abiterra.com',
+          item: 'https://abiterra.com',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://www.abiterra.com/blog',
+          item: 'https://abiterra.com/blog',
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: `#${tag}`,
-          item: `https://www.abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+          item: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
         },
       ],
     },

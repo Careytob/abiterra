@@ -13,6 +13,15 @@ export const metadata = {
     'real estate blog',
     'property insights',
     'Lagos real estate',
+    "Nigeria real estate",
+    'real estate investment tips',
+    'home buying tips',
+    'property buying guide',
+    'real estate market trends',
+    'Lagos property insights',
+    'real estate news',
+    'real estate advice',
+    "Buying property in Nigeria",
     'property market',
     'home buying guide',
     'buying property in Lagos',
@@ -20,12 +29,12 @@ export const metadata = {
     'Nigeria real estate investment'
   ],
   alternates: {
-    canonical: 'https://www.abiterra.com/blog'
+    canonical: 'https://abiterra.com/blog'
   },
   openGraph: {
     title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
     description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips.',
-    url: 'https://www.abiterra.com/blog',
+    url: 'https://abiterra.com/blog',
     type: 'website',
     images: [
       {
@@ -59,13 +68,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     '@type': 'CollectionPage',
     name: 'Abiterra Real Estate Blog',
     description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips.',
-    url: `https://www.abiterra.com/blog${currentPage > 1 ? `?page=${currentPage}` : ''}`,
+    url: `https://abiterra.com/blog${currentPage > 1 ? `?page=${currentPage}` : ''}`,
     publisher: {
       '@type': 'Organization',
       name: 'Abiterra',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.abiterra.com/logo.png',
+        url: 'https://abiterra.com/logo.png',
         width: 200,
         height: 60,
       },
@@ -77,13 +86,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://www.abiterra.com',
+          item: 'https://abiterra.com',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://www.abiterra.com/blog',
+          item: 'https://abiterra.com/blog',
         },
       ],
     },
@@ -95,7 +104,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         '@type': 'Person',
         name: post.author,
       },
-      url: `https://www.abiterra.com/blog/${post.slug}`,
+      url: `https://abiterra.com/blog/${post.slug}`,
       image: {
         '@type': 'ImageObject',
         url: post.coverImage || '/images/blog/default-cover.jpg',

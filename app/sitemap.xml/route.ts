@@ -49,7 +49,7 @@ export async function GET(): Promise<Response> {
       .map(
         ({ url, lastmod, priority }) => `
       <url>
-        <loc>https://www.abiterra.com${url}</loc>
+        <loc>https://abiterra.com${url}</loc>
         <lastmod>${lastmod}</lastmod>
         <priority>${priority}</priority>
       </url>`

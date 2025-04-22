@@ -12,12 +12,12 @@ export async function generateMetadata({ params }) {
     description: `Explore articles on ${category} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
     keywords: [category.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
     alternates: {
-      canonical: `https://www.abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`
+      canonical: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`
     },
     openGraph: {
       title: `${category} | Abiterra Real Estate Blog`,
       description: `Explore articles on ${category} in the Lagos real estate market.`,
-      url: `https://www.abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+      url: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
       images: [
         {
           url: '/images/blog/blog-cover.jpg',
@@ -42,7 +42,7 @@ export default async function Page({ params, searchParams }) {
     '@type': 'CollectionPage',
     name: `${category} - Abiterra Real Estate Blog`,
     description: `Articles on ${category} in the Lagos real estate market.`,
-    url: `https://www.abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+    url: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -50,19 +50,19 @@ export default async function Page({ params, searchParams }) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://www.abiterra.com',
+          item: 'https://abiterra.com',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://www.abiterra.com/blog',
+          item: 'https://abiterra.com/blog',
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: category,
-          item: `https://www.abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+          item: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
         },
       ],
     },
