@@ -5,6 +5,8 @@ import { getPostsByCategory, getAllCategories } from '@/lib/blogHelpers';
 import BlogCard from '@/app/components/BlogCard';
 import Pagination from '@/app/components/Pagination';
 
+export const revalidate = 3600; // Revalidate every hour
+
 export async function generateMetadata({ params }) {
   const category = decodeURIComponent(params.category);
   return {
@@ -12,7 +14,7 @@ export async function generateMetadata({ params }) {
     description: `Explore articles on ${category} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
     keywords: [category.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
     alternates: {
-      canonical: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`
+      canonical: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
     },
     openGraph: {
       title: `${category} | Abiterra Real Estate Blog`,
@@ -33,7 +35,7 @@ export async function generateMetadata({ params }) {
 export default async function Page({ params, searchParams }) {
   const category = decodeURIComponent(params.category);
   const currentPage = searchParams?.page ? parseInt(searchParams.page) : 1;
-  
+
   const { posts, totalPages } = await getPostsByCategory(category, currentPage, 9);
   const categories = await getAllCategories();
 
@@ -93,15 +95,15 @@ export default async function Page({ params, searchParams }) {
         </div>
 
         <div className="mb-12 flex flex-wrap justify-center gap-3">
-          <Link 
+          <Link
             href="/blog"
             className="bg-teal-600 text-white px-4 py-2 rounded-full text-sm hover:bg-teal-700"
           >
             All Posts
           </Link>
           {categories.map(cat => (
-            <Link 
-              key={cat} 
+            <Link
+              key={cat}
               href={`/blog/category/${encodeURIComponent(cat.toLowerCase())}`}
               className="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm hover:bg-gray-200"
             >

@@ -6,6 +6,8 @@ import { getBlogPosts, getAllCategories } from '@/lib/blogHelpers';
 import BlogCard from '@/app/components/BlogCard';
 import Pagination from '@/app/components/Pagination';
 
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata = {
   title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
   description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips to help you make informed decisions.',
@@ -13,7 +15,7 @@ export const metadata = {
     'real estate blog',
     'property insights',
     'Lagos real estate',
-    "Nigeria real estate",
+    'Nigeria real estate',
     'real estate investment tips',
     'home buying tips',
     'property buying guide',
@@ -21,15 +23,15 @@ export const metadata = {
     'Lagos property insights',
     'real estate news',
     'real estate advice',
-    "Buying property in Nigeria",
+    'Buying property in Nigeria',
     'property market',
     'home buying guide',
     'buying property in Lagos',
     'Lagos property market trends',
-    'Nigeria real estate investment'
+    'Nigeria real estate investment',
   ],
   alternates: {
-    canonical: 'https://abiterra.com/blog'
+    canonical: 'https://abiterra.com/blog',
   },
   openGraph: {
     title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
@@ -42,7 +44,7 @@ export const metadata = {
         width: 1200,
         height: 630,
         alt: 'Abiterra Real Estate Blog - Lagos Property Insights',
-      }
+      },
     ],
   },
   twitter: {
@@ -54,11 +56,11 @@ export const metadata = {
 };
 
 interface BlogPageProps {
-  searchParams: Promise<{ page?: string }>; // Updated to handle searchParams as a Promise
+  searchParams: Promise<{ page?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const resolvedSearchParams = await searchParams; // Await the Promise
+  const resolvedSearchParams = await searchParams;
   const currentPage = resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1;
   const { posts: blogPosts, totalPages } = await getBlogPosts(currentPage, 9);
   const categories = await getAllCategories();
@@ -165,16 +167,21 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <h2 className="text-2xl font-semibold mb-6">Featured Post</h2>
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="md:flex">
-              <div className="md:w-1/2 relative h-64">
-                <Image
-                  src={blogPosts[0].coverImage || '/images/blog/default-cover.jpg'}
-                  alt={`${blogPosts[0].title} - Lagos real estate guide`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
+                <div className="md:w-1/2 relative h-64">
+                  {/* Log the image loading outside of JSX rendering */}
+                  {blogPosts[0].coverImage ? (
+                    console.log(`[BlogPage] Loading featured image: ${blogPosts[0].coverImage}`),
+                    null
+                  ) : null}
+                  <Image
+                    src={blogPosts[0].coverImage || '/images/blog/default-cover.jpg'}
+                    alt={`${blogPosts[0].title} - Lagos real estate guide`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
                 <div className="p-6 md:w-1/2">
                   <div className="flex items-center mb-2">
                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">

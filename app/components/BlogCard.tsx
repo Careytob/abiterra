@@ -12,13 +12,14 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="relative h-48">
+        {post.coverImage && <>{console.log(`[BlogCard] Loading image: ${post.coverImage}`)}</>}
         <Image
           src={post.coverImage || '/images/blog/default-cover.jpg'}
           alt={`${post.title} - Lagos real estate guide`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover"
-          unoptimized
+          loading="lazy"
         />
       </div>
       <div className="p-6">

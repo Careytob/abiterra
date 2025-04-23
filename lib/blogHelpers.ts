@@ -4,38 +4,39 @@ import path from 'path';
 import matter from 'gray-matter';
 import { BlogPost } from '@/types/blog';
 import { marked } from 'marked';
+import { createClient } from '@supabase/supabase-js';
 
 const BLOG_DIR = path.join(process.cwd(), 'content/blog');
 
-async function getSignedUrl(path: string): Promise<string> {
-  if (path.startsWith('http')) {
-    return path;
-  }
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
+async function getPublicUrl(imagePath: string): Promise<string> {
   const defaultImage = '/images/blog/default-cover.jpg';
-  if (!path) {
-    console.warn('Image path is empty, returning default image');
-    return defaultImage;
+  if (!imagePath || imagePath.startsWith('http')) {
+    console.warn(`[Blog] Invalid or external image path: ${imagePath}, returning default`);
+    return imagePath || defaultImage;
   }
-
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
   try {
-    const res = await fetch(`${baseUrl}/api/blog-images?path=${encodeURIComponent(path)}`, {
-      cache: 'no-store',
-    });
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    const { data } = await supabase.storage.from('blog-images').getPublicUrl(cleanPath);
 
-    if (!res.ok) {
-      console.error(`Failed to fetch signed URL for ${path}: ${res.status} ${res.statusText}`);
+    if (!data?.publicUrl) {
+      console.error(`[Blog] No public URL returned for ${cleanPath}`);
       return defaultImage;
     }
 
-    const data = await res.json();
-    return data.url || defaultImage;
+    console.log(`[Blog] Generated public URL: ${data.publicUrl}`);
+    return data.publicUrl;
   } catch (error: any) {
-    console.error(`Error fetching signed URL for ${path}:`, error.message);
+    console.error(`[Blog] Error fetching public URL for ${imagePath}:`, {
+      message: error.message,
+      stack: error.stack,
+      path: imagePath,
+    });
     return defaultImage;
   }
 }
@@ -56,7 +57,9 @@ function calculateReadTime(content: string): number {
 }
 
 export async function getBlogPosts(page = 1, limit = 9): Promise<{
-  length: number; posts: BlogPost[], totalPages: number 
+  length: number;
+  posts: BlogPost[];
+  totalPages: number;
 }> {
   try {
     await ensureBlogDir();
@@ -71,8 +74,8 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
         const slug = filename.replace(/\.(mdx|md)$/, '');
         const htmlContent = marked(content);
 
-        const coverImage = data.coverImage || 'images/blog/default-cover.jpg';
-        const signedCoverImage = await getSignedUrl(coverImage);
+        const coverImage = data.coverImage || '/images/blog/default-cover.jpg';
+        const publicCoverImage = await getPublicUrl(coverImage);
 
         return {
           id: slug,
@@ -85,8 +88,8 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
           category: data.category || 'Real Estate',
           tags: data.tags || [],
           excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
-          coverImage: signedCoverImage,
-          readTime: data.readTime || calculateReadTime(content)
+          coverImage: publicCoverImage,
+          readTime: data.readTime || calculateReadTime(content),
         } as BlogPost;
       })
     );
@@ -103,10 +106,10 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
     return {
       posts: paginatedPosts,
       totalPages,
-      length: sortedPosts.length
+      length: sortedPosts.length,
     };
   } catch (error) {
-    console.error('Error loading blog posts:', error);
+    console.error('[Blog] Error loading blog posts:', error);
     return { posts: [], totalPages: 0, length: 0 };
   }
 }
@@ -126,7 +129,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
         await fs.access(filePath);
         fileExists = true;
       } catch {
-        console.warn(`Blog post ${slug} not found`);
+        console.warn(`[Blog] Blog post ${slug} not found`);
         return null;
       }
     }
@@ -139,8 +142,8 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     const { data, content } = matter(fileContent);
     const htmlContent = marked(content);
 
-    const coverImage = data.coverImage || 'images/blog/default-cover.jpg';
-    const signedCoverImage = await getSignedUrl(coverImage);
+    const coverImage = data.coverImage || '/images/blog/default-cover.jpg';
+    const publicCoverImage = await getPublicUrl(coverImage);
 
     return {
       id: slug,
@@ -153,77 +156,83 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       category: data.category || 'Real Estate',
       tags: data.tags || [],
       excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
-      coverImage: signedCoverImage,
-      readTime: data.readTime || calculateReadTime(content)
+      coverImage: publicCoverImage,
+      readTime: data.readTime || calculateReadTime(content),
     } as BlogPost;
   } catch (error) {
-    console.error(`Error loading blog post ${slug}:`, error);
+    console.error(`[Blog] Error loading blog post ${slug}:`, error);
     return null;
   }
 }
 
 export async function getRelatedPosts(
-  currentSlug: string, 
-  category: string, 
-  tags: string[], 
+  currentSlug: string,
+  category: string,
+  tags: string[],
   limit = 3
 ): Promise<BlogPost[]> {
   const { posts } = await getBlogPosts();
-  
+
   const otherPosts = posts.filter(post => post.slug !== currentSlug);
-  
+
   const scoredPosts = otherPosts.map(post => {
     let score = 0;
-    
+
     if (post.category === category) {
       score += 5;
     }
-    
+
     const sharedTags = post.tags.filter(tag => tags.includes(tag));
     score += sharedTags.length * 2;
-    
+
     return { post, score };
   });
-  
+
   return scoredPosts
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(item => item.post);
 }
 
-export async function getPostsByCategory(category: string, page = 1, limit = 9): Promise<{ posts: BlogPost[], totalPages: number }> {
+export async function getPostsByCategory(category: string, page = 1, limit = 9): Promise<{
+  posts: BlogPost[];
+  totalPages: number;
+}> {
   const { posts: allPosts } = await getBlogPosts();
-  
-  const filteredPosts = allPosts.filter(post => 
+
+  const filteredPosts = allPosts.filter(post =>
     post.category.toLowerCase() === category.toLowerCase()
   );
-  
+
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
   const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredPosts.length / limit);
-  
+
   return {
     posts: paginatedPosts,
-    totalPages
+    totalPages,
   };
 }
 
-export async function getPostsByTag(tag: string, page = 1, limit = 9): Promise<{ posts: BlogPost[], totalPages: number }> {
+export async function getPostsByTag(tag: string, page = 1, limit = 9): Promise<{
+  posts: BlogPost[];
+  totalPages: number;
+}> {
   const { posts: allPosts } = await getBlogPosts();
-  
-  const filteredPosts = allPosts.filter(post => 
+
+  const filteredPosts = allPosts.filter(post =>
     post.tags.some(t => t.toLowerCase() === tag.toLowerCase())
   );
-  
+
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
   const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredPosts.length / limit);
-  
+
   return {
     posts: paginatedPosts,
-    totalPages
+    totalPages,
   };
 }
 
