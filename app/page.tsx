@@ -42,14 +42,21 @@ async function getFeaturedProperties() {
       },
     });
 
-    return await Promise.all(
+    const formattedProperties = await Promise.all(
       saleProperties.map(async (property) => {
         let imageUrl = '/placeholder-property.jpg';
         if (property.images[0]?.url) {
+          const cleanPath = property.images[0].url.startsWith('/')
+            ? property.images[0].url.substring(1)
+            : property.images[0].url;
+
           const { data, error } = await supabase.storage
             .from('properties')
-            .createSignedUrl(property.images[0].url, 7200);
-          if (!error && data?.signedUrl) {
+            .createSignedUrl(cleanPath, 3600); // 1-hour expiry
+
+          if (error || !data?.signedUrl) {
+            console.error(`Signed URL error for ${cleanPath}:`, error?.message);
+          } else {
             imageUrl = data.signedUrl;
           }
         }
@@ -68,6 +75,8 @@ async function getFeaturedProperties() {
         };
       })
     );
+
+    return formattedProperties;
   } catch (error) {
     console.error('Error fetching properties:', error);
     return [];
