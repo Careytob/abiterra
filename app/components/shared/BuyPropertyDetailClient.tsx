@@ -1,7 +1,7 @@
 //app/components/shared/BuyPropertyDetailClient.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,15 +45,43 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
   const [imageErrors, setImageErrors] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Debug: Log the area value to diagnose the issue
-  console.log('Property area:', property.area, typeof property.area);
+  // Cache image URLs to avoid refetching
+  const cachedImages = useMemo(() => {
+    const cache = new Map<string, string>();
+    property.images.forEach((image, index) => {
+      cache.set(image.url, image.url);
+    });
+    return cache;
+  }, [property.images]);
+
+  // Preload all images on mount
+  useEffect(() => {
+    const preloadImages = () => {
+      property.images.forEach((image, index) => {
+        if (!imageErrors.includes(index) && cachedImages.has(image.url)) {
+          const img = new window.Image();
+          img.src = image.url;
+          console.log(`[BuyPropertyDetailClient] Preloading image ${index}: ${img.src}`);
+          img.onerror = () => {
+            console.warn(`[BuyPropertyDetailClient] Preload error for image ${index}: ${image.url}`);
+            setImageErrors((prev) => [...prev, index]);
+          };
+        }
+      });
+    };
+
+    preloadImages();
+  }, [property.images, imageErrors, cachedImages]);
 
   const nextImage = () => {
+    setIsLoading(true);
     setCurrentIndex((prev) => (prev + 1) % property.images.length);
   };
 
   const previousImage = () => {
+    setIsLoading(true);
     setCurrentIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
   };
 
@@ -67,7 +95,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
       });
       return <span className="text-xl md:text-3xl font-bold">{formatter.format(price)}</span>;
     } catch (error) {
-      console.error('Error formatting price:', error);
+      console.error('[BuyPropertyDetailClient] Error formatting price:', error);
       return '₦0';
     }
   };
@@ -77,8 +105,13 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
   };
 
   const handleImageError = (index: number) => {
-    console.warn(`Image load error at index ${index}: ${property.images[index].url}`);
+    console.warn(`[BuyPropertyDetailClient] Image load error at index ${index}: ${property.images[index].url}`);
     setImageErrors((prev) => [...prev, index]);
+    setIsLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
   };
 
   const thumbnailImages = [
@@ -98,13 +131,19 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
           </button>
           <div className="max-w-[90%] max-h-[90%] relative w-full h-full">
             <Image
-              src={imageErrors.includes(fullscreenIndex) ? '/api/placeholder/1200/800' : property.images[fullscreenIndex].url}
+              src={imageErrors.includes(fullscreenIndex) ? '/placeholder-property.jpg' : property.images[fullscreenIndex].url}
               alt={`${property.title} - Fullscreen Image`}
               fill
-              className="object-contain"
-              unoptimized
+              className="object-contain transition-opacity duration-300"
+              sizes="100vw"
               onError={() => handleImageError(fullscreenIndex)}
+              onLoad={handleImageLoad}
             />
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <div className="w-8 h-8 border-4 border-t-teal-600 border-gray-300 rounded-full animate-spin" />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -113,16 +152,21 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="md:col-span-4 relative aspect-video group">
               <Image
-                src={imageErrors.includes(currentIndex) ? '/api/placeholder/1200/800' : property.images[currentIndex].url}
+                src={imageErrors.includes(currentIndex) ? '/placeholder-property.jpg' : property.images[currentIndex].url}
                 alt={`${property.title} - Main Image`}
                 fill
-                className="object-cover rounded-lg"
-                priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                unoptimized
+                className="object-cover rounded-lg transition-opacity duration-300"
+                priority={currentIndex === 0}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
                 onError={() => handleImageError(currentIndex)}
+                onLoad={handleImageLoad}
                 onClick={() => toggleFullscreen(currentIndex)}
               />
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <div className="w-8 h-8 border-4 border-t-teal-600 border-gray-300 rounded-full animate-spin" />
+                </div>
+              )}
               <div className="absolute inset-0 flex items-center justify-between px-2 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <button
                   onClick={previousImage}
@@ -155,13 +199,13 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                     onClick={() => setCurrentIndex(actualIndex)}
                   >
                     <Image
-                      src={imageErrors.includes(actualIndex) ? '/api/placeholder/1200/800' : image.url}
+                      src={imageErrors.includes(actualIndex) ? '/placeholder-property.jpg' : image.url}
                       alt={`Thumbnail ${actualIndex + 1}`}
                       fill
-                      className="object-cover rounded"
-                      sizes="(max-width: 768px) 25vw, 10vw"
-                      unoptimized
+                      className="object-cover rounded transition-opacity duration-300"
+                      sizes="(max-width: 768px) 25vw, 15vw"
                       onError={() => handleImageError(actualIndex)}
+                      onLoad={handleImageLoad}
                     />
                   </div>
                 );

@@ -11,9 +11,9 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const cacheControl = {
-  'Cache-Control': 'public, max-age=300, stale-while-revalidate=600', // Cache for 5 minutes, revalidate for 10 minutes
-  'CDN-Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
-  'Vercel-CDN-Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+  'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200', // Cache for 1 hour, revalidate for 2 hours
+  'CDN-Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
+  'Vercel-CDN-Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
 };
 
 export async function GET(
@@ -24,27 +24,21 @@ export async function GET(
   try {
     const resolvedParams = await params;
     fullPath = resolvedParams.path.join('/');
+    console.log(`[SupabaseImage] Request for image path: ${fullPath}`);
 
     const imagePath = fullPath;
 
-    // Try public URL first
-    const { data: publicData } = supabase.storage
-      .from('properties')
-      .getPublicUrl(imagePath);
-
-    if (publicData?.publicUrl) {
-      return NextResponse.redirect(new URL(publicData.publicUrl), {
-        headers: cacheControl,
-        status: 302,
-      });
-    }
-
-    // Fallback to signed URL
+    // Generate signed URL (properties bucket is private, so skip public URL)
     const { data, error } = await supabase.storage
       .from('properties')
-      .createSignedUrl(imagePath, 3600); // 1-hour expiry
+      .createSignedUrl(imagePath, 31536000); // 1-year expiry
+    console.log(`[SupabaseImage] Signed URL result for ${imagePath}:`, {
+      signedUrl: data?.signedUrl,
+      error: error?.message,
+    });
 
     if (error || !data?.signedUrl) {
+      console.error(`[SupabaseImage] Signed URL error for ${imagePath}:`, error?.message);
       return NextResponse.redirect(new URL(`/api/placeholder/800/600`, request.url), {
         headers: {
           'Cache-Control': 'public, max-age=60', // Short cache for placeholders
@@ -53,12 +47,13 @@ export async function GET(
       });
     }
 
+    console.log(`[SupabaseImage] Redirecting to signed URL: ${data.signedUrl}`);
     return NextResponse.redirect(new URL(data.signedUrl), {
       headers: cacheControl,
       status: 302,
     });
   } catch (err) {
-    console.error(`Exception in supabase-image handler for ${fullPath}:`, err);
+    console.error(`[SupabaseImage] Exception for ${fullPath}:`, err);
     return NextResponse.redirect(new URL(`/api/placeholder/800/600`, request.url), {
       headers: {
         'Cache-Control': 'public, max-age=60',

@@ -50,15 +50,25 @@ async function getFeaturedProperties() {
             ? property.images[0].url.substring(1)
             : property.images[0].url;
 
+          // Use API route for signed URL
+          imageUrl = `/api/supabase-image/${cleanPath}`;
+          console.log(`[HomePage] Generated image URL for property ${property.id}: ${imageUrl}`);
+          
+          // Test the signed URL directly for debugging
           const { data, error } = await supabase.storage
             .from('properties')
-            .createSignedUrl(cleanPath, 3600); // 1-hour expiry
+            .createSignedUrl(cleanPath, 3600);
+          console.log(`[HomePage] Direct signed URL test for ${cleanPath}:`, {
+            signedUrl: data?.signedUrl,
+            error: error?.message,
+          });
 
           if (error || !data?.signedUrl) {
-            console.error(`Signed URL error for ${cleanPath}:`, error?.message);
-          } else {
-            imageUrl = data.signedUrl;
+            console.warn(`[HomePage] Failed to generate signed URL for property ${property.id}, using fallback`);
+            imageUrl = '/placeholder-property.jpg';
           }
+        } else {
+          console.warn(`[HomePage] No image found for property ${property.id}, using fallback`);
         }
 
         return {
@@ -78,7 +88,7 @@ async function getFeaturedProperties() {
 
     return formattedProperties;
   } catch (error) {
-    console.error('Error fetching properties:', error);
+    console.error('[HomePage] Error fetching properties:', error);
     return [];
   }
 }
@@ -90,6 +100,8 @@ function formatPrice(price: number) {
     minimumFractionDigits: 0,
   }).format(price);
 }
+
+export const revalidate = 3600; // Revalidate every 1 hour
 
 export const metadata = {
   title: 'Abiterra - Luxury Properties for Sale in Lagos, Nigeria',
@@ -127,7 +139,7 @@ export default async function Home() {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
     name: 'Abiterra',
-    description: 'Find your perfect property for sale in Lagos, Nigeria',
+    description: 'Find your perfect property for sale in Nigeria',
     url: 'https://abiterra.com',
     logo: {
       '@type': 'ImageObject',
@@ -165,6 +177,7 @@ export default async function Home() {
         {/* Hero Section */}
         <section className="relative h-[600px]">
           <div className="absolute inset-0">
+           
             <Image
               src="/hero_image.webp"
               alt="Luxury property in Lagos, Nigeria"

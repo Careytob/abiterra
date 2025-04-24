@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import BuyPropertyDetailClient from '@/app/components/shared/BuyPropertyDetailClient';
 
 type PageProps = {
-  params: Promise<{ propertyId: string }>; 
+  params: Promise<{ propertyId: string }>;
 };
 
 const supabase = createClient(
@@ -16,7 +16,7 @@ const supabase = createClient(
 );
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await params; 
+  const resolvedParams = await params;
   try {
     const property = await prisma.property.findUnique({
       where: { id: parseInt(resolvedParams.propertyId, 10) },
@@ -35,16 +35,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const formattedImages = await Promise.all(
       property.images.map(async (image) => {
-        if (!image.url) return { url: `/api/placeholder/1200/630` };
+        if (!image.url) return { url: '/placeholder-property.jpg' };
+        const cleanPath = image.url.startsWith('/') ? image.url.substring(1) : image.url;
         const { data, error } = await supabase.storage
           .from('properties')
-          .createSignedUrl(image.url, 7200);
+          .createSignedUrl(cleanPath, 31536000); // Removed transform
         if (error || !data?.signedUrl) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.error(`Signed URL error for ${image.url}:`, error?.message);
-          }
-          return { url: `/api/placeholder/1200/630` };
+          console.error(`[PropertyDetailMetadata] Signed URL error for ${cleanPath}:`, error?.message);
+          return { url: '/placeholder-property.jpg' };
         }
+        console.log(`[PropertyDetailMetadata] Generated signed URL: ${data.signedUrl}`);
         return { url: data.signedUrl };
       })
     );
@@ -52,6 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const formattedPrice = new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
+      minimumFractionDigits: 0,
     }).format(property.price);
 
     return {
@@ -67,17 +68,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         })),
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/rent/${resolvedParams.propertyId}`,
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/buy/${resolvedParams.propertyId}`,
       },
     };
   } catch (error) {
-    console.error('Error generating metadata:', error);
+    console.error('[PropertyDetailMetadata] Error generating metadata:', error);
     return { title: 'Property For Sale | Abiterra' };
   }
 }
 
 const PropertyDetailPage = async ({ params }: PageProps) => {
-  const resolvedParams = await params; 
+  const resolvedParams = await params;
   if (!resolvedParams?.propertyId) {
     notFound();
   }
@@ -114,16 +115,16 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
 
   const formattedImages = await Promise.all(
     property.images.map(async (image) => {
-      if (!image.url) return { id: image.id, url: `/api/placeholder/1200/800` };
+      if (!image.url) return { id: image.id, url: '/placeholder-property.jpg' };
+      const cleanPath = image.url.startsWith('/') ? image.url.substring(1) : image.url;
       const { data, error } = await supabase.storage
         .from('properties')
-        .createSignedUrl(image.url, 7200);
+        .createSignedUrl(cleanPath, 31536000); // Removed transform
       if (error || !data?.signedUrl) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error(`Signed URL error for ${image.url}:`, error?.message);
-        }
-        return { id: image.id, url: `/api/placeholder/1200/800` };
+        console.error(`[PropertyDetailPage] Signed URL error for ${cleanPath}:`, error?.message);
+        return { id: image.id, url: '/placeholder-property.jpg' };
       }
+      console.log(`[PropertyDetailPage] Generated signed URL for image ${image.id}: ${data.signedUrl}`);
       return { id: image.id, url: data.signedUrl };
     })
   );
@@ -141,5 +142,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     />
   );
 };
+
+export const revalidate = 3600; // Revalidate every 1 hour
 
 export default PropertyDetailPage;

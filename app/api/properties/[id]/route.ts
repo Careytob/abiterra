@@ -35,14 +35,16 @@ export async function GET(
 
     const processedImages = await Promise.all(
       property.images.map(async (image) => {
-        if (!image.url) return { ...image, url: `/api/placeholder/800/600` };
+        if (!image.url) return { ...image, url: '/placeholder-property.jpg' };
+        const cleanPath = image.url.startsWith('/') ? image.url.substring(1) : image.url;
         const { data, error } = await supabase.storage
           .from('properties')
-          .createSignedUrl(image.url, 7200);
+          .createSignedUrl(cleanPath, 31536000); // Removed transform
         if (error || !data?.signedUrl) {
-          console.error(`Signed URL error for ${image.url}:`, error?.message);
-          return { ...image, url: `/api/placeholder/800/600` };
+          console.error(`[PropertiesAPI] Signed URL error for ${cleanPath}:`, error?.message);
+          return { ...image, url: '/placeholder-property.jpg' };
         }
+        console.log(`[PropertiesAPI] Generated signed URL for image ${image.id}: ${data.signedUrl}`);
         return { ...image, url: data.signedUrl };
       })
     );
@@ -64,9 +66,13 @@ export async function GET(
       features: property.features,
     };
 
-    return Response.json(response);
+    return Response.json(response, {
+      headers: {
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
+      },
+    });
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('[PropertiesAPI] Error:', error);
     return Response.json({ error: 'Failed to fetch property' }, { status: 500 });
   }
 }
