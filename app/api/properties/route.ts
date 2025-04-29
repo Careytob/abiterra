@@ -10,18 +10,32 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get('limit') || '12', 10);
   const search = searchParams.get('search') || '';
 
+  console.log('API request:', { type, page, limit, search }); // Debug log
+
+  // Validate inputs
+  if (isNaN(page) || page < 1) {
+    return NextResponse.json({ error: 'Invalid page number' }, { status: 400 });
+  }
+  if (isNaN(limit) || limit < 1) {
+    return NextResponse.json({ error: 'Invalid limit' }, { status: 400 });
+  }
+
+  // Check environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase environment variables are missing:', {
+      supabaseUrl: !!supabaseUrl,
+      supabaseKey: !!supabaseKey,
+    });
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 }
+    );
+  }
+
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase environment variables are missing:', {
-        supabaseUrl: !!supabaseUrl,
-        supabaseKey: !!supabaseKey,
-      });
-      throw new Error('Supabase configuration is incomplete');
-    }
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const skip = (page - 1) * limit;
