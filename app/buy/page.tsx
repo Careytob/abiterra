@@ -32,21 +32,18 @@ async function fetchProperties(
     .filter(([_, value]) => value)
     .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
     .join('');
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'abiterra.com';
-  const url = new URL(
-    `/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}${filterParams}`,
-    `${protocol}://${host}`
-  );
+  
+  // Fix: Use relative URL for API calls in both development and production
+  const url = `/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}${filterParams}`;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`Fetching properties (attempt ${attempt}):`, url.toString());
-      const response = await fetch(url.toString(), { next: { revalidate: 300 } });
+      console.log(`Fetching properties (attempt ${attempt}):`, url);
+      const response = await fetch(url, { next: { revalidate: 300 } });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `HTTP error! status: ${response.status}, url: ${url.toString()}, details: ${JSON.stringify(errorData)}`
+          `HTTP error! status: ${response.status}, url: ${url}, details: ${JSON.stringify(errorData)}`
         );
       }
       const data = await response.json();
@@ -65,7 +62,7 @@ async function fetchProperties(
         },
       };
     } catch (err) {
-      console.error(`Fetch error (attempt ${attempt}):`, err, { url: url.toString() });
+      console.error(`Fetch error (attempt ${attempt}):`, err, { url });
       if (attempt === retries) throw err;
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1s before retry
     }
