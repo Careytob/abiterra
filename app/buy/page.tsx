@@ -21,7 +21,8 @@ async function fetchProperties(
   page: number,
   search?: string,
   filters: { bedrooms?: string; bathrooms?: string; priceMin?: string; priceMax?: string } = {},
-  limit = 12
+  limit = 12,
+  retries = 2
 ): Promise<{
   properties: Property[];
   pagination: PaginationInfo;
@@ -38,31 +39,38 @@ async function fetchProperties(
     `${protocol}://${host}`
   );
 
-  try {
-    console.log('Fetching properties from:', url.toString());
-    const response = await fetch(url.toString(), { next: { revalidate: 300 } });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, url: ${url.toString()}`);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`Fetching properties (attempt ${attempt}):`, url.toString());
+      const response = await fetch(url.toString(), { next: { revalidate: 300 } });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `HTTP error! status: ${response.status}, url: ${url.toString()}, details: ${JSON.stringify(errorData)}`
+        );
+      }
+      const data = await response.json();
+      if (!data.properties || !Array.isArray(data.properties)) {
+        throw new Error('Invalid response format: properties missing or not an array');
+      }
+      return {
+        properties: data.properties,
+        pagination: data.pagination || {
+          currentPage: page,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    } catch (err) {
+      console.error(`Fetch error (attempt ${attempt}):`, err, { url: url.toString() });
+      if (attempt === retries) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1s before retry
     }
-    const data = await response.json();
-    if (!data.properties || !Array.isArray(data.properties)) {
-      throw new Error('Invalid response format: properties missing or not an array');
-    }
-    return {
-      properties: data.properties,
-      pagination: data.pagination || {
-        currentPage: page,
-        totalPages: 0,
-        totalItems: 0,
-        itemsPerPage: limit,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      },
-    };
-  } catch (err) {
-    console.error('Fetch error:', err, { url: url.toString() });
-    throw err;
   }
+  throw new Error('Failed to fetch properties after retries');
 }
 
 interface BuyPageProps {
@@ -103,6 +111,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
     pagination = data.pagination;
   } catch (err) {
     error = err instanceof Error ? err.message : 'An error occurred';
+    console.error('BuyPage error:', err);
   }
 
   if (isNaN(page) || page < 1) {
@@ -141,7 +150,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                 </h1>
                 <p className="text-gray-600 text-sm sm:text-base mt-1">
                   {error
-                    ? 'Error loading properties'
+                    ? 'Unable to load properties'
                     : `Showing ${properties.length} of ${pagination.totalItems} properties`}
                 </p>
               </div>
@@ -150,7 +159,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
           </header>
           {error && (
             <div className="text-red-500 text-center py-8 text-sm sm:text-base" role="alert">
-              {error}
+              Unable to load properties. Please try again later or contact support.
             </div>
           )}
           {properties.length === 0 && !error && (
