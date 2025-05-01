@@ -37,7 +37,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Test Supabase authentication
+    const { error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error('Supabase auth error:', authError.message);
+      return NextResponse.json({ error: 'Unauthorized: Invalid Supabase credentials' }, { status: 401 });
+    }
+
     const skip = (page - 1) * limit;
 
     const where: any = {
