@@ -1,34 +1,19 @@
+// app/components/PropertyCard.tsx
 'use client';
 
 import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Bed, Bath, Square, ArrowRight, MapPin } from 'lucide-react';
+import { Property } from '@/app/types/property';
 
-interface Property {
-  id: number;
-  title: string;
-  description: string;
-  price: string | number;
-  location: string;
-  latitude: number | null;
-  longitude: number | null;
-  type: 'For Sale' | 'For Rent'; // Updated to match API
-  specs: {
-    area: string;
-    beds: number;
-    baths: number;
-    size: number;
-  };
-  images: { id: number; url: string }[];
-}
-
-const formatPrice = (price: string | number): string => {
-  const priceString = price.toString();
-  const numericPrice = priceString.replace(/[^0-9.]/g, '');
-  const [wholePart, decimalPart] = numericPrice.split('.');
-  const formattedWholePart = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return decimalPart ? `${formattedWholePart}.${decimalPart}` : formattedWholePart;
+const formatPrice = (price: number): string => {
+  const formatter = new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 0,
+  });
+  return formatter.format(price); // Includes ₦
 };
 
 export default function PropertyCard({ property }: { property: Property }) {
@@ -72,54 +57,62 @@ export default function PropertyCard({ property }: { property: Property }) {
   };
 
   return (
-    <article className="group cursor-pointer">
-      <div className="relative overflow-hidden rounded-xl aspect-[4/3]">
+    <article className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div className="relative overflow-hidden rounded-t-xl aspect-[4/3]">
         <Image
           src={imageUrl}
           alt={property.title || 'Property image'}
           fill
-          className="object-cover group-hover:scale-110 transition-transform duration-300"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
           onError={handleImageError}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           priority={false}
           loading="lazy"
           unoptimized
         />
-        <button aria-label="Add to favorites" className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-full hover:bg-white">
+        <button
+          aria-label="Add to favorites"
+          className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-white transition-colors"
+        >
           <Heart className="w-4 h-4 text-gray-700" />
         </button>
-        <div className="absolute bottom-4 right-4">
-          <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
+        <div className="absolute bottom-3 right-3">
+          <span className="bg-teal-600 text-white px-2.5 py-1 rounded-full text-xs font-medium">
             {property.type}
           </span>
         </div>
       </div>
-      <div className="mt-4">
-        <div className="flex justify-between items-start">
-          <h2 className="font-semibold text-gray-900">{property.title}</h2>
-          <span className="text-xl font-bold">₦{formatPrice(property.price)}</span>
+      <div className="p-4 flex flex-col gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+          <h2 className="font-semibold text-gray-900 text-base md:text-lg">
+            {property.title}
+          </h2>
+          <span className="text-base md:text-lg font-bold text-gray-900">
+            {formatPrice(property.price)}
+          </span>
         </div>
-        <div className="text-gray-600 flex items-center gap-1 mt-1">
-          <MapPin className="w-4 h-4" />
-          {property.location}
+        <div className="text-gray-600 flex items-center gap-1 text-sm">
+          <MapPin className="w-4 h-4 flex-shrink-0" />
+          <span className="line-clamp-1">{property.location}</span>
         </div>
-        {property.specs && (
-          <dl className="flex items-center gap-6 text-gray-600 mt-2">
-            <div className="flex items-center gap-1.5">
-              <Bed className="w-4 h-4" />
-              <dd>{property.specs.beds} beds</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Bath className="w-4 h-4" />
-              <dd>{property.specs.baths} baths</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Square className="w-4 h-4" />
-              <dd>{property.specs.area}</dd>
-            </div>
-          </dl>
-        )}
-        <Link href={`/buy/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
+        <dl className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm">
+          <div className="flex items-center gap-1">
+            <Bed className="w-4 h-4" />
+            <dd>{property.bedrooms || 'N/A'} beds</dd>
+          </div>
+          <div className="flex items-center gap-1">
+            <Bath className="w-4 h-4" />
+            <dd>{property.bathrooms || 'N/A'} baths</dd>
+          </div>
+          <div className="flex items-center gap-1">
+            <Square className="w-4 h-4" />
+            <dd>{property.area ? `${property.area} sqft` : 'N/A'}</dd>
+          </div>
+        </dl>
+        <Link
+          href={`/buy/${property.slug}`}
+          className="mt-2 inline-flex items-center gap-2 text-teal-600 font-medium text-sm hover:text-teal-700 group-hover:gap-3 transition-all"
+        >
           View Details
           <ArrowRight className="w-4 h-4" />
         </Link>

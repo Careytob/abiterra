@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from 'react';
 
 interface ViewModeContextType {
-  viewMode: 'grid' | 'map';
+  viewMode: 'grid' | 'map' | 'list';
   setViewMode: (mode: 'grid' | 'map') => void;
 }
 

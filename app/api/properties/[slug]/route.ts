@@ -1,4 +1,4 @@
-// app/api/properties/[id]/route.ts
+//app/api/properties/[slug]/route.ts
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
@@ -10,22 +10,16 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const propertyId = parseInt(params.id, 10);
-
-    if (isNaN(propertyId)) {
-      return Response.json({ error: 'Invalid property ID' }, { status: 400 });
-    }
-
     const property = await prisma.property.findUnique({
       where: {
-        id: propertyId,
+        slug: params.slug,
       },
       include: {
-        images: true,
-        features: true,
+        image: true,
+        feature: true,
       },
     });
 
@@ -34,23 +28,22 @@ export async function GET(
     }
 
     const processedImages = await Promise.all(
-      property.images.map(async (image) => {
-        if (!image.url) return { ...image, url: '/placeholder-property.jpg' };
-        const cleanPath = image.url.startsWith('/') ? image.url.substring(1) : image.url;
+      property.image.map(async (image) => {
+        if (!image.filepath) return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
         const { data, error } = await supabase.storage
           .from('properties')
-          .createSignedUrl(cleanPath, 31536000); // Removed transform
+          .createSignedUrl(image.filepath, 31536000);
         if (error || !data?.signedUrl) {
-          console.error(`[PropertiesAPI] Signed URL error for ${cleanPath}:`, error?.message);
-          return { ...image, url: '/placeholder-property.jpg' };
+          console.error(`[PropertiesAPI] Signed URL error for ${image.filepath}:`, error?.message);
+          return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
         }
-        console.log(`[PropertiesAPI] Generated signed URL for image ${image.id}: ${data.signedUrl}`);
-        return { ...image, url: data.signedUrl };
+        return { ...image, url: data.signedUrl, type: image.imagetype };
       })
     );
 
     const response = {
       id: property.id,
+      slug: property.slug,
       title: property.title,
       description: property.description,
       price: property.price,
@@ -63,7 +56,7 @@ export async function GET(
       bq: property.bq,
       area: property.area !== null ? `${property.area} sqft` : 'Not Available',
       images: processedImages,
-      features: property.features,
+      features: property.feature,
     };
 
     return Response.json(response, {

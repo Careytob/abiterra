@@ -9,6 +9,7 @@
   --background: #ffffff;
   --foreground: #171717;
   --font-roboto: 'Roboto', Arial, Helvetica, sans-serif;
+  --navbar-height: 64px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -123,4 +124,8 @@ button {
 .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
   background-color: #d1d5db;
   border-radius: 9999px;
+}
+
+@media (min-width: 640px) {
+  --navbar-height: 72px; 
 }

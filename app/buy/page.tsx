@@ -1,27 +1,12 @@
+// app/buy/page.tsx
 import { notFound } from 'next/navigation';
-import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import ViewModeToggle from './ViewModeToggle';
 import ToggleButtons from './ToggleButtons';
 import { ViewModeProvider } from './ViewModeContext';
-
-interface Property {
-  id: number;
-  title: string;
-  description: string;
-  price: string | number;
-  location: string;
-  latitude: number | null;
-  longitude: number | null;
-  type: 'For Sale' | 'For Rent';
-  specs: {
-    area: string;
-    beds: number;
-    baths: number;
-    size: number;
-  };
-  images: { id: number; url: string }[];
-}
+import { Property } from '../types/property';
+import SearchBarSection from './SearchBarSection';
 
 interface PaginationInfo {
   currentPage: number;
@@ -32,29 +17,39 @@ interface PaginationInfo {
   hasPreviousPage: boolean;
 }
 
-async function fetchProperties(page: number, search?: string, limit = 12): Promise<{
+async function fetchProperties(
+  page: number,
+  search?: string,
+  filters: { bedrooms?: string; bathrooms?: string; priceMin?: string; priceMax?: string } = {},
+  limit = 12
+): Promise<{
   properties: Property[];
   pagination: PaginationInfo;
 }> {
   const searchParam = search?.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://abiterra.com';
-  const url = `${baseUrl}/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}`;
+  const filterParams = Object.entries(filters)
+    .filter(([_, value]) => value)
+    .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
+    .join('');
+  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
+  const url = new URL(
+    `/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}${filterParams}`,
+    `${protocol}://${host}`
+  );
 
   try {
-    const response = await fetch(url, { next: { revalidate: 300 } });
+    console.log('Fetching properties from:', url.toString());
+    const response = await fetch(url.toString(), { next: { revalidate: 300 } });
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, url: ${url}`);
+      throw new Error(`HTTP error! status: ${response.status}, url: ${url.toString()}`);
     }
     const data = await response.json();
-    console.log('API response:', JSON.stringify(data, null, 2));
     if (!data.properties || !Array.isArray(data.properties)) {
       throw new Error('Invalid response format: properties missing or not an array');
     }
     return {
-      properties: data.properties.map((p: Property) => ({
-        ...p,
-        images: Array.isArray(p.images) ? p.images : [],
-      })),
+      properties: data.properties,
       pagination: data.pagination || {
         currentPage: page,
         totalPages: 0,
@@ -65,19 +60,32 @@ async function fetchProperties(page: number, search?: string, limit = 12): Promi
       },
     };
   } catch (err) {
-    console.error('Fetch error:', err, { url });
+    console.error('Fetch error:', err, { url: url.toString() });
     throw err;
   }
 }
 
 interface BuyPageProps {
-  searchParams: Promise<{ page?: string; search?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    bedrooms?: string;
+    bathrooms?: string;
+    priceMin?: string;
+    priceMax?: string;
+  }>;
 }
 
 export default async function BuyPage({ searchParams }: BuyPageProps) {
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page || '1', 10);
   const search = resolvedSearchParams.search || '';
+  const filters = {
+    bedrooms: resolvedSearchParams.bedrooms || '',
+    bathrooms: resolvedSearchParams.bathrooms || '',
+    priceMin: resolvedSearchParams.priceMin || '',
+    priceMax: resolvedSearchParams.priceMax || '',
+  };
   let properties: Property[] = [];
   let pagination: PaginationInfo = {
     currentPage: page,
@@ -90,7 +98,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
   let error: string | null = null;
 
   try {
-    const data = await fetchProperties(page, search);
+    const data = await fetchProperties(page, search, filters);
     properties = data.properties;
     pagination = data.pagination;
   } catch (err) {
@@ -122,35 +130,16 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
 
   return (
     <ViewModeProvider>
-      <main className="bg-gray-50 min-h-screen pt-20">
-        <section className="bg-white border-b sticky top-20 z-10">
-          <div className="max-w-7xl mx-auto p-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  defaultValue={search}
-                  placeholder="Enter a location, neighborhood, city, or state"
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <button
-                className="flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
-                aria-label="Open filters"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
-              </button>
-            </div>
-          </div>
-        </section>
-        <section className="max-w-7xl mx-auto p-6">
-          <header className="mb-8">
-            <div className="flex justify-between items-center">
+      <main className="bg-gray-50 min-h-screen">
+        <SearchBarSection defaultSearch={search} />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--navbar-height)+7rem)] pb-8">
+          <header className="mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl font-semibold">Properties for Sale</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+                  Properties for Sale
+                </h1>
+                <p className="text-gray-600 text-sm sm:text-base mt-1">
                   {error
                     ? 'Error loading properties'
                     : `Showing ${properties.length} of ${pagination.totalItems} properties`}
@@ -160,49 +149,85 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
             </div>
           </header>
           {error && (
-            <div className="text-red-500 text-center py-8" role="alert">
+            <div className="text-red-500 text-center py-8 text-sm sm:text-base" role="alert">
               {error}
             </div>
           )}
           {properties.length === 0 && !error && (
             <div className="text-center py-8">
-              <h2 className="text-xl font-semibold">No properties found</h2>
-              <p className="text-gray-600 mt-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                No properties found
+              </h2>
+              <p className="text-gray-600 mt-2 text-sm sm:text-base">
                 Try adjusting your search or explore other locations.
               </p>
-              <Link href="/buy" className="mt-4 inline-block text-teal-600">
+              <Link
+                href="/buy"
+                className="mt-4 inline-block text-teal-600 text-sm sm:text-base hover:text-teal-700"
+              >
                 Reset Search
               </Link>
             </div>
           )}
           <ViewModeToggle properties={properties} />
           {pagination.totalPages > 1 && (
-            <nav className="mt-12 flex justify-center items-center gap-2" aria-label="Pagination">
+            <nav
+              className="mt-8 flex flex-wrap justify-center items-center gap-2"
+              aria-label="Pagination"
+            >
               <Link
-                href={`/buy?page=${pagination.currentPage - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
-                className={`p-2 rounded-lg ${!pagination.hasPreviousPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                href={`/buy?page=${pagination.currentPage - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${Object.entries(filters)
+                  .filter(([_, v]) => v)
+                  .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`)
+                  .join('')}`}
+                className={`p-2 rounded-lg ${
+                  !pagination.hasPreviousPage
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-gray-100'
+                }`}
                 aria-label="Previous page"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Link>
-              {paginationRange().map((pageNum, index) => (
+              {paginationRange().map((pageNum, index) =>
                 typeof pageNum === 'string' ? (
-                  <span key={`ellipsis-${index}`} className="px-2">...</span>
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="px-2 text-gray-600 text-sm"
+                  >
+                    ...
+                  </span>
                 ) : (
                   <Link
                     key={pageNum}
-                    href={`/buy?page=${pageNum}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
-                    className={`w-10 h-10 flex items-center justify-center rounded-lg ${pagination.currentPage === pageNum ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
+                    href={`/buy?page=${pageNum}${search ? `&search=${encodeURIComponent(search)}` : ''}${Object.entries(filters)
+                      .filter(([_, v]) => v)
+                      .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`)
+                      .join('')}`}
+                    className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm ${
+                      pagination.currentPage === pageNum
+                        ? 'bg-teal-600 text-white'
+                        : 'hover:bg-gray-100 text-gray-700'
+                    }`}
                     aria-label={`Page ${pageNum}`}
-                    aria-current={pagination.currentPage === pageNum ? 'page' : undefined}
+                    aria-current={
+                      pagination.currentPage === pageNum ? 'page' : undefined
+                    }
                   >
                     {pageNum}
                   </Link>
                 )
-              ))}
+              )}
               <Link
-                href={`/buy?page=${pagination.currentPage + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}
-                className={`p-2 rounded-lg ${!pagination.hasNextPage ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                href={`/buy?page=${pagination.currentPage + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${Object.entries(filters)
+                  .filter(([_, v]) => v)
+                  .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`)
+                  .join('')}`}
+                className={`p-2 rounded-lg ${
+                  !pagination.hasNextPage
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-gray-100'
+                }`}
                 aria-label="Next page"
               >
                 <ChevronRight className="w-5 h-5" />

@@ -1,12 +1,13 @@
 
-//app/components/Map.tsx
+// app/components/Map.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import L, { Map } from 'leaflet';
 import { useMap } from 'react-leaflet';
+import { Property } from '@/app/types/property';
 
-// Fix default marker icons - update paths to point to where they actually are
+// Fix default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: '/images/marker-icon-2x-blue.png',
@@ -33,15 +34,6 @@ const Popup = dynamic(
   () => import('react-leaflet').then((mod) => mod.Popup),
   { ssr: false }
 );
-
-interface Property {
-  id: number;
-  title: string;
-  price: string | number;
-  location: string;
-  latitude: number | null;
-  longitude: number | null;
-}
 
 interface MapProps {
   properties: Property | Property[];

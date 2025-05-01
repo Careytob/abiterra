@@ -47,6 +47,7 @@
     "react-leaflet": "^4.2.1",
     "shadcn-ui": "^0.2.3",
     "sharp": "^0.34.1",
+    "slugify": "^1.6.6",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

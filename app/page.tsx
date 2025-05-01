@@ -8,7 +8,7 @@ import 'leaflet/dist/leaflet.css';
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+)
 
 async function getFeaturedProperties() {
   try {
@@ -20,6 +20,7 @@ async function getFeaturedProperties() {
       },
       select: {
         id: true,
+        slug: true,
         type: true,
         price: true,
         bedrooms: true,
@@ -30,7 +31,17 @@ async function getFeaturedProperties() {
         city: true,
         state: true,
         title: true,
-        images: {
+        image: {
+          where: {
+            OR: [
+              { ismain: true }, // Prioritize isPrimary
+              { url: { contains: 'front-1', mode: 'insensitive' } },
+            ],
+          },
+          orderBy: [
+            { ismain: 'desc' }, // Primary images first
+            { url: 'desc' }, // Then front-1
+          ],
           take: 1,
           select: {
             url: true,
@@ -38,41 +49,73 @@ async function getFeaturedProperties() {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdat: 'desc',
       },
     });
 
     const formattedProperties = await Promise.all(
       saleProperties.map(async (property) => {
-        let imageUrl = '/placeholder-property.jpg';
-        if (property.images[0]?.url) {
-          const cleanPath = property.images[0].url.startsWith('/')
-            ? property.images[0].url.substring(1)
-            : property.images[0].url;
+        let imageUrl = `/api/placeholder/800/600`;
 
-          // Use API route for signed URL
-          imageUrl = `/api/supabase-image/${cleanPath}`;
-          console.log(`[HomePage] Generated image URL for property ${property.id}: ${imageUrl}`);
-          
-          // Test the signed URL directly for debugging
-          const { data, error } = await supabase.storage
-            .from('properties')
-            .createSignedUrl(cleanPath, 3600);
-          console.log(`[HomePage] Direct signed URL test for ${cleanPath}:`, {
-            signedUrl: data?.signedUrl,
-            error: error?.message,
-          });
+        if (property.title.includes('Ikota')) {
+          console.log(`[Ikota Debug] Property ID: ${property.id}, Title: ${property.title}`);
+          console.log(`[Ikota Debug] Image Record:`, property.image);
+        }
 
-          if (error || !data?.signedUrl) {
-            console.warn(`[HomePage] Failed to generate signed URL for property ${property.id}, using fallback`);
-            imageUrl = '/placeholder-property.jpg';
+        if (property.image[0]?.url) {
+          try {
+            let cleanPath = property.image[0].url;
+            if (cleanPath.includes('://')) {
+              const urlObj = new URL(cleanPath);
+              const pathParts = urlObj.pathname.split('/');
+              const bucketIndex = pathParts.findIndex(p => p === 'properties');
+              if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+                cleanPath = pathParts.slice(bucketIndex + 1).join('/');
+              } else {
+                cleanPath = pathParts[pathParts.length - 1];
+              }
+            } else {
+              cleanPath = cleanPath.replace(/^\//, '').split('?')[0];
+              if (cleanPath.startsWith('properties/')) {
+                cleanPath = cleanPath.substring('properties/'.length);
+              }
+            }
+
+            if (property.title.includes('Ikota')) {
+              console.log(`[Ikota Debug] Clean Path: ${cleanPath}`);
+            }
+
+            const { data, error } = await supabase.storage
+              .from('properties')
+              .createSignedUrl(cleanPath, 31536000);
+
+            if (error) {
+              console.warn(`[HomePage] Failed to generate signed URL for property ${property.id}: ${error.message}`);
+              if (property.title.includes('Ikota')) {
+                console.log(`[Ikota Debug] Signed URL Error: ${error.message}`);
+              }
+            } else if (data?.signedUrl) {
+              imageUrl = data.signedUrl;
+              if (property.title.includes('Ikota')) {
+                console.log(`[Ikota Debug] Signed URL: ${data.signedUrl}`);
+              }
+            }
+          } catch (err) {
+            console.error(`[HomePage] Error processing image for property ${property.id}:`, err);
+            if (property.title.includes('Ikota')) {
+              console.log(`[Ikota Debug] Processing Error:`, err);
+            }
           }
         } else {
-          console.warn(`[HomePage] No image found for property ${property.id}, using fallback`);
+          console.warn(`[HomePage] No image found for property ${property.id}`);
+          if (property.title.includes('Ikota')) {
+            console.log(`[Ikota Debug] No image found`);
+          }
         }
 
         return {
           id: property.id,
+          slug: property.slug,
           type: 'For Sale',
           price: property.price,
           title: property.title,
@@ -235,7 +278,7 @@ export default async function Home() {
                     <p className="text-gray-600 mb-2">{property.details}</p>
                     <p className="text-gray-500 mb-4">{property.location}</p>
                     <Link 
-                      href={`/buy/${property.id}`}
+                      href={`/buy/${property.slug}`}
                       className="block text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition-colors"
                     >
                       View Details

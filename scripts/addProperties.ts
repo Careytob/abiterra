@@ -1,7 +1,15 @@
 
+// scripts/addProperties.ts
 import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+import slugify from 'slugify';
 
 const prisma = new PrismaClient();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 type PropertyInput = {
   title: string;
@@ -20,11 +28,12 @@ type PropertyInput = {
   state: string;
   images: string[];
   features: string[];
+  isFeatured?: boolean;
 };
 
-export const propertiesToAdd: PropertyInput[] = [
+const propertiesToAdd: PropertyInput[] = [
   {
-    title: "Luxury 5 Bedroom Fully Detached Duplex.",
+    title: "Luxury 5 Bedroom Fully Detached Duplex",
     description: "This stunning property offers a unique blend of luxury, comfort, and modernity. With its prime location, top-notch amenities, and beautiful design, this duplex is the perfect choice for those seeking an upscale living experience.",
     price: 695000000,
     type: "SALE",
@@ -34,8 +43,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 6,
     area: null,
     location: "Chevron, Lagos",
+    latitude: 6.4498,
+    longitude: 3.4729,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
       "images/properties/sale/house-1/front-1.jpg",
       "images/properties/sale/house-1/front-2.jpg",
@@ -64,11 +76,29 @@ export const propertiesToAdd: PropertyInput[] = [
       "images/properties/sale/house-1/pool-2.jpg",
       "images/properties/sale/house-1/cinema-1.jpg",
     ],
-    features: ["Modern Contemporary Architecture", "Swimming Pool", "Car Park", "Top Notch Modern Appurtenances", "Fully Fitted Kitchen", "Stamp Concrete Floor", "Integrated Audio System", "Family Lounge", "TV Console", "Luxury Sanitary Wares", "Stairway Lights", "Green Area", "Gorgeous Lightings", "Boy's Quarters", "Great Neighbourhood", "Gym", "Cinema"],
+    features: [
+      "Modern Contemporary Architecture",
+      "Swimming Pool",
+      "Car Park",
+      "Top Notch Modern Appurtenances",
+      "Fully Fitted Kitchen",
+      "Stamp Concrete Floor",
+      "Integrated Audio System",
+      "Family Lounge",
+      "TV Console",
+      "Luxury Sanitary Wares",
+      "Stairway Lights",
+      "Green Area",
+      "Gorgeous Lightings",
+      "Boy's Quarters",
+      "Great Neighbourhood",
+      "Gym",
+      "Cinema",
+    ],
   },
   {
-    title: "Contemporary Neatly Furnished 5 bedroom with 2 service quarters.",
-    description: "Experience modern luxury in this beautifully furnished 5-bedroom home located in the serene neighborhood of Osapa, Lagos. This contemporary masterpiece features full smart home automation, exquisite chandeliers, royal curtains, inverter ACs, and a well-fitted kitchen with top-tier Bosch appliances. Enjoy spacious interiors with premium floor-to-ceiling tile finishes, an automated walk-in closet, snooker table, stylish TV consoles, study area, and elegant artworks throughout.",
+    title: "Contemporary Neatly Furnished 5 bedroom with 2 service quarters",
+    description: "Experience modern luxury in this beautifully furnished 5-bedroom home located in the serene neighborhood of Osapa, Lagos. This contemporary masterpiece features full smart home automation, exquisite chandeliers, royal curtains, inverter ACs, and a well-fitted kitchen with top-tier Bosch appliances.",
     price: 400000000,
     type: "SALE",
     bedrooms: 5,
@@ -77,10 +107,13 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 6,
     area: null,
     location: "Osapa Lekki, Lagos",
+    latitude: 6.4491,
+    longitude: 3.5067,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
-      "images/properties/sale/house-2/front-1.jpg",
+     "images/properties/sale/house-2/front-1.jpg",
       "images/properties/sale/house-2/front-2.jpg",
       "images/properties/sale/house-2/living-1.jpg",
       "images/properties/sale/house-2/living-2.jpg",
@@ -95,7 +128,7 @@ export const propertiesToAdd: PropertyInput[] = [
       "images/properties/sale/house-2/room-3.jpg",
       "images/properties/sale/house-2/room-4.jpg",
       "images/properties/sale/house-2/room-5.jpg",
-      "images/properties/sale/house-2/bath-1-1.jpg",
+      "images/properties/sale/house-2/bath-1.jpg",
       "images/properties/sale/house-2/bath-2.jpg",
       "images/properties/sale/house-2/kitchen-1.jpg",
       "images/properties/sale/house-2/kitchen-2.jpg",
@@ -111,8 +144,8 @@ export const propertiesToAdd: PropertyInput[] = [
     features: ["Master Piece Chandeliers", "Water Heaters", "Full home Smart automation with expandable features", "Large section wall and floor tiles finishing", "Royal curtains", "Well fitted Automated walk in closet.", "Well fitted kitchen with Bosch appliances", "TV Consoles", "Flower pots", "Study/shelf", "Inverter", "Snoker table", "Washing machine", "Dinning set", "Bath Tub", "Wall frames and Art works", "Security Entrance and Kitchen exit doors", "kids room", "4 parking lots", "Bed frames & Mattress", "Inverter ACs", "Estate serviced water supply", "Excellent tarred road and drainage network", "Tranquil Environment", "24hrs security"],
   },
   {
-    title: "Luxury 6 Bedroom Fully Detached Duplex with Swimming Pool.",
-    description: "Welcome to this exquisite 6-bedroom fully detached duplex nestled in the heart of Osapa London. Designed with modern contemporary architecture, this stunning home boasts a private swimming pool, rooftop terrace, cinema, and a spacious layout ideal for premium living.Step inside to experience top-notch finishes including a fully fitted kitchen, integrated audio system, family lounge, luxury sanitary wares, stairway lighting, and astonishing woodwork. The exterior features a green area, stamped concrete floors, ample parking space, and a separate boy’s quarters — all set within a serene and upscale neighborhood.This home is the perfect blend of elegance, comfort, and functionality — ideal for discerning homeowners seeking luxury in every detail.",
+    title: "Luxury 6 Bedroom Fully Detached Duplex with Swimming Pool",
+    description: "Welcome to this exquisite 6-bedroom fully detached duplex nestled in the heart of Osapa London. Designed with modern contemporary architecture, this stunning home boasts a private swimming pool, rooftop terrace, cinema, and a spacious layout ideal for premium living.",
     price: 1200000000,
     type: "SALE",
     bedrooms: 6,
@@ -121,8 +154,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 7,
     area: null,
     location: "Osapa London, Lagos",
+    latitude: 6.4495,
+    longitude: 3.5060,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
       "images/properties/sale/house-6/front-1.jpg",
       "images/properties/sale/house-6/front-2.jpg",
@@ -151,7 +187,7 @@ export const propertiesToAdd: PropertyInput[] = [
   },
   {
     title: "Elegant 5-Bedroom Fully Detached Duplex with Swimming Pool in a Prime Location",
-    description: "Discover luxury living in this beautifully designed 5-bedroom fully detached duplex featuring a private swimming pool and modern contemporary architecture. Located in a serene and well-developed neighborhood, this home offers a perfect mix of comfort, functionality, and style.Highlights include a fully fitted kitchen, integrated audio system, spacious family lounge, stylish TV console, luxury sanitary wares, stairway lighting, and stamped concrete flooring. The property also features a green area, ample parking, boy’s quarters, and stunning lighting details throughout.This is more than a home — it’s a lifestyle upgrade.",
+    description: "Discover luxury living in this beautifully designed 5-bedroom fully detached duplex featuring a private swimming pool and modern contemporary architecture.",
     price: 350000000,
     type: "SALE",
     bedrooms: 5,
@@ -160,8 +196,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 6,
     area: null,
     location: "Ikota, Lagos",
+    latitude: 6.4402,
+    longitude: 3.5319,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
       "images/properties/sale/house-3/front-1.jpg",
       "images/properties/sale/house-3/living-1.jpg",
@@ -171,7 +210,7 @@ export const propertiesToAdd: PropertyInput[] = [
       "images/properties/sale/house-3/room-1.jpg",
       "images/properties/sale/house-3/room-2.jpg",
       "images/properties/sale/house-3/room-3.jpg",
-      "images/properties/sale/house-3/bath-1-1.jpg",
+      "images/properties/sale/house-3/bath-1.jpg",
       "images/properties/sale/house-3/bath-2.jpg",
       "images/properties/sale/house-3/kitchen-1.jpg",
       "images/properties/sale/house-3/kitchen-2.jpg",
@@ -184,8 +223,8 @@ export const propertiesToAdd: PropertyInput[] = [
     features: ["Modern Contemporary Architecture", "Swimming Pool", "Car Park", "Top Notch Modern Appurtenances", "Fully Fitted Kitchen", "Stamp Concrete Floor", "Integrated Audio System", "TV Consoles", "Family Lounge", "Luxury Sanitary Wares", "Stairway Lights", "Green Area", "Gorgeous Lightings", "Boy’s Quarters", "Great Neighbourhood"],
   },
   {
-    title: "Affordable 4-Bedroom Semi-Detached Duplex in Ikota.",
-    description: "Enjoy spacious, modern, and secure living in this well-designed 4-bedroom semi-detached home with its own compound, located in a serene and secured estate in Ikota.All rooms are ensuite and complemented by a spacious living room, a family lounge, and a fully equipped kitchen with modern accessories including a heat extractor. The home also features fitted bathrooms, water heaters, and ample parking space.Perfect for families or individuals seeking comfort, privacy, and great value in a prime location.",
+    title: "Affordable 4-Bedroom Semi-Detached Duplex in Ikota",
+    description: "Enjoy spacious, modern, and secure living in this well-designed 4-bedroom semi-detached home with its own compound, located in a serene and secured estate in Ikota.",
     price: 100000000,
     type: "SALE",
     bedrooms: 4,
@@ -194,8 +233,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 5,
     area: null,
     location: "Ikota, Lagos",
+    latitude: 6.4402,
+    longitude: 3.5319,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: false,
     images: [
       "images/properties/sale/house-4/front.jpg",
       "images/properties/sale/house-4/living.jpg",
@@ -208,8 +250,8 @@ export const propertiesToAdd: PropertyInput[] = [
     features: ["All Rooms Ensuite", "Kitchen with Modern Accessories", "Fitted Bathrooms", "Ample Parking Space", "Spacious living room", "Family lounge", "Water Heater", "Heat extractor", "Secured Estate"],
   },
   {
-    title: "Modern 3-Bedroom Apartment in Lekki Phase 1 with Top-Class Amenities.",
-    description: "Step into comfort and style with this stunning 3-bedroom apartment located in the heart of Lekki Phase 1. Designed with outstanding modern architecture, this home is perfect for both residential living and shortlet investment.It features an open-plan, fully fitted kitchen, luxury fittings, gorgeous lighting, and spacious living areas. The property is housed in a secure development with a dedicated security house, elevator, swimming pool, and gym — all set in a prime and vibrant neighborhood.Enjoy the perfect blend of luxury, convenience, and lifestyle in one of Lagos’ most sought-after locations.",
+    title: "Modern 3-Bedroom Apartment in Lekki Phase 1 with Top-Class Amenities",
+    description: "Step into comfort and style with this stunning 3-bedroom apartment located in the heart of Lekki Phase 1. Designed with outstanding modern architecture, this home is perfect for both residential living and shortlet investment.",
     price: 368000000,
     type: "SALE",
     bedrooms: 3,
@@ -218,8 +260,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 4,
     area: null,
     location: "Lekki Phase 1, Lagos",
+    latitude: 6.4329,
+    longitude: 3.4608,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
       "images/properties/sale/house-5/front-1.jpg",
       "images/properties/sale/house-5/front-2.jpg",
@@ -238,8 +283,8 @@ export const propertiesToAdd: PropertyInput[] = [
     features: ["Outstanding Modern Architecture", "Security house", "Astonishing Fully Fitted Kitchen", "Luxury Modern Appurtenances", "Open kitchen", "Gorgeous Lightings", "Great Neighbourhood", "Good for Shorlet", "Elevator", "swimming pool", "Gym"],
   },
   {
-    title: "Massive 8-Bedroom Fully Detached Duplex on 2 Acres.",
-    description: "Experience true coastal luxury with this expansive 8-bedroom fully detached duplex situated on 2 acres of prime waterfront land in Imobido Village, just after the Free Trade Zone 2nd Gate.This rare gem features breathtaking views, a private swimming pool, multiple boys’ quarters (BQs), and unmatched space for both residential or investment purposes. With close proximity to the beach and excellent development potential, this property is ideal for a private estate, resort, or exclusive retreat.Don't miss this opportunity to own a piece of paradise in one of the fastest-growing areas in the Lekki axis.",
+    title: "Massive 8-Bedroom Fully Detached Duplex on 2 Acres",
+    description: "Experience true coastal luxury with this expansive 8-bedroom fully detached duplex situated on 2 acres of prime waterfront land in Imobido Village.",
     price: 750000000,
     type: "SALE",
     bedrooms: 8,
@@ -248,8 +293,11 @@ export const propertiesToAdd: PropertyInput[] = [
     toilets: 9,
     area: 8094,
     location: "Lekki Phase 1, Lagos",
+    latitude: 6.4329,
+    longitude: 3.4608,
     city: "Lagos",
     state: "Lagos",
+    isFeatured: true,
     images: [
       "images/properties/sale/house-7/front-1.jpg",
       "images/properties/sale/house-7/front-2.jpg",
@@ -271,65 +319,149 @@ export const propertiesToAdd: PropertyInput[] = [
   },
 ];
 
+async function ensureAgentExists(agentId: string, name: string, email: string) {
+  try {
+    const agent = await prisma.user.upsert({
+      where: { id: agentId },
+      update: {},
+      create: {
+        id: agentId,
+        name,
+        email,
+        createdAt: new Date(),
+      },
+    });
+    console.log(`✅ Ensured agent exists: ${agent.name} (ID: ${agent.id})`);
+    return agent;
+  } catch (error) {
+    console.error(`Failed to ensure agent ${agentId}:`, error);
+    throw error;
+  }
+}
+
+async function uploadImageToSupabase(filePath: string): Promise<{ url: string; filePath: string; imageType: string }> {
+  const imageType = filePath.split('/')[4]?.split('-')[0]?.toLowerCase() || 'other';
+  const supabasePath = filePath;
+
+  try {
+    // Check if image exists in Supabase
+    const folderPath = filePath.split('/').slice(0, -1).join('/');
+    const fileName = filePath.split('/').pop();
+    const { data: listData, error: listError } = await supabase.storage
+      .from('properties')
+      .list(folderPath);
+    if (listError || !listData.some((item) => item.name === fileName)) {
+      console.error(`Image not found in Supabase: ${filePath}`);
+      return { url: '/placeholder-property.jpg', filePath: supabasePath, imageType };
+    }
+
+    const { data, error } = await supabase.storage
+      .from('properties')
+      .createSignedUrl(supabasePath, 31536000);
+    if (error || !data?.signedUrl) {
+      console.error(`Failed to create signed URL for ${supabasePath}:`, error?.message);
+      return { url: '/placeholder-property.jpg', filePath: supabasePath, imageType };
+    }
+    return { url: data.signedUrl, filePath: supabasePath, imageType };
+  } catch (error) {
+    console.error(`Error processing image ${filePath}:`, error);
+    return { url: '/placeholder-property.jpg', filePath: supabasePath, imageType };
+  }
+}
+
 async function createProperty(propertyData: PropertyInput) {
   try {
     const areaValue = propertyData.area;
     if (areaValue !== null && typeof areaValue !== 'number') {
-      throw new Error(`Invalid area value for property "${propertyData.title}": ${areaValue}`);
+      throw new Error(`Invalid area value for "${propertyData.title}": ${areaValue}`);
     }
+
+    let slug = slugify(`${propertyData.title} ${propertyData.location} ${propertyData.city}`, {
+      lower: true,
+      strict: true,
+    });
+    const existing = await prisma.property.findFirst({ where: { slug } });
+    if (existing) {
+      slug = `${slug}-${uuidv4().slice(0, 8)}`;
+    }
+
+    // Ensure agent exists
+    await ensureAgentExists('abiterra-admin', 'Abiterra Admin', 'admin@abiterra.com');
+
+    const uploadedImages = await Promise.all(
+      propertyData.images.map(async (filePath, index) => {
+        const { url, filePath: supabasePath, imageType } = await uploadImageToSupabase(filePath);
+        return {
+          url,
+          filepath: supabasePath,
+          imagetype: imageType,
+          ismain: index === 0,
+          createdat: new Date(),
+        };
+      })
+    );
+
     const property = await prisma.property.create({
       data: {
+        id: uuidv4(),
+        slug,
         title: propertyData.title,
         description: propertyData.description,
         price: propertyData.price,
-        type: propertyData.type,
+        type: propertyData.type as 'SALE' | 'RENT',
         bedrooms: propertyData.bedrooms,
         bathrooms: propertyData.bathrooms,
         bq: propertyData.bq,
         toilets: propertyData.toilets,
         area: areaValue,
         location: propertyData.location,
+        latitude: propertyData.latitude ?? null,
+        longitude: propertyData.longitude ?? null,
         city: propertyData.city,
         state: propertyData.state,
-        images: {
-          create: propertyData.images.map(url => ({
-            url
-          }))
+        availability: true,
+        status: 'AVAILABLE' as 'AVAILABLE' | 'PENDING' | 'SOLD' | 'RENTED',
+        isfeatured: propertyData.isFeatured ?? false,
+        agentid: 'abiterra-admin', // Changed from agentId to agentid
+        createdat: new Date(),
+        updatedat: new Date(),
+        image: {
+          create: uploadedImages,
         },
-        features: {
-          create: propertyData.features.map(name => ({
-            name
-          }))
+        feature: {
+          create: propertyData.features.map((name) => ({ name })),
         },
-        status: 'AVAILABLE',
-        agentId: 'abiterra-admin'
-      }
+      },
     });
+
+    console.log(`✅ Created property: ${property.title} (ID: ${property.id}, Slug: ${property.slug})`);
     return property;
-  } catch (error) {
-    console.error(`Error creating property "${propertyData.title}":`, error);
+  } catch (error: any) {
+    console.error(`Error creating property "${propertyData.title}":`);
+    console.error('Message:', error.message || 'No message');
+    console.error('Meta:', JSON.stringify(error.meta, null, 2) || 'No meta');
+    console.error('Cause:', JSON.stringify(error.cause, null, 2) || 'No cause');
+    console.error('Stack:', error.stack || 'No stack');
     throw error;
   }
 }
 
 async function createProperties(properties: PropertyInput[]) {
   console.log(`Starting to create ${properties.length} properties...`);
-  
+
   const results = {
     successful: 0,
     failed: 0,
-    failures: [] as string[]
+    failures: [] as string[],
   };
 
   for (const property of properties) {
     try {
       await createProperty(property);
       results.successful++;
-      console.log(`✅ Successfully created: ${property.title}`);
     } catch (error) {
       results.failed++;
       results.failures.push(property.title);
-      console.error(`❌ Failed to create: ${property.title}`);
     }
   }
 
@@ -339,17 +471,21 @@ async function createProperties(properties: PropertyInput[]) {
 async function main() {
   try {
     const results = await createProperties(propertiesToAdd);
-    
+
     console.log('\nBatch Creation Summary:');
     console.log(`✅ Successfully created: ${results.successful} properties`);
     console.log(`❌ Failed to create: ${results.failed} properties`);
-    
+
     if (results.failures.length > 0) {
       console.log('\nFailed properties:');
-      results.failures.forEach(title => console.log(`- ${title}`));
+      results.failures.forEach((title) => console.log(`- ${title}`));
     }
-  } catch (error) {
-    console.error('Batch creation failed:', error);
+  } catch (error: any) {
+    console.error('Batch creation failed:');
+    console.error('Message:', error.message || 'No message');
+    console.error('Meta:', JSON.stringify(error.meta, null, 2) || 'No meta');
+    console.error('Cause:', JSON.stringify(error.cause, null, 2) || 'No cause');
+    console.error('Stack:', error.stack || 'No stack');
   } finally {
     await prisma.$disconnect();
   }

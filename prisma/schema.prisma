@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Existing auth models remain unchanged
 model Account {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -80,68 +79,72 @@ model contact {
 }
 
 model feature {
-  id         Int      @id @default(autoincrement())
-  name       String
-  propertyId Int
-  property   property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  id         String   @id(map: "new_feature_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar
+  propertyid String   @db.Uuid
+  property   property @relation(fields: [propertyid], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([propertyId])
   @@index([name])
+  @@index([propertyid])
 }
 
 model image {
-  id         Int      @id @default(autoincrement())
-  url        String
-  createdAt  DateTime @default(now())
-  propertyId Int
-  property   property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  isMain     Boolean  @default(false)
+  id         String   @id(map: "new_image_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url        String   @db.VarChar
+  filepath   String?  @db.VarChar
+  imagetype  String?  @db.VarChar
+  createdat  DateTime @db.Timestamp(6)
+  propertyid String   @db.Uuid
+  ismain     Boolean? @default(false)
+  property   property @relation(fields: [propertyid], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([propertyId])
-  @@index([isMain])
+  @@index([ismain])
+  @@index([propertyid])
 }
 
 model inquiry {
-  id         Int            @id @default(autoincrement())
+  id         String   @id(map: "new_inquiry_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   message    String
-  phone      String         
-  status     inquiry_status @default(PENDING)
-  createdAt  DateTime       @default(now())
-  propertyId Int
-  userId     String
-  property   property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  users      User           @relation(fields: [userId], references: [id])
+  phone      String   @db.VarChar
+  status     String   @db.VarChar
+  createdat  DateTime @db.Timestamp(6)
+  propertyid String   @db.Uuid
+  userid     String   @db.VarChar
+  property   property @relation(fields: [propertyid], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      User     @relation(fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([propertyId])
-  @@index([userId])
   @@index([status])
+  @@index([propertyid])
+  @@index([userid])
 }
 
 model property {
-  id            Int             @id @default(autoincrement())
-  title         String
+  id            String                   @id(map: "new_property_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String                   @db.VarChar
+  slug          String                   @unique(map: "new_property_slug_key") @db.VarChar
   description   String
-  location      String
+  location      String                   @db.VarChar
   price         Float
-  type          property_type
-  availability  Boolean         @default(true)
-  area          Float?          // Changed from Float to Float? to make it nullable
+  type          String                   @db.VarChar
+  availability  Boolean?                 @default(true)
+  area          Float?
   bathrooms     Int
   bedrooms      Int
   bq            Int
-  city          String
-  state         String
-  status        property_status @default(AVAILABLE)
+  city          String                   @db.VarChar
+  state         String                   @db.VarChar
+  status        String                   @db.VarChar
   toilets       Int
   latitude      Float?
   longitude     Float?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  features      feature[]
-  images        image[]
+  createdat     DateTime?                @default(now()) @db.Timestamp(6)
+  updatedat     DateTime?                @default(now()) @db.Timestamp(6)
+  isfeatured    Boolean?                 @default(false)
+  agentid       String                   @db.VarChar
+  search_vector Unsupported("tsvector")?
+  feature       feature[]
+  image         image[]
   inquiry       inquiry[]
-  agentId       String
-  search_vector Unsupported("tsvector")?  
 
   @@index([type])
   @@index([status])

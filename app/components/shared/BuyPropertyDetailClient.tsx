@@ -1,4 +1,3 @@
-//app/components/shared/BuyPropertyDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -9,33 +8,17 @@ import { MapPin, BedDouble, Bath, ChevronLeft, ChevronRight, Square } from 'luci
 import { ContactDialog } from './ContactDialog';
 import ShareButton from './ShareButton';
 import MapErrorBoundary from '@/app/components/MapErrorBoundary';
+import { Property } from '@/types/property'; 
 import 'leaflet/dist/leaflet.css';
 
 const MapView = dynamic(() => import('@/app/components/Map'), {
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+    <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
       <p className="text-gray-500">Loading map...</p>
     </div>
   ),
 });
-
-interface Property {
-  id: number;
-  price: number;
-  images: { url: string }[];
-  title: string;
-  description: string;
-  location: string;
-  latitude: number;
-  longitude: number;
-  bedrooms: number;
-  bq: number;
-  bathrooms: number;
-  toilets: number;
-  area: number | null;
-  features: { name: string }[];
-}
 
 interface PropertyDetailClientProps {
   property: Property;
@@ -47,16 +30,14 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
   const [imageErrors, setImageErrors] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Cache image URLs to avoid refetching
   const cachedImages = useMemo(() => {
     const cache = new Map<string, string>();
-    property.images.forEach((image, index) => {
+    property.images.forEach((image) => {
       cache.set(image.url, image.url);
     });
     return cache;
   }, [property.images]);
 
-  // Preload all images on mount
   useEffect(() => {
     const preloadImages = () => {
       property.images.forEach((image, index) => {
@@ -71,7 +52,6 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
         }
       });
     };
-
     preloadImages();
   }, [property.images, imageErrors, cachedImages]);
 
@@ -153,7 +133,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
             <div className="md:col-span-4 relative aspect-video group">
               <Image
                 src={imageErrors.includes(currentIndex) ? '/placeholder-property.jpg' : property.images[currentIndex].url}
-                alt={`${property.title} - Main Image`}
+                alt={`${property.title} - ${property.images[currentIndex].imageType || 'Image'}`}
                 fill
                 className="object-cover rounded-lg transition-opacity duration-300"
                 priority={currentIndex === 0}
@@ -192,7 +172,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                 const actualIndex = (currentIndex + index + 1) % property.images.length;
                 return (
                   <div
-                    key={actualIndex}
+                    key={image.id}
                     className={`relative aspect-video flex-shrink-0 w-full cursor-pointer
                       ${actualIndex === currentIndex ? 'border-2 border-blue-500' : 'opacity-60 hover:opacity-100'}
                       transition-all duration-300`}
@@ -200,7 +180,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                   >
                     <Image
                       src={imageErrors.includes(actualIndex) ? '/placeholder-property.jpg' : image.url}
-                      alt={`Thumbnail ${actualIndex + 1}`}
+                      alt={`Thumbnail ${image.imageType || 'Image'}`}
                       fill
                       className="object-cover rounded transition-opacity duration-300"
                       sizes="(max-width: 768px) 25vw, 15vw"
@@ -293,23 +273,16 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Location</h2>
                 {property.latitude && property.longitude ? (
-                  <div className="h-[200px] md:h-[400px] w-full">
+                  <div className="h-[600px] w-full">
                     <MapErrorBoundary>
                       <MapView
-                        properties={{
-                          id: property.id,
-                          title: property.title,
-                          price: property.price,
-                          location: property.location,
-                          latitude: Number(property.latitude),
-                          longitude: Number(property.longitude),
-                        }}
+                        properties={[property]}
                         zoom={15}
                       />
                     </MapErrorBoundary>
                   </div>
                 ) : (
-                  <div className="h-[200px] md:h-[400px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+                  <div className="h-[600px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
                     <p className="text-sm md:text-base text-gray-500">Location coordinates not available.</p>
                   </div>
                 )}
@@ -321,7 +294,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>
                 <div className="bg-teal-500">
-                  <ContactDialog propertyId={property.id.toString()} />
+                  <ContactDialog propertyId={property.id} />
                 </div>
               </CardContent>
             </Card>

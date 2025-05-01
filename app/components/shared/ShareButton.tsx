@@ -1,7 +1,9 @@
+// app/components/shared/ShareButton.tsx
+'use client';
+
 import React from 'react';
 import { Share2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { log } from 'console';
 
 interface ShareButtonProps {
   title: string;
@@ -11,41 +13,31 @@ interface ShareButtonProps {
 
 const ShareButton: React.FC<ShareButtonProps> = ({ title, location, price }) => {
   const handleShare = async () => {
-    interface ShareData {
-      title: string;
-      text: string;
-      url: string;
-    }
-
-    const shareData: ShareData = {
+    const shareData = {
       title: 'Property Listing',
       text: `Check out this property: ${title} in ${location} for ₦${price.toLocaleString()}`,
-      url: window.location.href
+      url: window.location.href,
     };
-    
-    //console.log('Share data:', shareData);
 
     try {
       if (navigator.share) {
-        // Use Web Share API if available (mostly mobile devices)
         await navigator.share(shareData);
         toast({
-          description: "Successfully shared!",
+          description: 'Successfully shared!',
           duration: 3000,
         });
       } else {
-        // Fallback to copying URL to clipboard
         await navigator.clipboard.writeText(window.location.href);
         toast({
-          description: "Link copied to clipboard!",
+          description: 'Link copied to clipboard!',
           duration: 3000,
         });
       }
     } catch (error) {
       console.error('Error sharing:', error);
       toast({
-        variant: "destructive",
-        description: "Failed to share. Please try again.",
+        variant: 'destructive',
+        description: 'Failed to share. Please try again.',
         duration: 3000,
       });
     }

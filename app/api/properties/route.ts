@@ -9,8 +9,12 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '12', 10);
   const search = searchParams.get('search') || '';
+  const bedrooms = searchParams.get('bedrooms') || '';
+  const bathrooms = searchParams.get('bathrooms') || '';
+  const priceMin = searchParams.get('priceMin') || '';
+  const priceMax = searchParams.get('priceMax') || '';
 
-  console.log('API request:', { type, page, limit, search }); // Debug log
+  console.log('API request:', { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax });
 
   // Validate inputs
   if (isNaN(page) || page < 1) {
@@ -29,15 +33,11 @@ export async function GET(request: Request) {
       supabaseUrl: !!supabaseUrl,
       supabaseKey: !!supabaseKey,
     });
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
-
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -53,6 +53,20 @@ export async function GET(request: Request) {
         { city: { contains: search, mode: 'insensitive' } },
         { state: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (bedrooms) {
+      where.bedrooms = parseInt(bedrooms) <= 4 ? parseInt(bedrooms) : { gte: 4 };
+    }
+
+    if (bathrooms) {
+      where.bathrooms = parseInt(bathrooms) <= 4 ? parseInt(bathrooms) : { gte: 4 };
+    }
+
+    if (priceMin || priceMax) {
+      where.price = {};
+      if (priceMin) where.price.gte = parseFloat(priceMin);
+      if (priceMax) where.price.lte = parseFloat(priceMax);
     }
 
     const [properties, totalItems] = await Promise.all([
@@ -72,7 +86,18 @@ export async function GET(request: Request) {
           bedrooms: true,
           bathrooms: true,
           area: true,
-          images: {
+          slug: true,
+          image: {
+            where: {
+              OR: [
+                { ismain: true },
+                { url: { contains: 'front-1', mode: 'insensitive' } },
+              ],
+            },
+            orderBy: [
+              { ismain: 'desc' },
+              { url: 'desc' },
+            ],
             select: {
               id: true,
               url: true,
@@ -81,54 +106,101 @@ export async function GET(request: Request) {
           },
         },
         orderBy: {
-          createdAt: 'desc',
+          id: 'desc',
         },
       }),
       prisma.property.count({ where }),
     ]);
 
+    console.log('Found properties:', properties.length, 'Total items:', totalItems);
+
     const formattedProperties = await Promise.all(
       properties.map(async (property) => {
-        const formattedImages = await Promise.all(
-          property.images.map(async (img) => {
-            if (!img.url) return { id: img.id, url: `/api/placeholder/800/600` };
+        try {
+          const formattedImages = await Promise.all(
+            property.image.map(async (img) => {
+              if (!img.url) {
+                console.warn(`[API] No URL for image ID ${img.id} of property ${property.id}`);
+                return { id: img.id, url: `/api/placeholder/800/600` };
+              }
 
-            const { data, error } = await supabase.storage
-              .from('properties')
-              .createSignedUrl(img.url, 7200);
+              try {
+                let cleanPath = img.url;
+                if (cleanPath.includes('://')) {
+                  const urlObj = new URL(cleanPath);
+                  const pathParts = urlObj.pathname.split('/');
+                  const bucketIndex = pathParts.findIndex((p) => p === 'properties');
+                  if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+                    cleanPath = pathParts.slice(bucketIndex + 1).join('/');
+                  } else {
+                    cleanPath = pathParts[pathParts.length - 1];
+                  }
+                } else {
+                  cleanPath = cleanPath.replace(/^\//, '').split('?')[0];
+                  if (cleanPath.startsWith('properties/')) {
+                    cleanPath = cleanPath.substring('properties/'.length);
+                  }
+                }
 
-            if (error || !data?.signedUrl) {
-              console.error(`Signed URL error for ${img.url}:`, error?.message);
-              return { id: img.id, url: `/api/placeholder/800/600` };
-            }
+                if (property.title.includes('Ikota')) {
+                  console.log(`[Ikota Debug API] Property ID: ${property.id}, Clean Path: ${cleanPath}`);
+                }
 
-            console.log(`Generated signed URL for ${img.url}: ${data.signedUrl}`);
-            return { id: img.id, url: data.signedUrl };
-          })
-        );
+                const { data, error } = await supabase.storage
+                  .from('properties')
+                  .createSignedUrl(cleanPath, 31536000);
 
-        return {
-          id: property.id,
-          title: property.title,
-          description: property.description,
-          price: property.price,
-          location: property.location,
-          latitude: property.latitude,
-          longitude: property.longitude,
-          images: formattedImages,
-          type: property.type === 'SALE' ? 'For Sale' : 'For Rent',
-          specs: {
-            area: property.area !== null ? `${property.area} sqft` : 'Not Available',
-            beds: property.bedrooms || 0,
-            baths: property.bathrooms || 0,
-            size: property.area || 0,
-          },
-        };
+                if (error) {
+                  console.error(`[API] Signed URL error for ${cleanPath} (property ${property.id}):`, error.message);
+                  if (property.title.includes('Ikota')) {
+                    console.log(`[Ikota Debug API] Signed URL Error: ${error.message}`);
+                  }
+                  return { id: img.id, url: `/api/placeholder/800/600` };
+                }
+
+                if (property.title.includes('Ikota')) {
+                  console.log(`[Ikota Debug API] Signed URL: ${data.signedUrl}`);
+                }
+                return { id: img.id, url: data.signedUrl || `/api/placeholder/800/600` };
+              } catch (err) {
+                console.error(`[API] Error processing image ${img.url} for property ${property.id}:`, err);
+                if (property.title.includes('Ikota')) {
+                  console.log(`[Ikota Debug API] Processing Error:`, err);
+                }
+                return { id: img.id, url: `/api/placeholder/800/600` };
+              }
+            })
+          );
+
+          return {
+            id: property.id,
+            title: property.title,
+            description: property.description,
+            price: property.price,
+            location: property.location,
+            latitude: property.latitude,
+            longitude: property.longitude,
+            slug: property.slug,
+            images: formattedImages,
+            type: property.type === 'SALE' ? 'For Sale' : 'For Rent',
+            specs: {
+              area: property.area !== null ? `${property.area} sqft` : 'Not Available',
+              beds: property.bedrooms || 0,
+              baths: property.bathrooms || 0,
+              size: property.area || 0,
+            },
+          };
+        } catch (err) {
+          console.error(`[API] Error formatting property ${property.id}:`, err);
+          return null;
+        }
       })
     );
 
+    const validProperties = formattedProperties.filter((p) => p !== null);
+
     return NextResponse.json({
-      properties: formattedProperties,
+      properties: validProperties,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalItems / limit),
@@ -139,9 +211,10 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Error fetching properties:', error);
+    console.error('[API] Error fetching properties:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch properties' },
+      { error: 'Failed to fetch properties', details: errorMessage },
       { status: 500 }
     );
   }
