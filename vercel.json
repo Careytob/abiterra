@@ -1,0 +1,20 @@
+{
+    "functions": {
+      "app/api/properties/route.ts": {
+        "maxDuration": 60
+      },
+      "app/buy/page.tsx": {
+        "maxDuration": 60
+      }
+    },
+    "routes": [
+      {
+        "src": "/api/properties",
+        "dest": "/api/properties",
+        "methods": ["GET"],
+        "headers": {
+          "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+      }
+    ]
+  }

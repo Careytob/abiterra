@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
 
-export const dynamic = 'force-dynamic';
+const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
-  console.log('API route invoked: Temporary Supabase bypass version (deployed 2025-05-01)');
+export async function GET(request: NextRequest) {
+  console.log('API route invoked: Temporary Supabase bypass version (updated 2025-05-05)');
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'SALE';
@@ -16,136 +17,96 @@ export async function GET(request: Request) {
   const priceMin = searchParams.get('priceMin') || '';
   const priceMax = searchParams.get('priceMax') || '';
 
-  console.log('API request received:', { 
-    type, page, limit, search, 
-    bedrooms, bathrooms, priceMin, priceMax 
-  });
-
-  // Validate inputs
-  if (isNaN(page) || page < 1) {
-    console.error('Invalid page number:', page);
-    return NextResponse.json({ error: 'Invalid page number' }, { status: 400 });
-  }
-  if (isNaN(limit) || limit < 1) {
-    console.error('Invalid limit:', limit);
-    return NextResponse.json({ error: 'Invalid limit' }, { status: 400 });
-  }
+  console.log('API request received:', { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax });
 
   try {
-    // Check database connection
     console.log('Checking database connection');
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$connect();
     console.log('Database connection successful');
 
-    const skip = (page - 1) * limit;
-
-    const where: any = {
-      type: type.toUpperCase(),
-      availability: true,
-    };
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { location: { contains: search, mode: 'insensitive' } },
-        { city: { contains: search, mode: 'insensitive' } },
-        { state: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (bedrooms) {
-      where.bedrooms = parseInt(bedrooms) <= 4 ? parseInt(bedrooms) : { gte: 4 };
-    }
-
-    if (bathrooms) {
-      where.bathrooms = parseInt(bathrooms) <= 4 ? parseInt(bathrooms) : { gte: 4 };
-    }
-
-    if (priceMin || priceMax) {
-      where.price = {};
-      if (priceMin) where.price.gte = parseFloat(priceMin);
-      if (priceMax) where.price.lte = parseFloat(priceMax);
-    }
+    const where: any = { type, availability: true };
+    if (search) where.title = { contains: search, mode: 'insensitive' };
+    if (bedrooms) where.bedrooms = { equals: parseInt(bedrooms) };
+    if (bathrooms) where.bathrooms = { equals: parseInt(bathrooms) };
+    if (priceMin) where.price = { gte: parseInt(priceMin) };
+    if (priceMax) where.price = { lte: parseInt(priceMax) };
 
     console.log('Executing database queries with where:', where);
 
-    const [properties, totalItems] = await Promise.all([
-      prisma.property.findMany({
-        where,
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          price: true,
-          location: true,
-          latitude: true,
-          longitude: true,
-          type: true,
-          bedrooms: true,
-          bathrooms: true,
-          area: true,
-          slug: true,
-          image: {
-            take: 1,
-            select: {
-              id: true,
-              url: true,
-            },
-          },
-        },
-        orderBy: {
-          id: 'desc',
-        },
-      }),
-      prisma.property.count({ where }),
-    ]);
-
-    console.log(`Database returned ${properties.length} properties`);
-
-    const formattedProperties = properties.map(property => {
-      const imageUrl = '/api/placeholder/800/600';
-      return {
-        id: property.id,
-        title: property.title,
-        description: property.description,
-        price: property.price,
-        location: property.location,
-        latitude: property.latitude,
-        longitude: property.longitude,
-        slug: property.slug,
-        images: [{ id: property.image[0]?.id || 'placeholder', url: imageUrl }],
-        type: property.type === 'SALE' ? 'For Sale' : 'For Rent',
-        specs: {
-          area: property.area !== null ? `${property.area} sqft` : 'Not Available',
-          beds: property.bedrooms || 0,
-          baths: property.bathrooms || 0,
-          size: property.area || 0,
-        },
-      };
+    const total = await prisma.property.count({ where });
+    const properties = await prisma.property.findMany({
+      where,
+      orderBy: { id: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        location: true,
+        latitude: true,
+        longitude: true,
+        type: true,
+        bedrooms: true,
+        bathrooms: true,
+        area: true,
+        slug: true,
+      },
     });
 
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase credentials');
+      throw new Error('Supabase configuration error');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch images for properties
+    const propertiesWithImages = await Promise.all(
+      properties.map(async (property) => {
+        // Fetch images from Supabase storage
+        const { data: images, error } = await supabase.storage
+          .from('properties')
+          .list(`images/${property.id}`, { limit: 10 });
+
+        if (error) {
+          console.error(`Error fetching images for property ${property.id}:`, error.message);
+          return { ...property, images: [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
+        }
+
+        const imageUrls = await Promise.all(
+          (images || []).map(async (image) => {
+            const { data: signedData, error: signError } = await supabase.storage
+              .from('properties')
+              .createSignedUrl(`images/${property.id}/${image.name}`, 31536000);
+            return {
+              id: image.name,
+              url: signError || !signedData?.signedUrl ? '/api/placeholder/800/600' : signedData.signedUrl,
+            };
+          })
+        );
+
+        return { ...property, images: imageUrls.length ? imageUrls : [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
+      })
+    );
+
+    console.log('Database returned', properties.length, 'properties');
     console.log('API processing complete, returning response');
 
     return NextResponse.json({
-      properties: formattedProperties,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(totalItems / limit),
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < Math.ceil(totalItems / limit),
-        hasPreviousPage: page > 1,
-      },
+      properties: propertiesWithImages,
+      total,
+      pages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error('[API] Error fetching properties:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      { error: 'Failed to fetch properties', details: errorMessage },
-      { status: 500 }
-    );
+    console.error('API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
