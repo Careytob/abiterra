@@ -32,7 +32,7 @@ async function fetchProperties(
     .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
     .join('');
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000';
+  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_SITE_URL || 'abiterra.com';
   const url = new URL(
     `/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}${filterParams}`,
     `${protocol}://${host}`
