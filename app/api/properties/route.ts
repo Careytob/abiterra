@@ -18,6 +18,21 @@ export async function GET(request: Request) {
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      // Check if property table exists
+      interface TableCheck {
+        exists: boolean;
+      }
+      const tableCheck = await prisma.$queryRaw<TableCheck[]>`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'property'
+        );
+      `;
+      if (!tableCheck[0].exists) {
+        throw new Error('property table does not exist');
+      }
+
       let whereClause = `WHERE type = $1`;
       const params: any[] = [type];
 
@@ -42,14 +57,17 @@ export async function GET(request: Request) {
         params.push(priceMax);
       }
 
-      const countQuery = `SELECT COUNT(*) FROM "Property" ${whereClause}`;
-      const countResult = await prisma.$queryRawUnsafe<{ count: string }[]>(countQuery, ...params);
+      interface CountResult {
+        count: string | number;
+      }
+      const countQuery = `SELECT COUNT(*) FROM "property" ${whereClause}`;
+      const countResult = await prisma.$queryRawUnsafe<CountResult[]>(countQuery, ...params);
       const totalItems = Number(countResult[0].count);
       const totalPages = Math.ceil(totalItems / limit);
 
       const selectQuery = `
-        SELECT * FROM "Property" ${whereClause}
-        ORDER BY "createdAt" DESC
+        SELECT * FROM "property" ${whereClause}
+        ORDER BY "createdat" DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
       params.push(limit, (page - 1) * limit);
@@ -68,9 +86,17 @@ export async function GET(request: Request) {
       });
     } catch (error: any) {
       console.error(`Attempt ${attempt}/${retries} failed:`, error);
-      if (attempt === retries || !error.message.includes('prepared statement')) {
+      if (
+        attempt === retries ||
+        (!error.message.includes('prepared statement') && !error.message.includes('property table does not exist'))
+      ) {
         console.error('API error:', error);
-        return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
+        return NextResponse.json(
+          { error: error.message.includes('property table does not exist') 
+              ? 'Database schema error: property table missing' 
+              : 'Failed to fetch properties' },
+          { status: 500 }
+        );
       }
       const backoffTime = attempt * backoffFactor;
       console.log(`Retrying in ${backoffTime}ms...`);
