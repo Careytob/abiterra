@@ -184,6 +184,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
       count: properties.length,
       withImages: properties.filter(p => p.image_url !== '/images/placeholder-property.jpg').length,
       sampleImageUrls: properties.slice(0, 3).map(p => p.image_url),
+      samplePropertyIds: properties.slice(0, 3).map(p => p.id),
     });
 
     pagination = data.pagination;
@@ -418,26 +419,42 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
 
                 // Retry timer for P1001 errors
                 const timerElement = document.getElementById('retry-timer');
-                if (!timerElement) return;
-                const maxRetries = parseInt(timerElement.dataset.retries) || 5;
-                const backoffFactor = parseInt(timerElement.dataset.backoff) || 3000;
-                let remainingTime = maxRetries * backoffFactor / 1000;
-                timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
-                const interval = setInterval(() => {
-                  remainingTime -= 1;
-                  if (remainingTime <= 0) {
-                    clearInterval(interval);
-                    timerElement.textContent = 'Retrying now...';
-                  } else {
-                    timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
-                  }
-                }, 1000);
+                if (timerElement) {
+                  const maxRetries = parseInt(timerElement.dataset.retries) || 5;
+                  const backoffFactor = parseInt(timerElement.dataset.backoff) || 3000;
+                  let remainingTime = maxRetries * backoffFactor / 1000;
+                  timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
+                  const interval = setInterval(() => {
+                    remainingTime -= 1;
+                    if (remainingTime <= 0) {
+                      clearInterval(interval);
+                      timerElement.textContent = 'Retrying now...';
+                    } else {
+                      timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
+                    }
+                  }, 1000);
+                }
 
                 // Log and count placeholder images
                 const images = document.querySelectorAll('img[src="/images/placeholder-property.jpg"]');
                 if (images.length > 0) {
                   console.warn('Placeholder images detected:', images.length, 'Sample IDs:', Array.from(images).slice(0, 3).map(img => img.closest('[data-property-id]')?.getAttribute('data-property-id') || 'unknown'));
                 }
+
+                // Validate image URLs
+                const allImages = document.querySelectorAll('img[data-image-url]');
+                allImages.forEach(img => {
+                  const url = img.getAttribute('data-image-url');
+                  if (url && url !== '/images/placeholder-property.jpg') {
+                    fetch(url, { method: 'HEAD' })
+                      .then(response => {
+                        if (!response.ok) {
+                          console.error('Image failed to load:', url, 'Status:', response.status);
+                        }
+                      })
+                      .catch(error => console.error('Image fetch error:', url, error));
+                  }
+                });
               })();
             `,
           }}
