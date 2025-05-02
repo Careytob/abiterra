@@ -79,7 +79,21 @@ export async function GET(request: Request) {
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
       params.push(limit, (page - 1) * limit);
-      const properties = await prisma.$queryRawUnsafe(selectQuery, ...params);
+      interface Property {
+        id: string;
+        title: string;
+        image_url: string | null;
+        [key: string]: any;
+      }
+
+      const properties = await prisma.$queryRawUnsafe<Property[]>(selectQuery, ...params);
+
+      // Log image data for debugging
+      console.log(`[${new Date().toISOString()}] Properties fetched:`, {
+        count: properties.length,
+        withImages: properties.filter((p: any) => p.image_url).length,
+        sampleImageUrls: properties.slice(0, 3).map((p: any) => p.image_url),
+      });
 
       return NextResponse.json({
         properties,

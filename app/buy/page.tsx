@@ -178,6 +178,14 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
       ...prop,
       image_url: prop.image_url || '/images/placeholder-property.jpg',
     }));
+
+    // Log image data for debugging
+    console.log(`[${new Date().toISOString()}] Properties processed:`, {
+      count: properties.length,
+      withImages: properties.filter(p => p.image_url !== '/images/placeholder-property.jpg').length,
+      sampleImageUrls: properties.slice(0, 3).map(p => p.image_url),
+    });
+
     pagination = data.pagination;
 
     console.log(`[${new Date().toISOString()}] BuyPage: Successfully fetched properties`, {
@@ -322,6 +330,14 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
               </Link>
             </div>
           )}
+          {properties.length > 0 && properties.every(p => p.image_url === '/images/placeholder-property.jpg') && (
+            <div className="text-center py-4 text-sm sm:text-base text-yellow-600" role="alert">
+              <p>Images are currently unavailable for these properties. Displaying placeholders.</p>
+              <p className="mt-2">
+                Please <Link href="/contact" className="text-teal-600 hover:text-teal-700">contact support</Link> if this persists.
+              </p>
+            </div>
+          )}
           <div aria-live="polite">
             <ViewModeToggle properties={properties} />
           </div>
@@ -417,10 +433,10 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                   }
                 }, 1000);
 
-                // Log missing images
+                // Log and count placeholder images
                 const images = document.querySelectorAll('img[src="/images/placeholder-property.jpg"]');
                 if (images.length > 0) {
-                  console.warn('Placeholder images detected:', images.length);
+                  console.warn('Placeholder images detected:', images.length, 'Sample IDs:', Array.from(images).slice(0, 3).map(img => img.closest('[data-property-id]')?.getAttribute('data-property-id') || 'unknown'));
                 }
               })();
             `,
