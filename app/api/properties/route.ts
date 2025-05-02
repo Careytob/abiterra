@@ -33,45 +33,49 @@ export async function GET(request: Request) {
         throw new Error('property table does not exist');
       }
 
-      let whereClause = `WHERE type = $1`;
+      let whereClause = `WHERE p.type = $1`;
       const params: any[] = [type];
 
       if (search) {
-        whereClause += ` AND (title ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1} OR location ILIKE $${params.length + 1})`;
+        whereClause += ` AND (p.title ILIKE $${params.length + 1} OR p.description ILIKE $${params.length + 1} OR p.location ILIKE $${params.length + 1})`;
         params.push(`%${search}%`);
       }
       if (bedrooms) {
-        whereClause += ` AND bedrooms = $${params.length + 1}`;
+        whereClause += ` AND p.bedrooms = $${params.length + 1}`;
         params.push(parseInt(bedrooms, 10));
       }
       if (bathrooms) {
-        whereClause += ` AND bathrooms = $${params.length + 1}`;
+        whereClause += ` AND p.bathrooms = $${params.length + 1}`;
         params.push(parseInt(bathrooms, 10));
       }
       if (priceMin > 0) {
-        whereClause += ` AND price >= $${params.length + 1}`;
+        whereClause += ` AND p.price >= $${params.length + 1}`;
         params.push(priceMin);
       }
       if (priceMax > 0) {
-        whereClause += ` AND price <= $${params.length + 1}`;
+        whereClause += ` AND p.price <= $${params.length + 1}`;
         params.push(priceMax);
       }
 
       interface CountResult {
         count: string | number;
       }
-      const countQuery = `SELECT COUNT(*) FROM "property" ${whereClause}`;
+      const countQuery = `SELECT COUNT(*) FROM "property" p ${whereClause}`;
       const countResult = await prisma.$queryRawUnsafe<CountResult[]>(countQuery, ...params);
       const totalItems = Number(countResult[0].count);
       const totalPages = Math.ceil(totalItems / limit);
 
       const selectQuery = `
         SELECT 
-          id, title, slug, description, location, price, type, availability, area,
-          bathrooms, bedrooms, bq, city, state, status, toilets, latitude, longitude,
-          createdat, updatedat, isfeatured, agentid
-        FROM "property" ${whereClause}
-        ORDER BY "createdat" DESC
+          p.id, p.title, p.slug, p.description, p.location, p.price, p.type, 
+          p.availability, p.area, p.bathrooms, p.bedrooms, p.bq, p.city, 
+          p.state, p.status, p.toilets, p.latitude, p.longitude, p.createdat, 
+          p.updatedat, p.isfeatured, p.agentid,
+          i.url AS image_url, i.id AS image_id
+        FROM "property" p
+        LEFT JOIN "image" i ON p.id = i.propertyid AND i.ismain = true
+        ${whereClause}
+        ORDER BY p.createdat DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
       params.push(limit, (page - 1) * limit);
