@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
-  console.log('API route invoked: Temporary Supabase bypass version (updated 2025-05-05)');
+  console.log('API route invoked: Supabase image integration with Prisma (updated 2025-05-08)');
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'SALE';
@@ -52,6 +52,15 @@ export async function GET(request: NextRequest) {
         bathrooms: true,
         area: true,
         slug: true,
+        image: {
+          select: {
+            id: true,
+            filepath: true,
+            url: true,
+            ismain: true,
+          },
+          orderBy: { ismain: 'desc' }, // Prioritize main image
+        },
       },
     });
 
@@ -61,37 +70,47 @@ export async function GET(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseKey) {
       console.error('Missing Supabase credentials');
-      throw new Error('Supabase configuration error');
+      return NextResponse.json({ error: 'Supabase configuration error' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch images for properties
+    // Generate signed URLs for images
     const propertiesWithImages = await Promise.all(
       properties.map(async (property) => {
-        // Fetch images from Supabase storage
-        const { data: images, error } = await supabase.storage
-          .from('properties')
-          .list(`images/${property.id}`, { limit: 10 });
-
-        if (error) {
-          console.error(`Error fetching images for property ${property.id}:`, error.message);
+        if (!property.image.length) {
+          console.log(`No images found for property ${property.id}`);
           return { ...property, images: [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
         }
 
         const imageUrls = await Promise.all(
-          (images || []).map(async (image) => {
+          property.image.map(async (image) => {
+            // Use filepath if available, otherwise fall back to url
+            const imagePath = image.filepath || image.url;
+            if (!imagePath) {
+              console.warn(`No filepath or url for image ${image.id} of property ${property.id}`);
+              return { id: image.id, url: '/api/placeholder/800/600' };
+            }
+
+            // Use filepath as-is (e.g., images/properties/sale/house-1/front-1.jpg)
             const { data: signedData, error: signError } = await supabase.storage
               .from('properties')
-              .createSignedUrl(`images/${property.id}/${image.name}`, 31536000);
-            return {
-              id: image.name,
-              url: signError || !signedData?.signedUrl ? '/api/placeholder/800/600' : signedData.signedUrl,
-            };
+              .createSignedUrl(imagePath, 31536000); // 1 year
+
+            if (signError || !signedData?.signedUrl) {
+              console.error(`Error signing URL for image ${image.id}:`, signError?.message || 'No signed URL', { imagePath });
+              return { id: image.id, url: '/api/placeholder/800/600' };
+            }
+
+            return { id: image.id, url: signedData.signedUrl };
           })
         );
 
-        return { ...property, images: imageUrls.length ? imageUrls : [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
+        console.log(`Images for property ${property.id}:`, imageUrls);
+        return {
+          ...property,
+          images: imageUrls.length ? imageUrls : [{ id: 'placeholder', url: '/api/placeholder/800/600' }],
+        };
       })
     );
 
