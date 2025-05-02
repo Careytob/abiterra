@@ -94,13 +94,13 @@ async function fetchProperties(
 
       return {
         properties: data.properties,
-        pagination: data.pagination || {
+        pagination: {
           currentPage: page,
-          totalPages: 0,
-          totalItems: 0,
+          totalPages: data.pages || Math.ceil(data.total / limit),
+          totalItems: data.total || 0,
           itemsPerPage: limit,
-          hasNextPage: false,
-          hasPreviousPage: false,
+          hasNextPage: page < (data.pages || Math.ceil(data.total / limit)),
+          hasPreviousPage: page > 1,
         },
       };
     } catch (err) {
@@ -176,14 +176,14 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
     const data = await fetchProperties(page, search, filters);
     properties = data.properties.map((prop: any) => ({
       ...prop,
-      image_url: prop.image_url || '/images/placeholder-property.jpg',
+      images: prop.images || [{ id: 'placeholder', url: '/api/placeholder/800/600' }],
     }));
 
     // Log image data for debugging
     console.log(`[${new Date().toISOString()}] Properties processed:`, {
       count: properties.length,
-      withImages: properties.filter(p => p.image_url !== '/images/placeholder-property.jpg').length,
-      sampleImageUrls: properties.slice(0, 3).map(p => p.image_url),
+      withImages: properties.filter(p => p.images && p.images[0]?.url !== '/api/placeholder/800/600').length,
+      sampleImageUrls: properties.slice(0, 3).map(p => p.images[0]?.url),
       samplePropertyIds: properties.slice(0, 3).map(p => p.id),
     });
 
@@ -265,7 +265,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                     <br />
                     {isRetrying ? (
                       <span className="flex items-center justify-center gap-2 mt-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500 "></div>
                         <span id="retry-timer" data-retries={5} data-backoff={3000}>
                           Retrying in approximately {(5 * 3000) / 1000} seconds...
                         </span>
@@ -331,7 +331,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
               </Link>
             </div>
           )}
-          {properties.length > 0 && properties.every(p => p.image_url === '/images/placeholder-property.jpg') && (
+          {properties.length > 0 && properties.every(p => p.images && p.images[0]?.url === '/api/placeholder/800/600') && (
             <div className="text-center py-4 text-sm sm:text-base text-yellow-600" role="alert">
               <p>Images are currently unavailable for these properties. Displaying placeholders.</p>
               <p className="mt-2">
@@ -436,7 +436,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                 }
 
                 // Log and count placeholder images
-                const images = document.querySelectorAll('img[src="/images/placeholder-property.jpg"]');
+                const images = document.querySelectorAll('img[src="/api/placeholder/800/600"]');
                 if (images.length > 0) {
                   console.warn('Placeholder images detected:', images.length, 'Sample IDs:', Array.from(images).slice(0, 3).map(img => img.closest('[data-property-id]')?.getAttribute('data-property-id') || 'unknown'));
                 }
@@ -445,7 +445,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                 const allImages = document.querySelectorAll('img[data-image-url]');
                 allImages.forEach(img => {
                   const url = img.getAttribute('data-image-url');
-                  if (url && url !== '/images/placeholder-property.jpg') {
+                  if (url && url !== '/api/placeholder/800/600') {
                     fetch(url, { method: 'HEAD' })
                       .then(response => {
                         if (!response.ok) {

@@ -1,136 +1,128 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  console.log('API route invoked: Supabase image integration with Prisma (updated 2025-05-09)');
+
   const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type') || 'SALE';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '12', 10);
-  const type = searchParams.get('type') || 'SALE';
   const search = searchParams.get('search') || '';
   const bedrooms = searchParams.get('bedrooms') || '';
   const bathrooms = searchParams.get('bathrooms') || '';
-  const priceMin = parseInt(searchParams.get('priceMin') || '0', 10);
-  const priceMax = parseInt(searchParams.get('priceMax') || '0', 10);
-  const retries = 3;
-  const backoffFactor = 1000;
+  const priceMin = searchParams.get('priceMin') || '';
+  const priceMax = searchParams.get('priceMax') || '';
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      // Check if property table exists
-      interface TableCheck {
-        exists: boolean;
-      }
-      const tableCheck = await prisma.$queryRaw<TableCheck[]>`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name = 'property'
-        );
-      `;
-      if (!tableCheck[0].exists) {
-        throw new Error('property table does not exist');
-      }
+  console.log('API request received:', { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax });
 
-      let whereClause = `WHERE p.type = $1`;
-      const params: any[] = [type];
+  try {
+    console.log('Checking database connection');
+    await prisma.$connect();
+    console.log('Database connection successful');
 
-      if (search) {
-        whereClause += ` AND (p.title ILIKE $${params.length + 1} OR p.description ILIKE $${params.length + 1} OR p.location ILIKE $${params.length + 1})`;
-        params.push(`%${search}%`);
-      }
-      if (bedrooms) {
-        whereClause += ` AND p.bedrooms = $${params.length + 1}`;
-        params.push(parseInt(bedrooms, 10));
-      }
-      if (bathrooms) {
-        whereClause += ` AND p.bathrooms = $${params.length + 1}`;
-        params.push(parseInt(bathrooms, 10));
-      }
-      if (priceMin > 0) {
-        whereClause += ` AND p.price >= $${params.length + 1}`;
-        params.push(priceMin);
-      }
-      if (priceMax > 0) {
-        whereClause += ` AND p.price <= $${params.length + 1}`;
-        params.push(priceMax);
-      }
+    const where: any = { type, availability: true };
+    if (search) where.title = { contains: search, mode: 'insensitive' };
+    if (bedrooms) where.bedrooms = { equals: parseInt(bedrooms) };
+    if (bathrooms) where.bathrooms = { equals: parseInt(bathrooms) };
+    if (priceMin) where.price = { gte: parseInt(priceMin) };
+    if (priceMax) where.price = { lte: parseInt(priceMax) };
 
-      interface CountResult {
-        count: string | number;
-      }
-      const countQuery = `SELECT COUNT(*) FROM "property" p ${whereClause}`;
-      const countResult = await prisma.$queryRawUnsafe<CountResult[]>(countQuery, ...params);
-      const totalItems = Number(countResult[0].count);
-      const totalPages = Math.ceil(totalItems / limit);
+    console.log('Executing database queries with where:', where);
 
-      const selectQuery = `
-        SELECT 
-          p.id, p.title, p.slug, p.description, p.location, p.price, p.type, 
-          p.availability, p.area, p.bathrooms, p.bedrooms, p.bq, p.city, 
-          p.state, p.status, p.toilets, p.latitude, p.longitude, p.createdat, 
-          p.updatedat, p.isfeatured, p.agentid,
-          i.url AS image_url, i.id AS image_id
-        FROM "property" p
-        LEFT JOIN "image" i ON p.id = i.propertyid AND i.ismain = true
-        ${whereClause}
-        ORDER BY p.createdat DESC
-        LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-      `;
-      params.push(limit, (page - 1) * limit);
-      interface Property {
-        id: string;
-        title: string;
-        image_url: string | null;
-        [key: string]: any;
-      }
+    const total = await prisma.property.count({ where });
+    const properties = await prisma.property.findMany({
+      where,
+      orderBy: { id: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        location: true,
+        latitude: true,
+        longitude: true,
+        type: true,
+        bedrooms: true,
+        bathrooms: true,
+        area: true,
+        slug: true,
+        image: {
+          select: {
+            id: true,
+            filepath: true,
+            ismain: true,
+          },
+          orderBy: { ismain: 'desc' }, // Prioritize main image
+        },
+      },
+    });
 
-      const properties = await prisma.$queryRawUnsafe<Property[]>(selectQuery, ...params);
+    // Initialize Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-      // Log image data for debugging
-      console.log(`[${new Date().toISOString()}] Properties fetched:`, {
-        count: properties.length,
-        withImages: properties.filter((p: any) => p.image_url).length,
-        sampleImageUrls: properties.slice(0, 3).map((p: any) => p.image_url),
-      });
-
-      return NextResponse.json({
-        properties,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
-          itemsPerPage: limit,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1
-        }
-      });
-    } catch (error: any) {
-      console.error(`Attempt ${attempt}/${retries} failed:`, error);
-      if (
-        attempt === retries ||
-        (!error.message.includes('prepared statement') && 
-         !error.message.includes('property table does not exist') && 
-         !error.message.includes('tsvector'))
-      ) {
-        console.error('API error:', error);
-        return NextResponse.json(
-          { error: error.message.includes('property table does not exist') 
-              ? 'Database schema error: property table missing' 
-              : error.message.includes('tsvector') 
-              ? 'Database schema error: unsupported column type'
-              : 'Failed to fetch properties' },
-          { status: 500 }
-        );
-      }
-      const backoffTime = attempt * backoffFactor;
-      console.log(`Retrying in ${backoffTime}ms...`);
-      await new Promise(resolve => setTimeout(resolve, backoffTime));
-    } finally {
-      await prisma.$disconnect();
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase credentials');
+      return NextResponse.json({ error: 'Supabase configuration error' }, { status: 500 });
     }
-  }
 
-  return NextResponse.json({ error: 'Failed to fetch properties after retries' }, { status: 500 });
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Generate signed URLs for images
+    const propertiesWithImages = await Promise.all(
+      properties.map(async (property) => {
+        if (!property.image.length) {
+          console.log(`No images found for property ${property.id}`);
+          return { ...property, images: [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
+        }
+
+        const imageUrls = await Promise.all(
+          property.image.map(async (image) => {
+            if (!image.filepath || image.filepath.includes('/api/placeholder')) {
+              console.warn(`Invalid filepath for image ${image.id} of property ${property.id}`, { filepath: image.filepath });
+              return { id: image.id, url: '/api/placeholder/800/600' };
+            }
+
+            // Use filepath as-is (e.g., images/properties/sale/house-1/front-1.jpg)
+            const { data: signedData, error: signError } = await supabase.storage
+              .from('properties')
+              .createSignedUrl(image.filepath, 31536000); // 1 year
+
+            if (signError || !signedData?.signedUrl) {
+              console.error(`Error signing URL for image ${image.id}:`, signError?.message || 'No signed URL', { filepath: image.filepath });
+              return { id: image.id, url: '/api/placeholder/800/600' };
+            }
+
+            return { id: image.id, url: signedData.signedUrl };
+          })
+        );
+
+        console.log(`Images for property ${property.id}:`, imageUrls);
+        return {
+          ...property,
+          images: imageUrls.length ? imageUrls : [{ id: 'placeholder', url: '/api/placeholder/800/600' }],
+        };
+      })
+    );
+
+    console.log('Database returned', properties.length, 'properties');
+    console.log('API processing complete, returning response');
+
+    return NextResponse.json({
+      properties: propertiesWithImages,
+      total,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
