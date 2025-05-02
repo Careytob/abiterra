@@ -7,7 +7,7 @@ import ToggleButtons from './ToggleButtons';
 import { ViewModeProvider } from './ViewModeContext';
 import { Property } from '../types/property';
 import SearchBarSection from './SearchBarSection';
-import { url } from 'inspector';
+import RefreshButton from './RefreshButton';
 
 interface PaginationInfo {
   currentPage: number;
@@ -23,7 +23,8 @@ async function fetchProperties(
   search?: string,
   filters: { bedrooms?: string; bathrooms?: string; priceMin?: string; priceMax?: string } = {},
   limit = 12,
-  retries = 2
+  retries = 5,
+  backoffFactor = 3000
 ): Promise<{
   properties: Property[];
   pagination: PaginationInfo;
@@ -36,24 +37,21 @@ async function fetchProperties(
 
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Define the base URL for the API
   let baseUrl: string;
   if (isProduction) {
-    // Use the environment variable or fallback to the correct domain
-    baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://abiterra.com'; 
+    baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://abiterra.com';
   } else {
     baseUrl = 'http://localhost:3000';
   }
 
-  // Ensure no trailing slash and construct the full API URL
   baseUrl = baseUrl.replace(/\/$/, '');
   const apiUrl = `${baseUrl}/api/properties?type=SALE&page=${page}&limit=${limit}${searchParam}${filterParams}`;
 
-  console.log(`Environment: ${process.env.NODE_ENV}, Using API URL: ${apiUrl}`);
+  console.log(`[${new Date().toISOString()}] Environment: ${process.env.NODE_ENV}, Using API URL: ${apiUrl}`);
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`Fetching properties (attempt ${attempt}):`, apiUrl);
+      console.log(`[${new Date().toISOString()}] Fetching properties (attempt ${attempt}):`, apiUrl);
 
       const fetchOptions = isProduction
         ? { cache: 'no-store' as RequestCache }
@@ -62,17 +60,14 @@ async function fetchProperties(
       const response = await fetch(apiUrl, fetchOptions);
 
       if (!response.ok) {
-        // Read the body only once
         let errorDetail = '';
         try {
-          // Try to parse as JSON first
           errorDetail = JSON.stringify(await response.json());
         } catch (e) {
-          // If JSON parsing fails, fall back to text without re-reading
           errorDetail = 'Failed to parse error response as JSON';
         }
 
-        console.error(`HTTP error response:`, {
+        console.error(`[${new Date().toISOString()}] HTTP error response:`, {
           status: response.status,
           statusText: response.statusText,
           url: apiUrl,
@@ -86,14 +81,14 @@ async function fetchProperties(
 
       const data = await response.json();
 
-      console.log(`API response received:`, {
+      console.log(`[${new Date().toISOString()}] API response received:`, {
         hasProperties: !!data.properties,
         propertiesLength: data.properties?.length,
         paginationInfo: data.pagination,
       });
 
       if (!data.properties || !Array.isArray(data.properties)) {
-        console.error(`Invalid API response format:`, data);
+        console.error(`[${new Date().toISOString()}] Invalid API response format:`, data);
         throw new Error('Invalid response format: properties missing or not an array');
       }
 
@@ -112,16 +107,21 @@ async function fetchProperties(
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       const errorCause = err instanceof Error && err.cause ? `Cause: ${JSON.stringify(err.cause)}` : '';
 
-      console.error(`Fetch error (attempt ${attempt}/${retries}):`, {
+      console.error(`[${new Date().toISOString()}] Fetch error (attempt ${attempt}/${retries}):`, {
         message: errorMessage,
         cause: errorCause,
         url: apiUrl,
       });
 
-      if (attempt === retries) throw err;
+      if (attempt === retries) {
+        if (errorMessage.includes('P1001')) {
+          throw new Error('Database temporarily unreachable. Please try again.');
+        }
+        throw err;
+      }
 
-      const backoffTime = attempt * 1000;
-      console.log(`Retrying in ${backoffTime}ms...`);
+      const backoffTime = attempt * backoffFactor;
+      console.log(`[${new Date().toISOString()}] Retrying in ${backoffTime}ms...`);
       await new Promise((resolve) => setTimeout(resolve, backoffTime));
     }
   }
@@ -140,6 +140,7 @@ interface BuyPageProps {
   }>;
 }
 
+export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function BuyPage({ searchParams }: BuyPageProps) {
   const resolvedSearchParams = await searchParams;
@@ -162,32 +163,38 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
   };
   let error: string | null = null;
   let errorDetails: string | null = null;
+  let isRetrying = false;
 
   try {
-    console.log('BuyPage: Attempting to fetch properties', { 
-      page, search, filters, 
-      env: process.env.NODE_ENV 
+    console.log(`[${new Date().toISOString()}] BuyPage: Attempting to fetch properties`, {
+      page,
+      search,
+      filters,
+      env: process.env.NODE_ENV,
     });
-    
+
     const data = await fetchProperties(page, search, filters);
     properties = data.properties;
     pagination = data.pagination;
-    
-    console.log('BuyPage: Successfully fetched properties', { 
+
+    console.log(`[${new Date().toISOString()}] BuyPage: Successfully fetched properties`, {
       count: properties.length,
-      pagination 
+      pagination,
     });
   } catch (err) {
     const baseError = err instanceof Error ? err.message : 'An unknown error occurred';
     const cause = err instanceof Error && err.cause ? ` (Cause: ${JSON.stringify(err.cause)})` : '';
-    
-    error = 'Unable to load properties';
+
+    error = baseError.includes('P1001')
+      ? 'Database connection failed. Retrying...'
+      : 'Unable to load properties';
     errorDetails = `${baseError}${cause}`;
-    
-    console.error('BuyPage error:', {
+    isRetrying = baseError.includes('P1001');
+
+    console.error(`[${new Date().toISOString()}] BuyPage error:`, {
       message: baseError,
       cause: cause,
-      stack: err instanceof Error ? err.stack : undefined
+      stack: err instanceof Error ? err.stack : undefined,
     });
   }
 
@@ -216,62 +223,95 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
 
   return (
     <ViewModeProvider>
-    <main className="bg-gray-50 min-h-screen">
-      <SearchBarSection defaultSearch={search} />
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--navbar-height)+7rem)] pb-8">
-        <header className="mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
-                Properties for Sale
-              </h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">
-                {error
-                  ? 'Unable to load properties'
-                  : `Showing ${properties.length} of ${pagination.totalItems} properties`}
-              </p>
-            </div>
-            <ToggleButtons />
-          </div>
-        </header>
-        {error && (
-          <div className="space-y-4 text-center py-8 text-sm sm:text-base" role="alert">
-            <div className="text-red-500">
-              Unable to load properties. Please try again later or contact support.
-            </div>
-            {process.env.NODE_ENV !== 'production' && errorDetails && (
-              <div className="text-xs bg-gray-100 p-4 rounded text-left overflow-x-auto max-w-full">
-                <p className="font-semibold">Error Details (only visible in development):</p>
-                <p className="text-red-600 mt-1">{errorDetails}</p>
+      <main className="bg-gray-50 min-h-screen">
+        <SearchBarSection defaultSearch={search} />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--navbar-height)+7rem)] pb-8">
+          <header className="mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+                  Properties for Sale
+                </h1>
+                <p className="text-gray-600 text-sm sm:text-base mt-1">
+                  {error
+                    ? 'Unable to load properties'
+                    : `Showing ${properties.length} of ${pagination.totalItems} properties`}
+                </p>
               </div>
-            )}
-            <div className="mt-4">
+              <div className="flex items-center gap-4">
+                <ToggleButtons />
+                <RefreshButton />
+              </div>
+            </div>
+          </header>
+          {error && (
+            <div className="space-y-4 text-center py-8 text-sm sm:text-base" role="alert">
+              <div className="text-red-500">
+                {error}
+                {error.includes('Database') && (
+                  <>
+                    <br />
+                    {isRetrying ? (
+                      <span className="flex items-center justify-center gap-2 mt-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500"></div>
+                        Retrying connection...
+                      </span>
+                    ) : (
+                      <span className="block mt-2">
+                        Connection failed. Try again or explore other pages.
+                        <Link
+                          href="/"
+                          className="text-teal-600 hover:text-teal-700 ml-1"
+                        >
+                          Go to Home
+                        </Link>
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              {process.env.NODE_ENV !== 'production' && errorDetails && (
+                <div className="text-xs bg-gray-100 p-4 rounded text-left overflow-x-auto max-w-full">
+                  <p className="font-semibold">Error Details (only visible in development):</p>
+                  <p className="text-red-600 mt-1">{errorDetails}</p>
+                </div>
+              )}
+              <div className="mt-4 flex justify-center gap-4">
+                <RefreshButton />
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors text-sm sm:text-base"
+                >
+                  Retry Now
+                </button>
+                <Link
+                  href="/contact"
+                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
+                >
+                  Contact Support
+                </Link>
+              </div>
+            </div>
+          )}
+          {properties.length === 0 && !error && (
+            <div className="text-center py-8">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                No properties found
+              </h2>
+              <p className="text-gray-600 mt-2 text-sm sm:text-base">
+                Try adjusting your search or explore other locations.
+              </p>
               <Link
                 href="/buy"
-                className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors"
+                className="mt-4 inline-block text-teal-600 text-sm sm:text-base hover:text-teal-700"
               >
-                Refresh Page
+                Reset Search
               </Link>
             </div>
+          )}
+          <div aria-live="polite">
+            <ViewModeToggle properties={properties} />
           </div>
-        )}
-        {properties.length === 0 && !error && (
-          <div className="text-center py-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-              No properties found
-            </h2>
-            <p className="text-gray-600 mt-2 text-sm sm:text-base">
-              Try adjusting your search or explore other locations.
-            </p>
-            <Link
-              href="/buy"
-              className="mt-4 inline-block text-teal-600 text-sm sm:text-base hover:text-teal-700"
-            >
-              Reset Search
-            </Link>
-          </div>
-        )}
-          <ViewModeToggle properties={properties} />
           {pagination.totalPages > 1 && (
             <nav
               className="mt-8 flex flex-wrap justify-center items-center gap-2"

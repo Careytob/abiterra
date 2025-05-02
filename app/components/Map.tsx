@@ -102,7 +102,7 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
   if (!centerProperty?.latitude || !centerProperty?.longitude) {
     return (
       <div
-        className={`h-64 w-full flex items-center justify-center bg-gray-200 rounded-lg ${className || ''}`}
+        className={`h-[50vh] sm:h-[60vh] lg:h-[70vh] w-full flex items-center justify-center bg-gray-200 rounded-lg ${className || ''}`}
         aria-label="Map unavailable"
       >
         <p className="text-gray-600">
@@ -115,7 +115,7 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
   return (
     <div
       id={mapId}
-      className={`h-64 w-full rounded-lg overflow-hidden relative ${className || ''}`}
+      className={`h-[50vh] sm:h-[60vh] lg:h-[70vh] w-full rounded-lg overflow-hidden relative ${className || ''}`}
       style={{ zIndex: 1 }}
       aria-label="Property location map"
     >

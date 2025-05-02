@@ -38,7 +38,7 @@ export default function ViewModeToggle({ properties }: ViewModeToggleProps) {
       {properties.length > 0 && (
         <>
           {viewMode === 'map' ? (
-            <div className="h-[60vh] sm:h-[70vh] lg:h-[80vh] min-h-[400px] rounded-lg overflow-hidden">
+            <div className="h-[70vh] sm:h-[80vh] lg:h-[90vh] min-h-[400px] rounded-lg overflow-hidden">
               <MapView key={mapKey} properties={properties} zoom={12} />
               <noscript>
                 <div className="text-center p-4 text-sm text-gray-600">
