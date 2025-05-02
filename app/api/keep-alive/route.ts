@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$executeRaw`SELECT 1; DEALLOCATE ALL;`;
     return NextResponse.json({ status: 'Database active' });
   } catch (error) {
     console.error('Keep-alive error:', error);

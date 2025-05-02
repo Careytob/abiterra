@@ -1,131 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: NextRequest) {
-  console.log('API route invoked: Supabase image integration with Prisma (updated 2025-05-08)');
-
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type') || 'SALE';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '12', 10);
+  const type = searchParams.get('type') || 'SALE';
   const search = searchParams.get('search') || '';
   const bedrooms = searchParams.get('bedrooms') || '';
   const bathrooms = searchParams.get('bathrooms') || '';
-  const priceMin = searchParams.get('priceMin') || '';
-  const priceMax = searchParams.get('priceMax') || '';
+  const priceMin = parseInt(searchParams.get('priceMin') || '0', 10);
+  const priceMax = parseInt(searchParams.get('priceMax') || '0', 10);
+  const retries = 3;
+  const backoffFactor = 1000;
 
-  console.log('API request received:', { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      let whereClause = `WHERE type = $1`;
+      const params: any[] = [type];
 
-  try {
-    console.log('Checking database connection');
-    await prisma.$connect();
-    console.log('Database connection successful');
+      if (search) {
+        whereClause += ` AND (title ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1} OR location ILIKE $${params.length + 1})`;
+        params.push(`%${search}%`);
+      }
+      if (bedrooms) {
+        whereClause += ` AND bedrooms = $${params.length + 1}`;
+        params.push(parseInt(bedrooms, 10));
+      }
+      if (bathrooms) {
+        whereClause += ` AND bathrooms = $${params.length + 1}`;
+        params.push(parseInt(bathrooms, 10));
+      }
+      if (priceMin > 0) {
+        whereClause += ` AND price >= $${params.length + 1}`;
+        params.push(priceMin);
+      }
+      if (priceMax > 0) {
+        whereClause += ` AND price <= $${params.length + 1}`;
+        params.push(priceMax);
+      }
 
-    const where: any = { type, availability: true };
-    if (search) where.title = { contains: search, mode: 'insensitive' };
-    if (bedrooms) where.bedrooms = { equals: parseInt(bedrooms) };
-    if (bathrooms) where.bathrooms = { equals: parseInt(bathrooms) };
-    if (priceMin) where.price = { gte: parseInt(priceMin) };
-    if (priceMax) where.price = { lte: parseInt(priceMax) };
+      const countQuery = `SELECT COUNT(*) FROM "Property" ${whereClause}`;
+      const countResult = await prisma.$queryRawUnsafe<{ count: string }[]>(countQuery, ...params);
+      const totalItems = Number(countResult[0].count);
+      const totalPages = Math.ceil(totalItems / limit);
 
-    console.log('Executing database queries with where:', where);
+      const selectQuery = `
+        SELECT * FROM "Property" ${whereClause}
+        ORDER BY "createdAt" DESC
+        LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+      `;
+      params.push(limit, (page - 1) * limit);
+      const properties = await prisma.$queryRawUnsafe(selectQuery, ...params);
 
-    const total = await prisma.property.count({ where });
-    const properties = await prisma.property.findMany({
-      where,
-      orderBy: { id: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        price: true,
-        location: true,
-        latitude: true,
-        longitude: true,
-        type: true,
-        bedrooms: true,
-        bathrooms: true,
-        area: true,
-        slug: true,
-        image: {
-          select: {
-            id: true,
-            filepath: true,
-            url: true,
-            ismain: true,
-          },
-          orderBy: { ismain: 'desc' }, // Prioritize main image
-        },
-      },
-    });
-
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase credentials');
-      return NextResponse.json({ error: 'Supabase configuration error' }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Generate signed URLs for images
-    const propertiesWithImages = await Promise.all(
-      properties.map(async (property) => {
-        if (!property.image.length) {
-          console.log(`No images found for property ${property.id}`);
-          return { ...property, images: [{ id: 'placeholder', url: '/api/placeholder/800/600' }] };
+      return NextResponse.json({
+        properties,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
         }
-
-        const imageUrls = await Promise.all(
-          property.image.map(async (image) => {
-            // Use filepath if available, otherwise fall back to url
-            const imagePath = image.filepath || image.url;
-            if (!imagePath) {
-              console.warn(`No filepath or url for image ${image.id} of property ${property.id}`);
-              return { id: image.id, url: '/api/placeholder/800/600' };
-            }
-
-            // Use filepath as-is (e.g., images/properties/sale/house-1/front-1.jpg)
-            const { data: signedData, error: signError } = await supabase.storage
-              .from('properties')
-              .createSignedUrl(imagePath, 31536000); // 1 year
-
-            if (signError || !signedData?.signedUrl) {
-              console.error(`Error signing URL for image ${image.id}:`, signError?.message || 'No signed URL', { imagePath });
-              return { id: image.id, url: '/api/placeholder/800/600' };
-            }
-
-            return { id: image.id, url: signedData.signedUrl };
-          })
-        );
-
-        console.log(`Images for property ${property.id}:`, imageUrls);
-        return {
-          ...property,
-          images: imageUrls.length ? imageUrls : [{ id: 'placeholder', url: '/api/placeholder/800/600' }],
-        };
-      })
-    );
-
-    console.log('Database returned', properties.length, 'properties');
-    console.log('API processing complete, returning response');
-
-    return NextResponse.json({
-      properties: propertiesWithImages,
-      total,
-      pages: Math.ceil(total / limit),
-    });
-  } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
+      });
+    } catch (error: any) {
+      console.error(`Attempt ${attempt}/${retries} failed:`, error);
+      if (attempt === retries || !error.message.includes('prepared statement')) {
+        console.error('API error:', error);
+        return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
+      }
+      const backoffTime = attempt * backoffFactor;
+      console.log(`Retrying in ${backoffTime}ms...`);
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+    } finally {
+      await prisma.$disconnect();
+    }
   }
+
+  return NextResponse.json({ error: 'Failed to fetch properties after retries' }, { status: 500 });
 }
