@@ -66,7 +66,11 @@ export async function GET(request: Request) {
       const totalPages = Math.ceil(totalItems / limit);
 
       const selectQuery = `
-        SELECT * FROM "property" ${whereClause}
+        SELECT 
+          id, title, slug, description, location, price, type, availability, area,
+          bathrooms, bedrooms, bq, city, state, status, toilets, latitude, longitude,
+          createdat, updatedat, isfeatured, agentid
+        FROM "property" ${whereClause}
         ORDER BY "createdat" DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
@@ -88,12 +92,16 @@ export async function GET(request: Request) {
       console.error(`Attempt ${attempt}/${retries} failed:`, error);
       if (
         attempt === retries ||
-        (!error.message.includes('prepared statement') && !error.message.includes('property table does not exist'))
+        (!error.message.includes('prepared statement') && 
+         !error.message.includes('property table does not exist') && 
+         !error.message.includes('tsvector'))
       ) {
         console.error('API error:', error);
         return NextResponse.json(
           { error: error.message.includes('property table does not exist') 
               ? 'Database schema error: property table missing' 
+              : error.message.includes('tsvector') 
+              ? 'Database schema error: unsupported column type'
               : 'Failed to fetch properties' },
           { status: 500 }
         );
