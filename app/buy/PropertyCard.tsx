@@ -59,6 +59,8 @@ export default function PropertyCard({ property }: { property: Property }) {
   return (
     <article className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
       <div className="relative overflow-hidden rounded-t-xl aspect-[4/3]">
+      <Link
+          href={`/buy/${property.slug}`}>
         <Image
           src={imageUrl}
           alt={property.title || 'Property image'}
@@ -70,6 +72,7 @@ export default function PropertyCard({ property }: { property: Property }) {
           loading="lazy"
           unoptimized
         />
+        </Link>
         <button
           aria-label="Add to favorites"
           className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-white transition-colors"
