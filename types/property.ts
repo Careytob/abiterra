@@ -12,24 +12,24 @@ export interface Property {
   description: string;
   location: string;
   price: number;
-  type: property_type;
-  availability: boolean;
-  area: number | null;
+  type: string;
+  availability?: boolean;
+  area?: number;
   bathrooms: number;
   bedrooms: number;
   bq: number;
   city: string;
   state: string;
-  status: property_status;
+  status: string;
   toilets: number;
-  latitude: number | null;
-  longitude: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-  isFeatured: boolean;
-  agentId: string;
-  images: PropertyImage[];
-  features: PropertyFeature[];
+  latitude?: number;
+  longitude?: number;
+  createdat?: string;
+  updatedat?: string;
+  isfeatured?: boolean;
+  agentid: string;
+  image_url?: string;
+  image_id?: string;
 }
 
 export interface PropertyImage {

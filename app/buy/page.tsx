@@ -114,7 +114,7 @@ async function fetchProperties(
       });
 
       if (attempt === retries) {
-        if (errorMessage.includes('P1001')) {
+        if (errorMessage.includes('P1001') || errorMessage.includes('prepared statement') || errorMessage.includes('Database schema error')) {
           throw new Error('Database temporarily unreachable. Please try again.');
         }
         throw err;
@@ -174,7 +174,10 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
     });
 
     const data = await fetchProperties(page, search, filters);
-    properties = data.properties;
+    properties = data.properties.map((prop: any) => ({
+      ...prop,
+      image_url: prop.image_url || '/images/placeholder-property.jpg',
+    }));
     pagination = data.pagination;
 
     console.log(`[${new Date().toISOString()}] BuyPage: Successfully fetched properties`, {
@@ -185,11 +188,11 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
     const baseError = err instanceof Error ? err.message : 'An unknown error occurred';
     const cause = err instanceof Error && err.cause ? ` (Cause: ${JSON.stringify(err.cause)})` : '';
 
-    error = baseError.includes('P1001')
+    error = baseError.includes('P1001') || baseError.includes('prepared statement') || baseError.includes('Database schema error')
       ? 'Database connection failed. Retrying...'
       : 'Unable to load properties';
     errorDetails = `${baseError}${cause}`;
-    isRetrying = baseError.includes('P1001');
+    isRetrying = baseError.includes('P1001') || baseError.includes('prepared statement') || baseError.includes('Database schema error');
 
     console.error(`[${new Date().toISOString()}] BuyPage error:`, {
       message: baseError,
@@ -254,11 +257,13 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                     {isRetrying ? (
                       <span className="flex items-center justify-center gap-2 mt-2">
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500"></div>
-                        Retrying connection...
+                        <span id="retry-timer" data-retries={5} data-backoff={3000}>
+                          Retrying in approximately {(5 * 3000) / 1000} seconds...
+                        </span>
                       </span>
                     ) : (
                       <span className="block mt-2">
-                        Connection failed. Try again or explore other pages.
+                        Connection failed. Try again or check back in about 30 seconds.
                         <Link
                           href="/"
                           className="text-teal-600 hover:text-teal-700 ml-1"
@@ -266,6 +271,14 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                           Go to Home
                         </Link>
                       </span>
+                    )}
+                    <p className="mt-2 text-gray-600">
+                      Some recent properties may still be visible below (cached data).
+                    </p>
+                    {error.includes('Database schema error') && (
+                      <p className="mt-2 text-gray-600">
+                        The database configuration contains unsupported data types or access restrictions. Please contact support.
+                      </p>
                     )}
                   </>
                 )}
@@ -377,6 +390,42 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
             </nav>
           )}
         </section>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Trigger keep-alive ping on page load
+                fetch('/api/keep-alive', { method: 'GET' })
+                  .then(response => response.json())
+                  .then(data => console.log('Keep-alive ping:', data))
+                  .catch(error => console.error('Keep-alive ping failed:', error));
+
+                // Retry timer for P1001 errors
+                const timerElement = document.getElementById('retry-timer');
+                if (!timerElement) return;
+                const maxRetries = parseInt(timerElement.dataset.retries) || 5;
+                const backoffFactor = parseInt(timerElement.dataset.backoff) || 3000;
+                let remainingTime = maxRetries * backoffFactor / 1000;
+                timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
+                const interval = setInterval(() => {
+                  remainingTime -= 1;
+                  if (remainingTime <= 0) {
+                    clearInterval(interval);
+                    timerElement.textContent = 'Retrying now...';
+                  } else {
+                    timerElement.textContent = 'Retrying in approximately ' + remainingTime + ' seconds...';
+                  }
+                }, 1000);
+
+                // Log missing images
+                const images = document.querySelectorAll('img[src="/images/placeholder-property.jpg"]');
+                if (images.length > 0) {
+                  console.warn('Placeholder images detected:', images.length);
+                }
+              })();
+            `,
+          }}
+        />
       </main>
     </ViewModeProvider>
   );
