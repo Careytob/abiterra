@@ -80,7 +80,7 @@ export default function SearchBarSection({ defaultSearch = '' }: { defaultSearch
 
   return (
     <section className="bg-white border-b sticky top-[var(--navbar-height)] z-20 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />

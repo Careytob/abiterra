@@ -139,7 +139,7 @@ const propertiesToAdd: PropertyInput[] = [
       "images/properties/sale/house-2/stirecase-1.jpg",
       "images/properties/sale/house-2/stirecase-2.jpg",
       "images/properties/sale/house-2/store-1.jpg",
-      "images/properties/sale/house-2/wardrop-1.jpg",
+      "images/properties/sale/house-2/wardrop-1.jpg"
     ],
     features: ["Master Piece Chandeliers", "Water Heaters", "Full home Smart automation with expandable features", "Large section wall and floor tiles finishing", "Royal curtains", "Well fitted Automated walk in closet.", "Well fitted kitchen with Bosch appliances", "TV Consoles", "Flower pots", "Study/shelf", "Inverter", "Snoker table", "Washing machine", "Dinning set", "Bath Tub", "Wall frames and Art works", "Security Entrance and Kitchen exit doors", "kids room", "4 parking lots", "Bed frames & Mattress", "Inverter ACs", "Estate serviced water supply", "Excellent tarred road and drainage network", "Tranquil Environment", "24hrs security"],
   },

@@ -237,8 +237,8 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
     <ViewModeProvider>
       <main className="bg-gray-50 min-h-screen">
         <SearchBarSection defaultSearch={search} />
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--navbar-height)+7rem)] pb-8">
-          <header className="mb-6">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-8">
+          <header className="mb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
@@ -265,7 +265,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
                     <br />
                     {isRetrying ? (
                       <span className="flex items-center justify-center gap-2 mt-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500 "></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-teal-500"></div>
                         <span id="retry-timer" data-retries={5} data-backoff={3000}>
                           Retrying in approximately {(5 * 3000) / 1000} seconds...
                         </span>
