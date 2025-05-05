@@ -30,9 +30,24 @@ type PropertyInput = {
   isFeatured?: boolean;
 };
 
+// =====================================
+// CRITICAL: DO NOT MODIFY THIS SECTION
+// =====================================
+// List of featured property titles to preserve
+// These are the properties that should remain on the homepage
+const featuredPropertyTitles = [
+  "Luxury 5 Bedroom Fully Detached Duplex",
+  "Contemporary Neatly Furnished 5 bedroom with 2 service quarters",
+  "Luxury 6 Bedroom Fully Detached Duplex with Swimming Pool",
+  "Elegant 5-Bedroom Fully Detached Duplex with Swimming Pool in a Prime Location",
+  "Modern 3-Bedroom Apartment in Lekki Phase 1 with Top-Class Amenities",
+  "Massive 8-Bedroom Fully Detached Duplex on 2 Acres"
+];
+// =====================================
+
 // Add only new non-featured properties here
 const newPropertiesToAdd: PropertyInput[] = [
-  {
+ {
     title: "Exquisite 4-Bedroom Fully Detached Smart Home with Gym & Swimming Pool in Lekki",
     description: "Step into modern elegance with this luxury 4-bedroom fully detached smart home, perfectly situated on Orchid Road, Lekki.\n\nDesigned for comfort, security, and high-end living, this stunning property blends state-of-the-art technology with refined style.\n\nIdeal for families or investors seeking upscale real estate in a prime location, this home offers the perfect balance of luxury and functionality.",
     price: 170000000,
@@ -305,6 +320,38 @@ async function uploadImageToSupabase(filePath: string): Promise<{ url: string; f
   }
 }
 
+async function preserveFeaturedProperties() {
+  console.log("Preserving existing featured properties...");
+  try {
+    // First, reset all properties to non-featured
+    await prisma.property.updateMany({
+      where: { isfeatured: true },
+      data: { isfeatured: false }
+    });
+    
+    // Then set the specified properties back to featured
+    for (const title of featuredPropertyTitles) {
+      const property = await prisma.property.findFirst({
+        where: { title: { contains: title } }
+      });
+      
+      if (property) {
+        await prisma.property.update({
+          where: { id: property.id },
+          data: { isfeatured: true }
+        });
+        console.log(`✅ Preserved featured status for: ${property.title}`);
+      } else {
+        console.log(`⚠️ Could not find featured property: ${title}`);
+      }
+    }
+    
+    console.log("Featured properties preservation complete!");
+  } catch (error: any) {
+    console.error("Error preserving featured properties:", error.message);
+  }
+}
+
 async function createProperty(propertyData: PropertyInput) {
   try {
     const areaValue = propertyData.area;
@@ -351,8 +398,13 @@ async function createProperty(propertyData: PropertyInput) {
       })
     );
 
-    // Force isFeatured to false for all new properties
-    const isFeatured = false;
+    // IMPORTANT: Check if this is one of our featured properties
+    const shouldBeFeautured = featuredPropertyTitles.some(title => 
+      propertyData.title.includes(title)
+    );
+    
+    // Always respect the featured status
+    const isFeatured = shouldBeFeautured ? true : false;
 
     const property = await prisma.property.create({
       data: {
@@ -374,8 +426,8 @@ async function createProperty(propertyData: PropertyInput) {
         state: propertyData.state,
         availability: true,
         status: 'AVAILABLE' as 'AVAILABLE' | 'PENDING' | 'SOLD' | 'RENTED',
-        isfeatured: isFeatured, // Always false for new properties
-        agentid: 'abiterra-admin',
+        isfeatured: isFeatured, // Properly set the featured flag
+        agentid: 'lord-supreme',
         createdat: new Date(),
         updatedat: new Date(),
         image: {
@@ -387,7 +439,7 @@ async function createProperty(propertyData: PropertyInput) {
       },
     });
 
-    console.log(`✅ Created property: ${property.title} (ID: ${property.id}, Slug: ${property.slug})`);
+    console.log(`✅ Created property: ${property.title} (ID: ${property.id}, Slug: ${property.slug}, Featured: ${isFeatured})`);
     return { created: true, property };
   } catch (error: any) {
     console.error(`Error creating property "${propertyData.title}":`);
@@ -400,7 +452,7 @@ async function createProperty(propertyData: PropertyInput) {
 }
 
 async function createProperties(properties: PropertyInput[]) {
-  console.log(`Starting to create ${properties.length} new non-featured properties...`);
+  console.log(`Starting to create ${properties.length} new properties...`);
 
   const results = {
     successful: 0,
@@ -411,8 +463,13 @@ async function createProperties(properties: PropertyInput[]) {
 
   for (const property of properties) {
     try {
-      // Force isFeatured to false regardless of what's in the data
-      property.isFeatured = false;
+      // Check if this is a featured property
+      const shouldBeFeautured = featuredPropertyTitles.some(title => 
+        property.title.includes(title)
+      );
+      
+      // Set the featured flag properly
+      property.isFeatured = shouldBeFeautured;
       
       const result = await createProperty(property);
       if (result.created) {
@@ -431,6 +488,10 @@ async function createProperties(properties: PropertyInput[]) {
 
 async function main() {
   try {
+    // First, ensure our featured properties remain featured
+    await preserveFeaturedProperties();
+    
+    // Then add the new properties
     const results = await createProperties(newPropertiesToAdd);
 
     console.log('\nNew Properties Creation Summary:');
@@ -442,6 +503,9 @@ async function main() {
       console.log('\nFailed properties:');
       results.failures.forEach((title) => console.log(`- ${title}`));
     }
+    
+    // Final verification of featured properties
+    await preserveFeaturedProperties();
   } catch (error: any) {
     console.error('Batch creation failed:');
     console.error('Message:', error.message || 'No message');
