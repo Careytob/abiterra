@@ -9,20 +9,26 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { DialogClose } from "@/app/components/ui/dialog";
 
+// UUID validation regex
+const isValidUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 interface ContactFormProps {
-  propertyId: number;
-  onSubmitSuccess?: () => void; // Add this prop
+  propertyId: string;
+  onSubmitSuccess?: () => void;
 }
 
 interface FormData {
   message: string;
   phone: string;
-  propertyId: number;  
 }
 
 const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }) => {
   const { toast } = useToast();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   
   const {
     register,
@@ -33,11 +39,21 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
 
   const onSubmit = async (data: FormData) => {
     try {
+      console.log("Property ID before submission:", propertyId);
+      
+      // Validate propertyId as a UUID
+      if (!propertyId || !isValidUUID(propertyId)) {
+        console.error("Invalid propertyId:", propertyId);
+        throw new Error("Invalid property reference. Please try again later.");
+      }
+
       const formData = {
         message: data.message,
         phone: data.phone,
-        propertyId: Number(propertyId),
+        propertyId, // Pass as string
       };
+
+      console.log("Sending inquiry payload:", JSON.stringify(formData));
 
       const response = await fetch('/api/inquiry', {  
         method: 'POST',
@@ -45,25 +61,34 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || 'Failed to submit');
-      }
-
-      toast({
-        title: "Success!",
-        description: "Your inquiry has been sent successfully.",
-      });
-
-      setIsSuccess(true);
-      reset();
+      const responseText = await response.text();
       
-      // Call the parent's onSubmitSuccess callback if provided
-      if (onSubmitSuccess) {
-        onSubmitSuccess();
+      try {
+        const result = JSON.parse(responseText);
+        
+        if (!response.ok) {
+          throw new Error(result.error || `Failed to submit (${response.status})`);
+        }
+
+        toast({
+          title: "Success!",
+          description: "Your inquiry has been sent successfully.",
+        });
+
+        setIsSuccess(true);
+        reset();
+        
+        if (onSubmitSuccess) {
+          onSubmitSuccess();
+        }
+      } catch (jsonError) {
+        console.error("Response is not valid JSON:", responseText);
+        setDebugInfo(responseText);
+        throw new Error(`Server response error: ${response.status}`);
       }
 
     } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to send the inquiry. Please try again.",
@@ -86,7 +111,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Phone Field */}
+      {debugInfo && (
+        <div className="bg-red-50 p-2 rounded border border-red-200 text-xs overflow-auto max-h-20">
+          <p className="font-semibold">Debug Response:</p>
+          <pre>{debugInfo}</pre>
+        </div>
+      )}
+      
       <div>
         <Input
           {...register("phone", {
@@ -103,17 +134,18 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
         {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
       </div>
 
-      {/* Message Field */}
       <div>
         <Textarea
           {...register("message", { required: "Message is required" })}
           placeholder="Your Message"
+          defaultValue="I am interested in this property."
           className={errors.message ? 'border-red-500' : ''}
         />
         {errors.message && <p className="text-red-500 text-sm">{errors.message.message}</p>}
       </div>
 
-      {/* Submit Button */}
+      <input type="hidden" name="debug-propertyId" value={propertyId} />
+
       <Button 
         type="submit" 
         className="w-full" 

@@ -8,7 +8,7 @@ import { MapPin, BedDouble, Bath, ChevronLeft, ChevronRight, Square } from 'luci
 import { ContactDialog } from './ContactDialog';
 import ShareButton from './ShareButton';
 import MapErrorBoundary from '@/app/components/MapErrorBoundary';
-import { Property } from '@/types/property'; 
+import { Property } from '@/types/property';
 import 'leaflet/dist/leaflet.css';
 
 const MapView = dynamic(() => import('@/app/components/Map'), {
@@ -111,7 +111,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
           </button>
           <div className="max-w-[90%] max-h-[90%] relative w-full h-full">
             <Image
-              src={imageErrors.includes(fullscreenIndex) ? '/placeholder-property.jpg' : property.images[fullscreenIndex].url}
+              src={imageErrors.includes(fullscreenIndex) ? '/images/fallback.jpg' : property.images[fullscreenIndex].url}
               alt={`${property.title} - Fullscreen Image`}
               fill
               className="object-contain transition-opacity duration-300"
@@ -132,7 +132,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="md:col-span-4 relative aspect-video group">
               <Image
-                src={imageErrors.includes(currentIndex) ? '/placeholder-property.jpg' : property.images[currentIndex].url}
+                src={imageErrors.includes(currentIndex) ? '/images/fallback.jpg' : property.images[currentIndex].url}
                 alt={`${property.title} - ${property.images[currentIndex].imageType || 'Image'}`}
                 fill
                 className="object-cover rounded-lg transition-opacity duration-300"
@@ -179,7 +179,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                     onClick={() => setCurrentIndex(actualIndex)}
                   >
                     <Image
-                      src={imageErrors.includes(actualIndex) ? '/placeholder-property.jpg' : image.url}
+                      src={imageErrors.includes(actualIndex) ? '/images/fallback.jpg' : image.url}
                       alt={`Thumbnail ${image.imageType || 'Image'}`}
                       fill
                       className="object-cover rounded transition-opacity duration-300"
@@ -275,7 +275,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                 {property.latitude && property.longitude ? (
                   <div className="h-[600px] w-full">
                     <MapErrorBoundary>
-                      <MapView
+                    <MapView
                         properties={[{
                           id: property.id,
                           title: property.title,
