@@ -6,6 +6,8 @@ import { property_type, property_status } from '@prisma/client';
  * for the related images and features.
  */
 export interface Property {
+  images: any;
+  features: any;
   id: string;
   title: string;
   slug: string;

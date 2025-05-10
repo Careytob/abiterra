@@ -276,7 +276,33 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
                   <div className="h-[600px] w-full">
                     <MapErrorBoundary>
                       <MapView
-                        properties={[property]}
+                        properties={[{
+                          id: property.id,
+                          title: property.title,
+                          location: property.location,
+                          price: property.price,
+                          description: property.description,
+                          latitude: property.latitude,
+                          longitude: property.longitude,
+                          bedrooms: property.bedrooms,
+                          bathrooms: property.bathrooms,
+                          toilets: property.toilets,
+                          bq: property.bq,
+                          area: property.area ?? null,
+                          images: property.images,
+                          features: property.features,
+                          image_url: property.image_url || property.images[0]?.url || '',
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                          isFeatured: false,
+                          agentId: '',
+                          slug: property.slug,
+                          type: 'SALE',
+                          availability: false,
+                          city: '',
+                          state: '',
+                          status: 'AVAILABLE'
+                        }]}
                         zoom={15}
                       />
                     </MapErrorBoundary>

@@ -7,7 +7,6 @@ import { useSession } from 'next-auth/react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -41,15 +40,13 @@ export const ContactDialog = ({ propertyId }: { propertyId: string }) => {
           {!isSubmitted && (
             <DialogHeader>
               <DialogTitle>Contact Us</DialogTitle>
-              <DialogDescription>
-                Fill out the form below and we'll get back to you as soon as possible.
-              </DialogDescription>
+              {/* Removed the description that was showing before the form */}
             </DialogHeader>
           )}
           
           {status === 'authenticated' ? (
             <ContactForm 
-              propertyId={parseInt(propertyId, 10)} 
+              propertyId={Number(propertyId)} 
               onSubmitSuccess={handleSubmitSuccess}
             />
           ) : (

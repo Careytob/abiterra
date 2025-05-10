@@ -1,3 +1,4 @@
+//app/api/inquiry/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
@@ -15,23 +16,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log("Incoming request body:", body); // ✅ Debugging log
+    console.log("Incoming request body:", body); // Debugging log
 
     const { message, phone, propertyId } = body;
 
     // Validate required fields
-    if (!phone || !message || !propertyId) {
+    if (!phone || !message) {
       return NextResponse.json(
-        { error: "All fields (phone, message, propertyId) are required." },
+        { error: "Phone number and message are required." },
         { status: 400 }
       );
     }
 
-    // Ensure `propertyId` is a valid number
-    const propertyIdNumber = Number(propertyId);
-    if (isNaN(propertyIdNumber)) {
+    if (propertyId === undefined || propertyId === null) {
       return NextResponse.json(
-        { error: "Invalid property ID." },
+        { error: "Property ID is required." },
         { status: 400 }
       );
     }
@@ -41,9 +40,10 @@ export async function POST(request: NextRequest) {
       data: {
         phone, 
         message, 
-        propertyId: propertyIdNumber,
-        userId: session.user.id,
+        propertyid: String(propertyId), // Convert to string to ensure compatibility
+        userid: session.user.id,
         status: 'PENDING',
+        createdat: new Date(),
       },
     });
 
