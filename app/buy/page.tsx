@@ -8,7 +8,6 @@ import { ViewModeProvider } from './ViewModeContext';
 import { Property } from '../types/property';
 import SearchBarSection from './SearchBarSection';
 import RefreshButton from './RefreshButton';
-import { getWatermarkedImageUrl } from '@/lib/watermark';
 
 interface PaginationInfo {
   currentPage: number;
@@ -87,14 +86,11 @@ async function fetchProperties(
         propertiesLength: data.properties?.length,
         paginationInfo: data.pagination,
       });
-      
 
       if (!data.properties || !Array.isArray(data.properties)) {
         console.error(`[${new Date().toISOString()}] Invalid API response format:`, data);
         throw new Error('Invalid response format: properties missing or not an array');
       }
-
-  
 
       return {
         properties: data.properties,

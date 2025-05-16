@@ -36,12 +36,7 @@ type PropertyInput = {
 // List of featured property titles to preserve
 // These are the properties that should remain on the homepage
 const featuredPropertyTitles = [
-  "Luxury 5 Bedroom Fully Detached Duplex",
-  "Contemporary Neatly Furnished 5 bedroom with 2 service quarters",
-  "Luxury 6 Bedroom Fully Detached Duplex with Swimming Pool",
-  "Elegant 5-Bedroom Fully Detached Duplex with Swimming Pool in a Prime Location",
-  "Modern 3-Bedroom Apartment in Lekki Phase 1 with Top-Class Amenities",
-  "Massive 8-Bedroom Fully Detached Duplex on 2 Acres"
+
 ];
 // =====================================
 
@@ -254,6 +249,7 @@ const newPropertiesToAdd: PropertyInput[] = [
     features: ["Spacious Living Area with Excellent Ventilation", "Fully Fitted Kitchen with Modern Appliances", "All Rooms En-Suite with Contemporary Finishing", "Self-Serviced (independent utilities)", "BQ (Boy’s Quarter) for added convenience","Elegant Fitted Wardrobes","Beautiful Lightings and Ceiling Designs","24 Hours Manned Security","Located in a Secure Estate","Peaceful, Well-Developed Neighborhood"],
   },
   
+
 ];
 
 async function ensureAgentExists(agentId: string, name: string, email: string) {

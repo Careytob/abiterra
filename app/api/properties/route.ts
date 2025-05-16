@@ -1,3 +1,4 @@
+// app/api/properties/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   const bedrooms = searchParams.get('bedrooms') || '';
   const bathrooms = searchParams.get('bathrooms') || '';
   const priceMin = parseInt(searchParams.get('priceMin') || '0', 10);
-  const priceMax = parseInt(searchParams.get('priceMax') || 'Infinity', 10);
+  const priceMax = parseInt(searchParams.get('priceMax') || '0', 10);
 
   if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
     return NextResponse.json({ error: 'Invalid page or limit' }, { status: 400 });
@@ -26,10 +27,13 @@ export async function GET(request: NextRequest) {
     console.log(`[PropertiesAPI] Fetching properties:`, { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax });
 
     let query = supabase
-      .from('properties')
-      .select('id, title, slug, price, type, location, bedrooms, bathrooms, area, images')
+      .from('property')
+      .select(
+        'id, title, slug, price, type, location, bedrooms, bathrooms, area, city, state, status, toilets, latitude, longitude, createdat, updatedat, isfeatured, agentid',
+        { count: 'exact' }
+      )
       .eq('type', type)
-      .order('created_at', { ascending: false })
+      .order('createdat', { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
 
     if (search) {
@@ -44,18 +48,23 @@ export async function GET(request: NextRequest) {
     if (priceMin) {
       query = query.gte('price', priceMin);
     }
-    if (priceMax !== Infinity) {
+    if (!isNaN(priceMax) && priceMax > 0) {
       query = query.lte('price', priceMax);
     }
 
     const { data, error, count } = await query;
 
     if (error) {
-      console.error(`[PropertiesAPI] Supabase error:`, error);
+      console.error(`[PropertiesAPI] Supabase error:`, {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
       Sentry.captureException(error, {
         extra: { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax },
       });
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      return NextResponse.json({ error: 'Database error', details: error.message }, { status: 500 });
     }
 
     if (!data) {
@@ -63,47 +72,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ properties: [], total: 0, pagination: { pages: 0 } }, { status: 200 });
     }
 
-    // Process images
+    // Fetch images for each property
     const properties = await Promise.all(
       data.map(async (prop: any) => {
         let imageUrl = '/api/placeholder/800/600';
         let imagePath = '';
 
-        if (prop.images) {
-          try {
-            const images = Array.isArray(prop.images) ? prop.images : JSON.parse(prop.images);
-            imagePath = Array.isArray(images) ? images[0] : images;
-            if (typeof imagePath !== 'string' || !imagePath.startsWith('images/') || imagePath.endsWith('/')) {
-              console.warn(`[PropertiesAPI] Invalid image path for property ${prop.id}:`, imagePath);
-              Sentry.captureMessage(`Invalid image path for property ${prop.id}`, {
-                level: 'warning',
+        // Fetch main image from image table
+        const { data: images, error: imageError } = await supabase
+          .from('image')
+          .select('url, filepath')
+          .eq('propertyid', prop.id)
+          .eq('ismain', true)
+          .single();
+
+        if (imageError || !images?.url) {
+          console.warn(`[PropertiesAPI] Failed to fetch image for property ${prop.id}:`, imageError?.message);
+          Sentry.captureException(imageError, {
+            extra: { propertyId: prop.id },
+          });
+        } else {
+          imagePath = images.filepath || images.url;
+          if (typeof imagePath !== 'string' || !imagePath.startsWith('images/') || imagePath.endsWith('/')) {
+            console.warn(`[PropertiesAPI] Invalid image path for property ${prop.id}:`, imagePath);
+            Sentry.captureMessage(`Invalid image path for property ${prop.id}`, {
+              level: 'warning',
+              extra: { propertyId: prop.id, imagePath },
+            });
+          } else {
+            const { data: signedData, error: signedError } = await supabase.storage
+              .from('properties')
+              .createSignedUrl(imagePath, 60);
+            if (signedError || !signedData?.signedUrl) {
+              console.warn(`[PropertiesAPI] Failed to generate signed URL for property ${prop.id}:`, signedError?.message);
+              Sentry.captureException(signedError, {
                 extra: { propertyId: prop.id, imagePath },
               });
             } else {
-              const { data: signedData, error: signedError } = await supabase.storage
-                .from('properties')
-                .createSignedUrl(imagePath, 60);
-              if (signedError || !signedData?.signedUrl) {
-                console.warn(`[PropertiesAPI] Failed to generate signed URL for property ${prop.id}:`, signedError?.message);
-                Sentry.captureException(signedError, {
-                  extra: { propertyId: prop.id, imagePath },
-                });
-              } else {
-                imageUrl = signedData.signedUrl;
-              }
+              imageUrl = signedData.signedUrl;
             }
-          } catch (err) {
-            console.error(`[PropertiesAPI] Error processing images for property ${prop.id}:`, err);
-            Sentry.captureException(err, {
-              extra: { propertyId: prop.id, images: prop.images },
-            });
           }
-        } else {
-          console.warn(`[PropertiesAPI] No images for property ${prop.id}`);
-          Sentry.captureMessage(`No images for property ${prop.id}`, {
-            level: 'warning',
-            extra: { propertyId: prop.id },
-          });
         }
 
         return {
@@ -124,9 +132,12 @@ export async function GET(request: NextRequest) {
       pagination: { pages },
     });
   } catch (err) {
-    console.error(`[PropertiesAPI] Error:`, err);
-    Sentry.captureException(err, {
-      extra: { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax },
+    console.error(`[PropertiesAPI] Unexpected error:`, {
+      message: err instanceof Error ? err.message : 'Unknown error',
+      stack: err instanceof Error ? err.stack : undefined,
+    });
+Sentry.captureException(err, {
+  extra: { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax },
     });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
