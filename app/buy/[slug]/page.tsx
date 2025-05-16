@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
 import BuyPropertyDetailClient from '@/app/components/shared/BuyPropertyDetailClient';
 import { Property, PropertyImage } from '@/types/property';
+import { getWatermarkedImageUrl } from '@/lib/watermark';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -105,6 +106,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
       const { data, error } = await supabase.storage
         .from('properties')
         .createSignedUrl(image.filepath, 31536000);
+      
       if (error || !data?.signedUrl) {
         console.error(`[PropertyDetailPage] Signed URL error for ${image.filepath}:`, error?.message);
         return { 
@@ -113,9 +115,18 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           imageType: image.imagetype || undefined 
         } as PropertyImage;
       }
+
+      // Apply watermark to each image
+      const watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
+        text: 'Abiterra.com',
+        opacity: 0.3,
+        fontSize: 40,
+        color: 'rgba(255, 255, 255, 0.4)'
+      });
+
       return { 
         id: image.id, 
-        url: data.signedUrl, 
+        url: watermarkedUrl, 
         imageType: image.imagetype || undefined 
       } as PropertyImage;
     })

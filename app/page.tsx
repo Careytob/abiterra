@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
+import { getWatermarkedImageUrl } from '@/lib/watermark';
 import 'leaflet/dist/leaflet.css';
 
 const supabase = createClient(
@@ -34,13 +35,13 @@ async function getFeaturedProperties() {
         image: {
           where: {
             OR: [
-              { ismain: true }, // Prioritize isPrimary
+              { ismain: true },
               { url: { contains: 'front-1', mode: 'insensitive' } },
             ],
           },
           orderBy: [
-            { ismain: 'desc' }, // Primary images first
-            { url: 'desc' }, // Then front-1
+            { ismain: 'desc' },
+            { url: 'desc' },
           ],
           take: 1,
           select: {
@@ -56,11 +57,6 @@ async function getFeaturedProperties() {
     const formattedProperties = await Promise.all(
       saleProperties.map(async (property) => {
         let imageUrl = `/api/placeholder/800/600`;
-
-        if (property.title.includes('Ikota')) {
-          console.log(`[Ikota Debug] Property ID: ${property.id}, Title: ${property.title}`);
-          console.log(`[Ikota Debug] Image Record:`, property.image);
-        }
 
         if (property.image[0]?.url) {
           try {
@@ -81,35 +77,23 @@ async function getFeaturedProperties() {
               }
             }
 
-            if (property.title.includes('Ikota')) {
-              console.log(`[Ikota Debug] Clean Path: ${cleanPath}`);
-            }
-
             const { data, error } = await supabase.storage
               .from('properties')
               .createSignedUrl(cleanPath, 31536000);
 
             if (error) {
               console.warn(`[HomePage] Failed to generate signed URL for property ${property.id}: ${error.message}`);
-              if (property.title.includes('Ikota')) {
-                console.log(`[Ikota Debug] Signed URL Error: ${error.message}`);
-              }
             } else if (data?.signedUrl) {
-              imageUrl = data.signedUrl;
-              if (property.title.includes('Ikota')) {
-                console.log(`[Ikota Debug] Signed URL: ${data.signedUrl}`);
-              }
+              // Apply watermark
+              imageUrl = await getWatermarkedImageUrl(data.signedUrl, {
+                text: 'Abiterra.com',
+                opacity: 0.3,
+                fontSize: 40,
+                color: 'rgba(255, 255, 255, 0.4)'
+              });
             }
           } catch (err) {
             console.error(`[HomePage] Error processing image for property ${property.id}:`, err);
-            if (property.title.includes('Ikota')) {
-              console.log(`[Ikota Debug] Processing Error:`, err);
-            }
-          }
-        } else {
-          console.warn(`[HomePage] No image found for property ${property.id}`);
-          if (property.title.includes('Ikota')) {
-            console.log(`[Ikota Debug] No image found`);
           }
         }
 
@@ -220,7 +204,6 @@ export default async function Home() {
         {/* Hero Section */}
         <section className="relative h-[600px]">
           <div className="absolute inset-0">
-           
             <Image
               src="/hero_image.webp"
               alt="Luxury property in Lagos, Nigeria"

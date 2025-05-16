@@ -138,7 +138,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
         <Textarea
           {...register("message", { required: "Message is required" })}
           placeholder="Your Message"
-          defaultValue="I am interested in this property."
+          
           className={errors.message ? 'border-red-500' : ''}
         />
         {errors.message && <p className="text-red-500 text-sm">{errors.message.message}</p>}

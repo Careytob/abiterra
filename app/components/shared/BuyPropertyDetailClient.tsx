@@ -1,3 +1,4 @@
+//app/components/shared/BuyPropertyDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';

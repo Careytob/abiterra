@@ -9,6 +9,7 @@ import { useViewMode } from './ViewModeContext';
 import { Property } from '@/app/types/property';
 import Image from 'next/image';
 import { MapPin, Bed, Bath, Square, ArrowRight } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 const MapView = dynamic(() => import('../components/Map'), {
   ssr: false,
@@ -57,6 +58,7 @@ export default function ViewModeToggle({ properties }: ViewModeToggleProps) {
                 <div
                   key={property.id}
                   className="flex flex-col sm:flex-row bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4 gap-4"
+                  data-property-id={property.id}
                 >
                   <div className="relative w-full sm:w-1/3 aspect-[4/3] rounded-lg overflow-hidden shrink-0">
                     <Image
@@ -66,6 +68,15 @@ export default function ViewModeToggle({ properties }: ViewModeToggleProps) {
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 33vw"
                       loading="lazy"
+                      data-image-url={property.images?.[0]?.url}
+                      onError={(e) => {
+                        console.error(`Client-side: Image failed to load for property ${property.id}:`, property.images?.[0]?.url);
+                        Sentry.captureMessage(`Image failed to load for property ${property.id}`, {
+                          level: 'error',
+                          extra: { url: property.images?.[0]?.url, propertyId: property.id },
+                        });
+                        e.currentTarget.src = '/api/placeholder/800/600';
+                      }}
                     />
                   </div>
                   <div className="flex-1">

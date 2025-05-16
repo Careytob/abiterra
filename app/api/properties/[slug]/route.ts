@@ -1,7 +1,12 @@
 //app/api/properties/[slug]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getWatermarkedImageUrl } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(
   request: NextRequest,
@@ -13,30 +18,26 @@ export async function GET(
         slug: params.slug,
       },
       include: {
-        image: {
-          select: { id: true, filepath: true, url: true, imagetype: true },
-        },
+        image: true,
         feature: true,
       },
     });
 
     if (!property) {
-      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
+      return Response.json({ error: 'Property not found' }, { status: 404 });
     }
 
     const processedImages = await Promise.all(
       property.image.map(async (image) => {
-        if (!image.filepath && !image.url) {
-          console.warn(`[PropertiesAPI] No filepath or url for image ${image.id}`);
-          return { ...image, url: '/images/fallback.jpg', type: image.imagetype };
+        if (!image.filepath) return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
+        const { data, error } = await supabase.storage
+          .from('properties')
+          .createSignedUrl(image.filepath, 31536000);
+        if (error || !data?.signedUrl) {
+          console.error(`[PropertiesAPI] Signed URL error for ${image.filepath}:`, error?.message);
+          return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
         }
-
-        const cleanPath = (image.filepath || image.url).startsWith('images/properties/')
-          ? (image.filepath || image.url).substring('images/properties/'.length)
-          : (image.filepath || image.url);
-
-        const url = await getWatermarkedImageUrl('properties', cleanPath);
-        return { ...image, url, type: image.imagetype };
+        return { ...image, url: data.signedUrl, type: image.imagetype };
       })
     );
 
@@ -58,13 +59,13 @@ export async function GET(
       features: property.feature,
     };
 
-    return NextResponse.json(response, {
+    return Response.json(response, {
       headers: {
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
       },
     });
   } catch (error) {
     console.error('[PropertiesAPI] Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch property' }, { status: 500 });
+    return Response.json({ error: 'Failed to fetch property' }, { status: 500 });
   }
 }
