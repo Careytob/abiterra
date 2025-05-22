@@ -1,15 +1,13 @@
 // app/page.tsx
-import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
-import { getWatermarkedImageUrl } from '@/lib/watermark';
 import 'leaflet/dist/leaflet.css';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+);
 
 async function getFeaturedProperties() {
   try {
@@ -36,16 +34,16 @@ async function getFeaturedProperties() {
           where: {
             OR: [
               { ismain: true },
-              { url: { contains: 'front-1', mode: 'insensitive' } },
+              { filepath: { contains: 'front-1', mode: 'insensitive' } },
             ],
           },
           orderBy: [
             { ismain: 'desc' },
-            { url: 'desc' },
+            { filepath: 'desc' },
           ],
           take: 1,
           select: {
-            url: true,
+            filepath: true, // Use filepath instead of url
           },
         },
       },
@@ -56,25 +54,15 @@ async function getFeaturedProperties() {
 
     const formattedProperties = await Promise.all(
       saleProperties.map(async (property) => {
-        let imageUrl = `/api/placeholder/800/600`;
+        let imageUrl = '/images/fallback.webp'; // Updated fallback
 
-        if (property.image[0]?.url) {
+        if (property.image[0]?.filepath) {
           try {
-            let cleanPath = property.image[0].url;
-            if (cleanPath.includes('://')) {
-              const urlObj = new URL(cleanPath);
-              const pathParts = urlObj.pathname.split('/');
-              const bucketIndex = pathParts.findIndex(p => p === 'properties');
-              if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-                cleanPath = pathParts.slice(bucketIndex + 1).join('/');
-              } else {
-                cleanPath = pathParts[pathParts.length - 1];
-              }
-            } else {
-              cleanPath = cleanPath.replace(/^\//, '').split('?')[0];
-              if (cleanPath.startsWith('properties/')) {
-                cleanPath = cleanPath.substring('properties/'.length);
-              }
+            let cleanPath = property.image[0].filepath;
+            // Ensure path is relative to bucket
+            if (cleanPath.startsWith('/')) cleanPath = cleanPath.slice(1);
+            if (!cleanPath.startsWith('images/properties/')) {
+              cleanPath = `images/properties/${cleanPath}`;
             }
 
             const { data, error } = await supabase.storage
@@ -84,13 +72,7 @@ async function getFeaturedProperties() {
             if (error) {
               console.warn(`[HomePage] Failed to generate signed URL for property ${property.id}: ${error.message}`);
             } else if (data?.signedUrl) {
-              // Apply watermark
-              imageUrl = await getWatermarkedImageUrl(data.signedUrl, {
-                text: 'Abiterra.com',
-                opacity: 0.3,
-                fontSize: 40,
-                color: 'rgba(255, 255, 255, 0.4)'
-              });
+              imageUrl = data.signedUrl;
             }
           } catch (err) {
             console.error(`[HomePage] Error processing image for property ${property.id}:`, err);
@@ -128,7 +110,7 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-export const revalidate = 3600; // Revalidate every 1 hour
+export const revalidate = 3600;
 
 export const metadata = {
   title: 'Abiterra - Luxury Properties for Sale in Lagos, Nigeria',
@@ -204,12 +186,10 @@ export default async function Home() {
         {/* Hero Section */}
         <section className="relative h-[600px]">
           <div className="absolute inset-0">
-            <Image
+            <img
               src="/hero_image.webp"
               alt="Luxury property in Lagos, Nigeria"
-              fill
-              className="object-cover"
-              priority
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <div className="absolute inset-0 bg-black/50"></div>
           </div>
@@ -240,12 +220,10 @@ export default async function Home() {
               {featuredProperties.map((property) => (
                 <article key={property.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
                   <div className="relative h-48">
-                    <Image
+                    <img
                       src={property.image}
                       alt={`${property.title} in ${property.location}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
                   <div className="p-6">
@@ -260,7 +238,7 @@ export default async function Home() {
                     <h3 className="text-lg font-semibold mb-2">{property.title}</h3>
                     <p className="text-gray-600 mb-2">{property.details}</p>
                     <p className="text-gray-500 mb-4">{property.location}</p>
-                    <Link 
+                    <Link
                       href={`/buy/${property.slug}`}
                       className="block text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition-colors"
                     >
@@ -288,18 +266,18 @@ export default async function Home() {
                 {
                   icon: '🏠',
                   title: 'Wide Selection',
-                  description: 'Thousands of verified properties for sale'
+                  description: 'Thousands of verified properties for sale',
                 },
                 {
                   icon: '✓',
                   title: 'Verified Listings',
-                  description: 'All properties are verified by our expert team'
+                  description: 'All properties are verified by our expert team',
                 },
                 {
                   icon: '💼',
                   title: 'Expert Support',
-                  description: 'Professional guidance throughout your journey'
-                }
+                  description: 'Professional guidance throughout your journey',
+                },
               ].map((feature, index) => (
                 <div key={index} className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">

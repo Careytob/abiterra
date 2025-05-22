@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/nextjs';
 import BuyPropertyDetailClient from '@/app/components/shared/BuyPropertyDetailClient';
 import { Property, PropertyImage } from '@/types/property';
 import { getWatermarkedImageUrl } from '@/lib/watermark';
@@ -31,20 +32,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
 
     if (!property) {
+      console.warn(`[PropertyDetailMetadata] Property not found for slug: ${resolvedParams.slug}`);
       return { title: 'Property Not Found' };
     }
 
     const formattedImages = await Promise.all(
-      property.image.map(async (image) => {
-        if (!image.filepath) return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
-        const { data, error } = await supabase.storage
-          .from('properties')
-          .createSignedUrl(image.filepath, 31536000);
-        if (error || !data?.signedUrl) {
-          console.error(`[PropertyDetailMetadata] Signed URL error for ${image.filepath}:`, error?.message);
+      (property.image || []).map(async (image) => {
+        if (!image.filepath || typeof image.filepath !== 'string') {
+          console.warn(`[PropertyDetailMetadata] Invalid filepath for image:`, image);
           return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
         }
-        return { url: data.signedUrl, type: image.imagetype || 'unknown' };
+        try {
+          const { data, error } = await supabase.storage
+            .from('properties')
+            .createSignedUrl(image.filepath, 3600); // Reduced to 1 hour
+          if (error || !data?.signedUrl) {
+            console.error(`[PropertyDetailMetadata] Signed URL error for ${image.filepath}:`, error?.message);
+            Sentry.captureException(error, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
+            return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
+          }
+          return { url: data.signedUrl, type: image.imagetype || 'unknown' };
+        } catch (err) {
+          console.error(`[PropertyDetailMetadata] Error generating signed URL for ${image.filepath}:`, err);
+          Sentry.captureException(err, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
+          return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
+        }
       })
     );
 
@@ -56,10 +68,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     return {
       title: `${property.title} For Sale | Abiterra`,
-      description: `Property for sale in ${property.location}. ${property.description?.substring(0, 150)}...`,
+      description: `Property for sale in ${property.location}. ${property.description?.substring(0, 150) || ''}...`,
       openGraph: {
         title: `${property.title} - ${formattedPrice} | Abiterra`,
-        description: property.description,
+        description: property.description || 'Property for sale at Abiterra',
         images: formattedImages.map((image) => ({
           url: image.url,
           width: 1200,
@@ -72,6 +84,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   } catch (error) {
     console.error('[PropertyDetailMetadata] Error generating metadata:', error);
+    Sentry.captureException(error, { extra: { slug: resolvedParams.slug } });
     return { title: 'Property For Sale | Abiterra' };
   }
 }
@@ -79,56 +92,84 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 const PropertyDetailPage = async ({ params }: PageProps) => {
   const resolvedParams = await params;
   if (!resolvedParams?.slug) {
+    console.warn('[PropertyDetailPage] Missing slug parameter');
     notFound();
   }
 
-  const property = await prisma.property.findUnique({
-    where: { slug: resolvedParams.slug },
-    include: {
-      image: { select: { id: true, url: true, filepath: true, imagetype: true } },
-      feature: { select: { id: true, name: true } },
-    },
-  });
+  let property;
+  try {
+    property = await prisma.property.findUnique({
+      where: { slug: resolvedParams.slug },
+      include: {
+        image: { select: { id: true, url: true, filepath: true, imagetype: true } },
+        feature: { select: { id: true, name: true } },
+      },
+    });
+  } catch (err) {
+    console.error(`[PropertyDetailPage] Prisma error for slug ${resolvedParams.slug}:`, err);
+    Sentry.captureException(err, { extra: { slug: resolvedParams.slug } });
+    notFound();
+  }
 
   if (!property) {
+    console.warn(`[PropertyDetailPage] Property not found for slug: ${resolvedParams.slug}`);
     notFound();
   }
 
   const formattedImages = await Promise.all(
-    property.image.map(async (image) => {
-      if (!image.filepath) {
-        return { 
-          id: image.id, 
-          url: '/placeholder-property.jpg', 
-          imageType: image.imagetype || undefined 
-        } as PropertyImage;
-      }
-      const { data, error } = await supabase.storage
-        .from('properties')
-        .createSignedUrl(image.filepath, 31536000);
-      
-      if (error || !data?.signedUrl) {
-        console.error(`[PropertyDetailPage] Signed URL error for ${image.filepath}:`, error?.message);
-        return { 
-          id: image.id, 
-          url: '/placeholder-property.jpg', 
-          imageType: image.imagetype || undefined 
+    (property.image || []).map(async (image) => {
+      if (!image.filepath || typeof image.filepath !== 'string') {
+        console.warn(`[PropertyDetailPage] Invalid filepath for image:`, image);
+        return {
+          id: image.id,
+          url: '/placeholder-property.jpg',
+          imageType: image.imagetype || undefined,
         } as PropertyImage;
       }
 
-      // Apply watermark to each image
-      const watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
-        text: 'Abiterra.com',
-        opacity: 0.3,
-        fontSize: 40,
-        color: 'rgba(255, 255, 255, 0.4)'
-      });
+      try {
+        const { data, error } = await supabase.storage
+          .from('properties')
+          .createSignedUrl(image.filepath, 3600); // Reduced to 1 hour
+        if (error || !data?.signedUrl) {
+          console.error(`[PropertyDetailPage] Signed URL error for ${image.filepath}:`, error?.message);
+          Sentry.captureException(error, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
+          return {
+            id: image.id,
+            url: '/placeholder-property.jpg',
+            imageType: image.imagetype || undefined,
+          } as PropertyImage;
+        }
 
-      return { 
-        id: image.id, 
-        url: watermarkedUrl, 
-        imageType: image.imagetype || undefined 
-      } as PropertyImage;
+        // Apply watermark with error handling
+        let watermarkedUrl = data.signedUrl;
+        try {
+          watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
+            text: 'Abiterra.com',
+            opacity: 0.3,
+            fontSize: 40,
+            color: 'rgba(255, 255, 255, 0.4)',
+          });
+        } catch (err) {
+          console.error(`[PropertyDetailPage] Watermark error for ${image.filepath}:`, err);
+          Sentry.captureException(err, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
+          watermarkedUrl = data.signedUrl; // Fallback to signed URL
+        }
+
+        return {
+          id: image.id,
+          url: watermarkedUrl,
+          imageType: image.imagetype || undefined,
+        } as PropertyImage;
+      } catch (err) {
+        console.error(`[PropertyDetailPage] Error processing image ${image.filepath}:`, err);
+        Sentry.captureException(err, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
+        return {
+          id: image.id,
+          url: '/placeholder-property.jpg',
+          imageType: image.imagetype || undefined,
+        } as PropertyImage;
+      }
     })
   );
 
@@ -137,7 +178,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     id: property.id,
     title: property.title,
     slug: property.slug,
-    description: property.description,
+    description: property.description || '',
     location: property.location,
     price: property.price,
     type: property.type as Property['type'],
@@ -157,7 +198,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     isfeatured: property.isfeatured || false,
     agentid: property.agentid,
     images: formattedImages,
-    features: property.feature.map(f => ({ id: f.id, name: f.name })),
+    features: property.feature.map((f) => ({ id: f.id, name: f.name })),
   };
 
   return <BuyPropertyDetailClient property={formattedProperty} />;

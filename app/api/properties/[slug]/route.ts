@@ -1,7 +1,8 @@
-//app/api/properties/[slug]/route.ts
-import { NextRequest } from 'next/server';
+// app/api/properties/[slug]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/nextjs';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,31 +14,63 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
+    console.log(`[PropertiesAPI] Fetching property for slug: ${params.slug}`);
+
     const property = await prisma.property.findUnique({
-      where: {
-        slug: params.slug,
-      },
+      where: { slug: params.slug },
       include: {
-        image: true,
-        feature: true,
+        image: { select: { id: true, url: true, filepath: true, imagetype: true } },
+        feature: { select: { id: true, name: true } },
       },
     });
 
     if (!property) {
-      return Response.json({ error: 'Property not found' }, { status: 404 });
+      console.warn(`[PropertiesAPI] Property not found for slug: ${params.slug}`);
+      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
 
     const processedImages = await Promise.all(
-      property.image.map(async (image) => {
-        if (!image.filepath) return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
-        const { data, error } = await supabase.storage
-          .from('properties')
-          .createSignedUrl(image.filepath, 31536000);
-        if (error || !data?.signedUrl) {
-          console.error(`[PropertiesAPI] Signed URL error for ${image.filepath}:`, error?.message);
-          return { ...image, url: '/placeholder-property.jpg', type: image.imagetype };
+      (property.image || []).map(async (image) => {
+        if (!image.filepath || typeof image.filepath !== 'string') {
+          console.warn(`[PropertiesAPI] Invalid filepath for image:`, image);
+          return {
+            id: image.id,
+            url: '/placeholder-property.jpg',
+            filepath: image.filepath,
+            imagetype: image.imagetype,
+          };
         }
-        return { ...image, url: data.signedUrl, type: image.imagetype };
+
+        try {
+          const { data, error } = await supabase.storage
+            .from('properties')
+            .createSignedUrl(image.filepath, 3600); // Reduced to 1 hour
+          if (error || !data?.signedUrl) {
+            console.error(`[PropertiesAPI] Signed URL error for ${image.filepath}:`, error?.message);
+            Sentry.captureException(error, { extra: { filepath: image.filepath, slug: params.slug } });
+            return {
+              id: image.id,
+              url: '/placeholder-property.jpg',
+              filepath: image.filepath,
+              imagetype: image.imagetype,
+            };
+          }
+          return {
+            id: image.id,
+            url: data.signedUrl,
+            filepath: image.filepath,
+            imagetype: image.imagetype,
+          };
+        } catch (err) {
+          console.error(`[PropertiesAPI] Error generating signed URL for ${image.filepath}:`, err);
+          Sentry.captureException(err, { extra: { filepath: image.filepath, slug: params.slug } });
+          return {
+            id: image.id,
+            url: '/placeholder-property.jpg',
+            filepath: image.filepath,
+            imagetype: image.imagetype,
+          };
+        }
       })
     );
 
@@ -45,7 +78,7 @@ export async function GET(
       id: property.id,
       slug: property.slug,
       title: property.title,
-      description: property.description,
+      description: property.description || '',
       price: property.price,
       location: property.location,
       latitude: property.latitude,
@@ -56,16 +89,17 @@ export async function GET(
       bq: property.bq,
       area: property.area !== null ? `${property.area} sqft` : 'Not Available',
       images: processedImages,
-      features: property.feature,
+      features: property.feature.map((f) => ({ id: f.id, name: f.name })),
     };
 
-    return Response.json(response, {
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=7200',
       },
     });
   } catch (error) {
     console.error('[PropertiesAPI] Error:', error);
-    return Response.json({ error: 'Failed to fetch property' }, { status: 500 });
+    Sentry.captureException(error, { extra: { slug: params.slug } });
+    return NextResponse.json({ error: 'Failed to fetch property' }, { status: 500 });
   }
 }

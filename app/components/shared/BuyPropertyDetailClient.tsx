@@ -45,9 +45,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
         if (!imageErrors.includes(index) && cachedImages.has(image.url)) {
           const img = new window.Image();
           img.src = image.url;
-          console.log(`[BuyPropertyDetailClient] Preloading image ${index}: ${img.src}`);
           img.onerror = () => {
-            console.warn(`[BuyPropertyDetailClient] Preload error for image ${index}: ${image.url}`);
             setImageErrors((prev) => [...prev, index]);
           };
         }
@@ -86,7 +84,6 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
   };
 
   const handleImageError = (index: number) => {
-    console.warn(`[BuyPropertyDetailClient] Image load error at index ${index}: ${property.images[index].url}`);
     setImageErrors((prev) => [...prev, index]);
     setIsLoading(false);
   };
@@ -95,22 +92,21 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
     setIsLoading(false);
   };
 
-  const thumbnailImages = [
-    ...property.images.slice(currentIndex + 1, property.images.length),
-    ...property.images.slice(0, Math.max(0, 4 - (property.images.length - currentIndex - 1))),
-  ].slice(0, 4);
+  // Get visible thumbnails (show only 3)
+  const visibleThumbnails = property.images.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 md:pt-12">
+      {/* Fullscreen image viewer */}
       {fullscreenIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-95 flex items-center justify-center p-4">
           <button
             onClick={() => toggleFullscreen()}
             className="absolute top-4 right-4 text-white bg-black/50 p-2 rounded-full z-10"
           >
             Close
           </button>
-          <div className="max-w-[90%] max-h-[90%] relative w-full h-full">
+          <div className="max-w-screen-xl max-h-screen relative w-full h-full">
             <Image
               src={imageErrors.includes(fullscreenIndex) ? '/images/fallback.jpg' : property.images[fullscreenIndex].url}
               alt={`${property.title} - Fullscreen Image`}
@@ -122,79 +118,101 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
             />
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <div className="w-8 h-8 border-4 border-t-teal-600 border-gray-300 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-t-blue-600 border-gray-300 rounded-full animate-spin" />
               </div>
             )}
+            <div className="absolute inset-x-0 bottom-8 flex justify-center">
+              <div className="flex gap-2">
+                {property.images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setFullscreenIndex(idx)}
+                    className={`w-3 h-3 rounded-full ${
+                      idx === fullscreenIndex ? 'bg-white' : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
+
       <div className="w-full bg-gray-900 pt-3 md:pt-7 pb-3 md:pb-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="md:col-span-4 relative aspect-video group">
+          {/* Image gallery with main image and thumbnails side by side */}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Main image container - adjusted width */}
+            <div className="relative w-full md:w-3/4 aspect-video group">
               <Image
                 src={imageErrors.includes(currentIndex) ? '/images/fallback.jpg' : property.images[currentIndex].url}
                 alt={`${property.title} - ${property.images[currentIndex].imageType || 'Image'}`}
                 fill
                 className="object-cover rounded-lg transition-opacity duration-300"
                 priority={currentIndex === 0}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+                sizes="(max-width: 768px) 100vw, 800px"
                 onError={() => handleImageError(currentIndex)}
                 onLoad={handleImageLoad}
-                onClick={() => toggleFullscreen(currentIndex)}
               />
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <div className="w-8 h-8 border-4 border-t-teal-600 border-gray-300 rounded-full animate-spin" />
-                </div>
-              )}
+              
+              {/* Next/Previous buttons */}
               <div className="absolute inset-0 flex items-center justify-between px-2 md:px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button
+                <button 
                   onClick={previousImage}
-                  className="bg-white/90 p-1 md:p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                  className="bg-white/70 hover:bg-white p-2 rounded-full shadow-md z-10"
+                  aria-label="Previous image"
                 >
-                  <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
+                  <ChevronLeft className="w-6 h-6 text-gray-800" />
                 </button>
-                <button
+                
+                <button 
                   onClick={nextImage}
-                  className="bg-white/90 p-1 md:p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                  className="bg-white/70 hover:bg-white p-2 rounded-full shadow-md z-10"
+                  aria-label="Next image"
                 >
-                  <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-gray-800" />
+                  <ChevronRight className="w-6 h-6 text-gray-800" />
                 </button>
               </div>
+              
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <div className="w-8 h-8 border-4 border-t-blue-600 border-gray-300 rounded-full animate-spin" />
+                </div>
+              )}
+              
               <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-white/90 px-2 py-1 md:px-3 md:py-1 rounded-full">
                 <span className="text-xs md:text-sm font-medium">
                   {currentIndex + 1} / {property.images.length}
                 </span>
               </div>
             </div>
-            <div className="md:col-span-1 hidden md:flex flex-col gap-2 h-full">
-              {thumbnailImages.map((image, index) => {
-                const actualIndex = (currentIndex + index + 1) % property.images.length;
-                return (
-                  <div
-                    key={image.id}
-                    className={`relative aspect-video flex-shrink-0 w-full cursor-pointer
-                      ${actualIndex === currentIndex ? 'border-2 border-blue-500' : 'opacity-60 hover:opacity-100'}
-                      transition-all duration-300`}
-                    onClick={() => setCurrentIndex(actualIndex)}
-                  >
-                    <Image
-                      src={imageErrors.includes(actualIndex) ? '/images/fallback.jpg' : image.url}
-                      alt={`Thumbnail ${image.imageType || 'Image'}`}
-                      fill
-                      className="object-cover rounded transition-opacity duration-300"
-                      sizes="(max-width: 768px) 25vw, 15vw"
-                      onError={() => handleImageError(actualIndex)}
-                      onLoad={handleImageLoad}
-                    />
-                  </div>
-                );
-              })}
+            
+        {/* Thumbnails on the right side - MODIFIED WITH HIDDEN ON MOBILE */}
+      <div className="hidden md:flex md:w-1/4 flex-row md:flex-col gap-2">
+        {visibleThumbnails.map((image, index) => (
+          <div 
+            key={image.id}
+            className={`relative flex-1 cursor-pointer rounded-lg border-2 overflow-hidden
+              ${currentIndex === index ? 'border-blue-600' : 'border-transparent hover:border-blue-300'}`}
+            onClick={() => setCurrentIndex(index)}
+          >
+            <div className="aspect-video">
+              <Image
+                src={imageErrors.includes(index) ? '/images/fallback.jpg' : image.url}
+                alt={`${property.title} - Thumbnail ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="96px"
+                onError={() => handleImageError(index)}
+              />
             </div>
+          </div>
+        ))}
+      </div>
           </div>
         </div>
       </div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         <Card className="p-4 md:p-6">
           <div className="flex flex-col gap-4">

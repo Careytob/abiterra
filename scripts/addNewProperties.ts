@@ -43,89 +43,8 @@ const featuredPropertyTitles = [
 // Add only new non-featured properties here
 const newPropertiesToAdd: PropertyInput[] = [
  {
-    title: "Perfectly Carved 4-Bed Terrace Duplex With BQ – Ikota, Lekki",
-    description: "Experience refined elegance in this beautifully designed 4-bedroom terrace duplex located in the prestigious Ikota axis of Lekki. Crafted with modern architecture and attention to detail, this home is ideal for family living or investment, boasting premium features and located in a serene, gated estate.\n\nThis duplex offers not only luxury and space, but also peace of mind with valid documentation and structural approvals. Ideal for families or savvy investors seeking short-let or rental potential in the ever-growing Lekki property market.",
-    price: 115000000,
-    type: "SALE",
-    bedrooms: 4,
-    bq: 1,
-    bathrooms: 4,
-    toilets: 5,
-    area: null,
-    location: "Ikota, Lekki, Lagos",
-    latitude: 	6.453056,
-    longitude: 3.395833,
-    city: "Ikota Lekki",
-    state: "Lagos",
-    isFeatured: false, // Explicitly set to false for buy page only
-    images: [
-      "images/properties/sale/duchess-homes/house-16/front-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/living-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/living-2.jpeg",
-      "images/properties/sale/duchess-homes/house-16/living-3.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-2.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-3.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-4.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-5.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-6.jpeg",
-      "images/properties/sale/duchess-homes/house-16/room-7.jpeg",
-      "images/properties/sale/duchess-homes/house-16/kitchen-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/bath-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/bath-2.jpeg",
-      "images/properties/sale/duchess-homes/house-16/toilet-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/wardrobe-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/corridor-1.jpeg",
-      "images/properties/sale/duchess-homes/house-16/corridor-2.jpeg",
-      
-     
-    ],
-    features: ["Expansive Living Area perfect for relaxation and entertaining", "Upstairs Family Lounge for privacy and comfort", "Dedicated Dining Area", "Fully Fitted Kitchen with modern cabinetry and appliances", "Walk-in Closet in the primary suite – exquisitely crafted","Motion Sensor Stairway Lights adding elegance and safety", "All Rooms En-Suite with top-quality luxury sanitary fittings", "Stylish Lighting Fixtures throughout the home", "Private Boy’s Quarter for additional accommodation or use", "Located in a Secure, Gated Estate with 24/7 security","Sited in a Prime Neighborhood with easy access to major roads and amenities"],    
-  },
-  {
-    title: " 4-Bedroom Duplex with Communal Swimming Pool",
-    description: "Discover modern comfort and investment-ready real estate in this stunning collection of 4-bedroom terrace duplex located in a secure and well-planned estate in Ajah, Lekki. This home is designed with elegant finishes and built for convenience, making it ideal for personal living, shortlet, or long-term rental business.\n\nWhether you're looking to own your dream home or invest in high-yield real estate for rental income or short-term stays, this duplex offer unmatched value in one of Lekki’s fast-rising residential hubs.",
-    price: 95000000,
-    type: "SALE",
-    bedrooms: 4,
-    bq: 0,
-    bathrooms: 4,
-    toilets: 5,
-    area: null,
-    location: " Ajah, Lekki,Lagos",
-    latitude: 	6.469620,
-    longitude: 3.562870,
-    city: "Ajah,Lekki",
-    state: "Lagos",
-    isFeatured: false, 
-    images: [
-      "images/properties/sale/duchess-homes/house-17/front-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/front-3.jpeg",
-      "images/properties/sale/duchess-homes/house-17/living-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/living-2.jpeg",
-      "images/properties/sale/duchess-homes/house-17/living-3.jpeg",
-      "images/properties/sale/duchess-homes/house-17/room-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/room-2.jpeg",
-      "images/properties/sale/duchess-homes/house-17/room-3.jpeg",
-      "images/properties/sale/duchess-homes/house-17/room-4.jpeg",
-      "images/properties/sale/duchess-homes/house-17/room-5.jpeg",
-      "images/properties/sale/duchess-homes/house-17/wardrobe-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/wardrobe-2.jpeg",
-      "images/properties/sale/duchess-homes/house-17/kitchen-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/corridor-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/corridor-2.jpeg",
-      "images/properties/sale/duchess-homes/house-17/bath-1.jpeg",
-      "images/properties/sale/duchess-homes/house-17/bath-2.jpeg",
-      "images/properties/sale/duchess-homes/house-17/bath-3.jpeg",
-      
-      
-     
-    ],
-    features: ["Contemporary Architectural Design", "Spacious & Well-Lit Living Areas", "Private Balconies for Each Unit", "Fully Fitted Kitchen with Modern Appliances", "Beautifully Crafted Wardrobes in All Rooms", "Premium Luxury Sanitary Wares","Stylish & Gorgeous Lighting Fixtures","All Rooms En-suite","Communal Swimming Pool","24-Hour Electricity & Security","Located in a Secure Gated Estate","Strategically Located in a Prime Ajah Neighborhood"],
-  },
-  {
-    title: " 4-Bedroom Duplex with Communal Swimming Pool",
-    description: "Discover modern comfort and investment-ready real estate in this stunning collection of 4-bedroom terrace duplex located in a secure and well-planned estate in Ajah, Lekki. This home is designed with elegant finishes and built for convenience, making it ideal for personal living, shortlet, or long-term rental business.\n\nWhether you're looking to own your dream home or invest in high-yield real estate for rental income or short-term stays, this duplex offer unmatched value in one of Lekki’s fast-rising residential hubs.",
+    title: " 3-Bedroom Duplex with Communal Swimming Pool",
+    description: "Discover modern comfort and investment-ready real estate in this stunning collection of 4-bedroom terrace duplex located in a secure and well-planned estate in Ajah, Lekki. This home is designed with elegant finishes and built for convenience, making it ideal for personal living, shortlet, or long-term rental business.\n\nWhether you're looking to own your dream home or invest in high-yield real estate for rental income or short-term stays, this duplex offer unmatched value in one of Lekki's fast-rising residential hubs.",
     price: 90000000,
     type: "SALE",
     bedrooms: 3,
@@ -158,98 +77,200 @@ const newPropertiesToAdd: PropertyInput[] = [
       "images/properties/sale/duchess-homes/house-18/bath-1.jpeg",
       "images/properties/sale/duchess-homes/house-18/bath-2.jpeg",
       "images/properties/sale/duchess-homes/house-18/bath-3.jpeg",
-      
-      
-     
     ],
     features: ["Contemporary Architectural Design", "Spacious & Well-Lit Living Areas", "Private Balconies for Each Unit", "Fully Fitted Kitchen with Modern Appliances", "Beautifully Crafted Wardrobes in All Rooms", "Premium Luxury Sanitary Wares","Stylish & Gorgeous Lighting Fixtures","All Rooms En-suite","Communal Swimming Pool","24-Hour Electricity & Security","Located in a Secure Gated Estate","Strategically Located in a Prime Ajah Neighborhood"],
   },
-    {
-        title: "Exquisite 5-Bedroom Fully Detached Dduplex With Swimming Pool & BQ",
-        description: "Experience refined living in this beautifully crafted 5-bedroom fully detached duplex, nestled in the prestigious Lekki County Estate. This stunning home offers the perfect blend of luxury, comfort, and functionality — ideal for a modern family or high-end rental investment.\n\nThis home is not just built — it’s crafted for those who appreciate quality, space, and exclusivity. Whether for residential comfort or investment potential, this is a rare opportunity to own luxury in one of Lekki’s most sought-after estates.",
-        price: 380000000,
-        type: "SALE",
-        bedrooms: 5,
-        bq: 1,
-        bathrooms: 5,
-        toilets: 6,
-        area: null,
-        location: "Lekki County, Lagos",
-        latitude: 	6.458985,
-        longitude: 3.601521,
-        city: "Lekki",
-        state: "Lagos",
-        isFeatured: false,
-        images: [
-        "images/properties/sale/duchess-homes/house-19/front-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/front-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/living-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/living-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/lounge-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/lounge-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/room-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/room-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/room-3.jpeg",
-        "images/properties/sale/duchess-homes/house-19/room-4.jpeg",
-        "images/properties/sale/duchess-homes/house-19/room-5.jpeg",
-        "images/properties/sale/duchess-homes/house-19/wardrobe-1-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/wardrobe-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/kitchen-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/kitchen-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/kitchen-3.jpeg",
-        "images/properties/sale/duchess-homes/house-19/bath-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/bath-2.jpeg",
-        "images/properties/sale/duchess-homes/house-19/bath-3.jpeg",
-        "images/properties/sale/duchess-homes/house-19/bath-4.jpeg",
-        "images/properties/sale/duchess-homes/house-19/wardrobe-3.jpeg",
-        "images/properties/sale/duchess-homes/house-19/pool-1.jpeg",
-        "images/properties/sale/duchess-homes/house-19/pool-2.jpeg",
-        
-        ],
-        features: ["Contemporary Modern Architecture", "Impeccable Finishing with High Attention to Detail", "Spacious Living Room with Ample Natural Light", "Private Family Lounge", "Dedicated Dining Area", "Fully Fitted Kitchen with Premium Appliances", "Beautifully Carved Walk-in Closet in Master Suite","Motion Sensor Stairway Lighting","All Rooms En-Suite with Luxury Sanitary Wares","Gorgeous Designer Lightings & Finishes","Integrated Sound System","Private Swimming Pool","Boy’s Quarters (BQ)","Located in a Secure Gated Estate with Access Control","Serene and Well-Planned Neighborhood" ],
-    },
   {
-    title: "Newly Built 4-Bedroom Semi-Detached Duplex With BQ",
-    description: "Step into comfort and elegance with this newly built 4-bedroom semi-detached duplex located in the serene and secure neighborhood of Ikota Lekki. Designed with modern families in mind, this home offers ample space, top-notch finishing, and a well-thought-out layout perfect for residential living or rental investment.\n\nThis property is ideal for homeowners seeking convenience and investors looking for strong rental returns in a high-demand area.",
-    price: 160000000,
+    title: "Exceptional Value! Modern 4-Bed Detached Duplex in Prime Ajah Location",
+    description: "Experience a perfect blend of affordability and modern comfort in this 4-bedroom detached duplex situated in the peaceful and rapidly developing area of Ajah, Lekki. Thoughtfully designed for families or investors, this property delivers top-tier features and lifestyle essentials in a secure, upscale estate.\n\nWhether you're buying to live or invest, this home is a smart choice with excellent potential. Schedule a viewing today!",
+    price: 120000000,
+    type: "SALE",
+    bedrooms: 4,
+    bq: 0,
+    bathrooms: 4,
+    toilets: 5,
+    area: null,
+    location: " Ajah, Lekki,Lagos",
+    latitude: 	6.469620,
+    longitude: 3.562870,
+    city: "Ajah,Lekki",
+    state: "Lagos",
+    isFeatured: false, 
+    images: [
+      "images/properties/sale/duchess-homes/house-21/front-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/front-2.jpeg",
+      "images/properties/sale/duchess-homes/house-21/living-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/living-2.jpeg",
+      "images/properties/sale/duchess-homes/house-21/living-3.jpeg",
+      "images/properties/sale/duchess-homes/house-21/living-4.jpeg",
+      "images/properties/sale/duchess-homes/house-21/lounge-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/kitchen-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/kitchen-2.jpeg",
+      "images/properties/sale/duchess-homes/house-21/room-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/room-2.jpeg",
+      "images/properties/sale/duchess-homes/house-21/room-3.jpeg",
+      "images/properties/sale/duchess-homes/house-21/room-4.jpeg",
+      "images/properties/sale/duchess-homes/house-21/wardrobe-1.jpeg",
+      "images/properties/sale/duchess-homes/house-21/bath-1.jpeg",
+     
+    ],
+    features: ["Modern Architecture", "Spacious Living Area", "Family Lounge", "Balcony", "Fully Fitted Kitchen", "TV Consoles","Beautifully Fitted Wardrobes","Luxury Sanitary Wares","Gorgeous Lightings","Integrated Audio System","Motion Sensor Stairway Light","All Rooms En-suite","Secure Gated and Access Control Estate","Great Neighbourhood"],
+  },
+  {
+    title: " Elegant Newly Built 4-Bedroom Detached Duplex with BQ in Orchid Lekki",
+    description: "Discover this pristine fully detached 4-bedroom duplex, thoughtfully designed for modern family living in the prestigious Orchid Lekki neighborhood. This home boasts spacious living areas and a fully fitted kitchen perfect for daily family meals and entertaining guests.\n\nEnjoy privacy and convenience with all rooms en-suite, fitted wardrobes, and beautiful lighting that enhances the warm ambiance throughout. The property is self-serviced and located within a secure estate with 24-hour security, ensuring peace of mind for you and your loved ones.\n\nIdeal for those seeking comfort, security, and a great community atmosphere in one of Lekki’s most sought-after locations.",
+    price: 250000000,
     type: "SALE",
     bedrooms: 4,
     bq: 1,
     bathrooms: 4,
     toilets: 5,
     area: null,
-    location: "Ikota, Lekki, Lagos",
-    latitude: 	6.453056,
-    longitude: 3.395833,
-    city: "Ikota Lekki",
+    location: " Orchid, Lekki,Lagos",
+    latitude: 	6.4316,
+    longitude: 3.5564,
+    city: "Orchid,Lekki",
     state: "Lagos",
     isFeatured: false, 
     images: [
-        "images/properties/sale/duchess-homes/house-20/front-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/front-2.jpeg",
-        "images/properties/sale/duchess-homes/house-20/living-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/living-2.jpeg",
-        "images/properties/sale/duchess-homes/house-20/lounge-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/kitchen-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/kitchen-2.jpeg",
-        "images/properties/sale/duchess-homes/house-20/corridor-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/room-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/room-2.jpeg",
-        "images/properties/sale/duchess-homes/house-20/room-3.jpeg",
-        "images/properties/sale/duchess-homes/house-20/room-4.jpeg",
-        "images/properties/sale/duchess-homes/house-20/room-5.jpeg",
-        "images/properties/sale/duchess-homes/house-20/wardrobe-1-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/bath-1-1.jpeg",
-        "images/properties/sale/duchess-homes/house-20/bath-2.jpeg",
-        "images/properties/sale/duchess-homes/house-20/bath-3.jpeg",
-        "images/properties/sale/duchess-homes/house-20/toilet-1.jpeg",
-       
+      "images/properties/sale/duchess-homes/house-22/front-1.webp",
+      "images/properties/sale/duchess-homes/house-22/front-2.webp",
+      "images/properties/sale/duchess-homes/house-22/living-1.webp",
+      "images/properties/sale/duchess-homes/house-22/living-2.webp",
+      "images/properties/sale/duchess-homes/house-22/living-3.webp",
+      "images/properties/sale/duchess-homes/house-22/living-4.webp",
+      "images/properties/sale/duchess-homes/house-22/living-5.webp",
+      "images/properties/sale/duchess-homes/house-22/lounge-1.webp",
+      "images/properties/sale/duchess-homes/house-22/lounge-2.webp",
+      "images/properties/sale/duchess-homes/house-22/lounge-3.webp",
+      "images/properties/sale/duchess-homes/house-22/kitchen-1.webp",
+      "images/properties/sale/duchess-homes/house-22/kitchen-2.webp",
+      "images/properties/sale/duchess-homes/house-22/kitchen-3.webp",
+      "images/properties/sale/duchess-homes/house-22/kitchen-4.webp",
+      "images/properties/sale/duchess-homes/house-22/room-1.webp",
+      "images/properties/sale/duchess-homes/house-22/room-2.webp",
+      "images/properties/sale/duchess-homes/house-22/wardrobe-1.webp",
+      "images/properties/sale/duchess-homes/house-22/bath-1.webp",
+      "images/properties/sale/duchess-homes/house-22/bath-2.webp",
      
     ],
-    features: ["Spacious Living Area with Excellent Ventilation", "Fully Fitted Kitchen with Modern Appliances", "All Rooms En-Suite with Contemporary Finishing", "Self-Serviced (independent utilities)", "BQ (Boy’s Quarter) for added convenience","Elegant Fitted Wardrobes","Beautiful Lightings and Ceiling Designs","24 Hours Manned Security","Located in a Secure Estate","Peaceful, Well-Developed Neighborhood"],
+    features: ["Living Area", "Self Serviced", "Fully Fitted Kitchen", "24 Hours Security", "Fitted Wardrobes", "Beautiful Lightings","All Rooms En-Suite","Secure Estate","Great Neighbourhood"],
   },
-  
-
+    {
+        title: "Stunning 5-Bedroom Luxury Haven with Pool & Cinema in Orchid Lekki",
+        description: "Step into elevated living with this exquisite 5-bedroom fully detached home located in the heart of Orchid, Lekki. Crafted with modern contemporary architecture and flawless detailing, this residence offers a perfect blend of comfort, luxury, and functionality.\n\nIndulge in serene indoor living with a private cinema room, a sparkling swimming pool for relaxation, and beautifully finished interiors that radiate sophistication. Whether you're hosting guests or enjoying family time, every inch of this home is designed to impress.\n\nPerfect for upscale family living in a safe and serene environment.",
+        price: 750000000,
+        type: "SALE",
+        bedrooms: 5,
+        bq: 1,
+        bathrooms: 5,
+        toilets: 6,
+        area: null,
+        location: " Orchid, Lekki,Lagos",
+    latitude: 	6.4316,
+    longitude: 3.5564,
+        city: "Orchid, Lekki",
+        state: "Lagos",
+        isFeatured: false,
+        images: [
+        "images/properties/sale/duchess-homes/house-23/front-1.webp",
+        "images/properties/sale/duchess-homes/house-23/living-1.webp",
+        "images/properties/sale/duchess-homes/house-23/living-2.webp",
+        "images/properties/sale/duchess-homes/house-23/living-3.webp",
+        "images/properties/sale/duchess-homes/house-23/living-4.webp",
+        "images/properties/sale/duchess-homes/house-23/kitchen-1.webp",
+        "images/properties/sale/duchess-homes/house-23/kitchen-2.webp",
+        "images/properties/sale/duchess-homes/house-23/lounge-2.webp",
+        "images/properties/sale/duchess-homes/house-23/room-1.webp",
+        "images/properties/sale/duchess-homes/house-23/room-2.webp",
+        "images/properties/sale/duchess-homes/house-23/wardrobe-1.webp",
+        "images/properties/sale/duchess-homes/house-23/wardrobe-2.webp",
+        "images/properties/sale/duchess-homes/house-23/bath-1.webp",
+        "images/properties/sale/duchess-homes/house-23/bath-2.webp",
+        "images/properties/sale/duchess-homes/house-23/gallery-1.webp",
+        "images/properties/sale/duchess-homes/house-23/balcony-1.webp",
+        "images/properties/sale/duchess-homes/house-23/pool-1.webp",
+       
+        ],
+        features: ["Modern Contemporary Architecture", "Spacious Living Area", "Dining", "Gorgeous Lightings", "Alluring Woodwork", "Beautiful Fitted Kitchen", "All Rooms En-Suite","Cinema Room","Swimming Pool","Boy’s Quarters","Secure Gated Estate","Great Neighbourhood" ],
+    },
+  {
+    title: "Architectural Gem: 5-Bed Luxury Duplex with Pool & BQ in Ajah Lekki",
+    description: "This masterfully crafted 5-bedroom duplex is a statement of sophistication and comfort. Nestled in a prime area of Ajah, Lekki, it boasts bold contemporary architecture and breathtaking attention to detail.\n\nFrom the lavish walk-in closet to the private swimming pool and the integrated smart home features, every inch of this home is designed for refined living. Whether you're entertaining guests or seeking tranquil family moments, this property delivers elegance, space, and serenity in one package.",
+    price: 290000000,
+    type: "SALE",
+    bedrooms: 5,
+    bq: 1,
+    bathrooms: 5,
+    toilets: 6,
+    area: null,
+    location: "Ajah, Lekki, Lagos",
+    latitude: 	6.46962,
+    longitude: 3.56287,
+    city: "Ajah Lekki",
+    state: "Lagos",
+    isFeatured: false, 
+    images: [
+        "images/properties/sale/duchess-homes/house-24/front-1.webp",
+        "images/properties/sale/duchess-homes/house-24/living-1.webp",
+        "images/properties/sale/duchess-homes/house-24/living-2.webp",
+        "images/properties/sale/duchess-homes/house-24/living-3.webp",
+        "images/properties/sale/duchess-homes/house-24/kitchen-1.webp",
+        "images/properties/sale/duchess-homes/house-24/kitchen-2.webp",
+        "images/properties/sale/duchess-homes/house-24/lounge-1.webp",
+        "images/properties/sale/duchess-homes/house-24/room-1.webp",
+        "images/properties/sale/duchess-homes/house-24/room-2.webp",
+        "images/properties/sale/duchess-homes/house-24/wardrobe-1.webp",
+        "images/properties/sale/duchess-homes/house-24/wardrobe-2.webp",
+        "images/properties/sale/duchess-homes/house-24/bath-1.webp",
+        "images/properties/sale/duchess-homes/house-24/bath-2.webp",
+         "images/properties/sale/duchess-homes/house-24/pool-1.webp",
+       
+    ],
+    features: ["Contemporary Architecture", "Modern Luxury Appurtenances", "Ample Parking Space", "Spacious Living Areas", "Dining Area","Luxury Sanitary Wares","Family Lounge","Balcony","Integrated Audio System","Mind Blowing Lightings","TV Consoles","Kitchenette","Beautiful Carved Walk-in Closet","Stamped Concrete Floor","Swimming Pool","Well Equipped And Fully Fitted Kitchen","CCTV Surveillance System","Greenery","Boy’s Quarter","Access Controlled Gated Estate","Great Neighborhood"],
+  },
+  {
+    title: "Exquisitely Crafted 5-Bedroom Luxury Duplex with Pool & BQ in Ajah, Lekki",
+    description: "Step into this meticulously designed luxury duplex where elegance meets comfort. Located in a serene, gated estate in Ajah, Lekki, this home offers high-end features and a beautifully integrated living experience perfect for modern families.",
+    price: 290000000,
+    type: "SALE",
+    bedrooms: 5,
+    bq: 1,
+    bathrooms: 5,
+    toilets: 6,
+    area: null,
+    location: "Ajah, Lekki, Lagos",
+    latitude: 	6.46962,
+    longitude: 3.56287,
+    city: "Ajah Lekki",
+    state: "Lagos",
+    isFeatured: false, 
+    images: [
+        "images/properties/sale/duchess-homes/house-25/front-1.webp",
+        "images/properties/sale/duchess-homes/house-25/front-2.webp",
+        "images/properties/sale/duchess-homes/house-25/front-3.webp",
+        "images/properties/sale/duchess-homes/house-25/living-1.webp",
+        "images/properties/sale/duchess-homes/house-25/living-2.webp",
+        "images/properties/sale/duchess-homes/house-25/living-3.webp",
+        "images/properties/sale/duchess-homes/house-25/kitchen-1.webp",
+        "images/properties/sale/duchess-homes/house-25/lounge-1.webp",
+        "images/properties/sale/duchess-homes/house-25/lounge-2.webp",
+        "images/properties/sale/duchess-homes/house-25/lounge-3.webp",
+        "images/properties/sale/duchess-homes/house-25/room-1.webp",
+        "images/properties/sale/duchess-homes/house-25/room-2.webp",
+        "images/properties/sale/duchess-homes/house-25/room-3.webp",
+        "images/properties/sale/duchess-homes/house-25/room-4.webp",
+        "images/properties/sale/duchess-homes/house-25/wardrobe-1.webp",
+        "images/properties/sale/duchess-homes/house-25/bath-1.webp",
+        "images/properties/sale/duchess-homes/house-25/bath-2.webp",
+        "images/properties/sale/duchess-homes/house-25/bath-3.webp",
+        "images/properties/sale/duchess-homes/house-25/pool-1.webp",
+        "images/properties/sale/duchess-homes/house-25/pool-2.webp",
+       
+    ],
+    features: ["Contemporary Architecture", "Modern Luxury Appurtenances", "Ample Parking Space", "Ample Parking Space", "Spacious Living Areas","Dining Area","Luxury Sanitary Wares","Family Lounge","Balcony","Integrated Audio System","Mind Blowing Lightings","TV Consoles","Kitchenette","Beautiful Carved Walk-in Closet","Stamped Concrete Floor","Swimming Pool","Well Equipped and Fully Fitted Kitchen","CCTV Surveillance","Greenery","Boy’s Quarter","Access Controlled Gated Estate","Great Neighborhood"],
+  },
+ 
 ];
 
 async function ensureAgentExists(agentId: string, name: string, email: string) {
@@ -341,28 +362,16 @@ async function createProperty(propertyData: PropertyInput) {
       throw new Error(`Invalid area value for "${propertyData.title}": ${areaValue}`);
     }
 
-    // Check if a property with the same title and location already exists
-    const existingProperty = await prisma.property.findFirst({
-      where: {
-        title: propertyData.title,
-        location: propertyData.location
-      }
-    });
-
-    // If property already exists, skip it
-    if (existingProperty) {
-      console.log(`⏭️ Property already exists: ${propertyData.title} at ${propertyData.location}. Skipping.`);
-      return { created: false, property: existingProperty };
-    }
-
-    let slug = slugify(`${propertyData.title} ${propertyData.location} ${propertyData.city}`, {
+    // Generate a unique slug by adding a timestamp
+    let baseSlug = slugify(`${propertyData.title} ${propertyData.location} ${propertyData.city}`, {
       lower: true,
       strict: true,
     });
-    const existing = await prisma.property.findFirst({ where: { slug } });
-    if (existing) {
-      slug = `${slug}-${uuidv4().slice(0, 8)}`;
-    }
+    
+    // Always add a unique identifier to ensure uniqueness
+    const timestamp = new Date().getTime();
+    const uniqueId = uuidv4().slice(0, 8);
+    const slug = `${baseSlug}-${timestamp}-${uniqueId}`;
 
     // Ensure agent exists
     await ensureAgentExists('abiterra-admin', 'Abiterra Admin', 'admin@abiterra.com');
@@ -422,25 +431,31 @@ async function createProperty(propertyData: PropertyInput) {
     });
 
     console.log(`✅ Created property: ${property.title} (ID: ${property.id}, Slug: ${property.slug}, Featured: ${isFeatured})`);
-    return { created: true, property };
+    return { success: true, property };
   } catch (error: any) {
     console.error(`Error creating property "${propertyData.title}":`);
     console.error('Message:', error.message || 'No message');
     console.error('Meta:', JSON.stringify(error.meta, null, 2) || 'No meta');
     console.error('Cause:', JSON.stringify(error.cause, null, 2) || 'No cause');
     console.error('Stack:', error.stack || 'No stack');
-    throw error;
+    return { 
+      success: false, 
+      property: null, 
+      error: {
+        title: propertyData.title,
+        message: error.message || 'Unknown error',
+        details: error.meta || {}
+      }
+    };
   }
 }
 
 async function createProperties(properties: PropertyInput[]) {
-  console.log(`Starting to create ${properties.length} new properties...`);
+  console.log(`Starting to create ${properties.length} properties...`);
 
   const results = {
-    successful: 0,
-    failed: 0,
-    skipped: 0,
-    failures: [] as string[],
+    successful: [] as { title: string, id: string, slug: string }[],
+    failed: [] as { title: string, error: string }[],
   };
 
   for (const property of properties) {
@@ -454,14 +469,23 @@ async function createProperties(properties: PropertyInput[]) {
       property.isFeatured = shouldBeFeautured;
       
       const result = await createProperty(property);
-      if (result.created) {
-        results.successful++;
+      if (result.success && result.property) {
+        results.successful.push({
+          title: result.property.title,
+          id: result.property.id,
+          slug: result.property.slug
+        });
       } else {
-        results.skipped++;
+        results.failed.push({
+          title: property.title,
+          error: result.error ? result.error.message : 'Unknown error'
+        });
       }
-    } catch (error) {
-      results.failed++;
-      results.failures.push(property.title);
+    } catch (error: any) {
+      results.failed.push({
+        title: property.title,
+        error: error.message || 'Unexpected error'
+      });
     }
   }
 
@@ -476,14 +500,27 @@ async function main() {
     // Then add the new properties
     const results = await createProperties(newPropertiesToAdd);
 
-    console.log('\nNew Properties Creation Summary:');
-    console.log(`✅ Successfully created: ${results.successful} properties`);
-    console.log(`⏭️ Skipped existing: ${results.skipped} properties`);
-    console.log(`❌ Failed to create: ${results.failed} properties`);
+    console.log('\n======== Properties Creation Summary ========');
+    console.log(`✅ Successfully created: ${results.successful.length} properties`);
+    console.log(`❌ Failed to create: ${results.failed.length} properties`);
 
-    if (results.failures.length > 0) {
-      console.log('\nFailed properties:');
-      results.failures.forEach((title) => console.log(`- ${title}`));
+    if (results.successful.length > 0) {
+      console.log('\n✅ Successfully created properties:');
+      results.successful.forEach((item, index) => {
+        console.log(`${index + 1}. ${item.title}`);
+        console.log(`   ID: ${item.id}`);
+        console.log(`   Slug: ${item.slug}`);
+        console.log('   ----------------');
+      });
+    }
+    
+    if (results.failed.length > 0) {
+      console.log('\n❌ Failed properties:');
+      results.failed.forEach((item, index) => {
+        console.log(`${index + 1}. ${item.title}`);
+        console.log(`   Error: ${item.error}`);
+        console.log('   ----------------');
+      });
     }
     
     // Final verification of featured properties

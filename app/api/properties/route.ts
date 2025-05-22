@@ -3,6 +3,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
 
+interface Property {
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  type: string;
+  location: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  city: string;
+  state: string;
+  status: string;
+  toilets: number;
+  latitude: number | null;
+  longitude: number | null;
+  createdat: string;
+  updatedat: string;
+  isfeatured: boolean;
+  agentid: string;
+  images: { id: string; url: string }[];
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -17,7 +40,8 @@ export async function GET(request: NextRequest) {
   const bedrooms = searchParams.get('bedrooms') || '';
   const bathrooms = searchParams.get('bathrooms') || '';
   const priceMin = parseInt(searchParams.get('priceMin') || '0', 10);
-  const priceMax = parseInt(searchParams.get('priceMax') || '0', 10);
+  const priceMaxValue = searchParams.get('priceMax');
+  const priceMax = priceMaxValue ? parseInt(priceMaxValue, 10) : 0;
 
   if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
     return NextResponse.json({ error: 'Invalid page or limit' }, { status: 400 });
@@ -45,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (bathrooms) {
       query = query.eq('bathrooms', parseInt(bathrooms, 10));
     }
-    if (priceMin) {
+    if (!isNaN(priceMin) && priceMin > 0) {
       query = query.gte('price', priceMin);
     }
     if (!isNaN(priceMax) && priceMax > 0) {
@@ -72,27 +96,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ properties: [], total: 0, pagination: { pages: 0 } }, { status: 200 });
     }
 
-    // Fetch images for each property
-    const properties = await Promise.all(
+    const properties: Property[] = await Promise.all(
       data.map(async (prop: any) => {
-        let imageUrl = '/api/placeholder/800/600';
+        let imageUrl = '/images/fallback.webp';
         let imagePath = '';
 
-        // Fetch main image from image table
         const { data: images, error: imageError } = await supabase
           .from('image')
-          .select('url, filepath')
+          .select('filepath')
           .eq('propertyid', prop.id)
           .eq('ismain', true)
           .single();
 
-        if (imageError || !images?.url) {
+        if (imageError || !images?.filepath) {
           console.warn(`[PropertiesAPI] Failed to fetch image for property ${prop.id}:`, imageError?.message);
           Sentry.captureException(imageError, {
             extra: { propertyId: prop.id },
           });
         } else {
-          imagePath = images.filepath || images.url;
+          imagePath = images.filepath;
           if (typeof imagePath !== 'string' || !imagePath.startsWith('images/') || imagePath.endsWith('/')) {
             console.warn(`[PropertiesAPI] Invalid image path for property ${prop.id}:`, imagePath);
             Sentry.captureMessage(`Invalid image path for property ${prop.id}`, {
@@ -136,8 +158,8 @@ export async function GET(request: NextRequest) {
       message: err instanceof Error ? err.message : 'Unknown error',
       stack: err instanceof Error ? err.stack : undefined,
     });
-Sentry.captureException(err, {
-  extra: { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax },
+    Sentry.captureException(err, {
+      extra: { type, page, limit, search, bedrooms, bathrooms, priceMin, priceMax },
     });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
