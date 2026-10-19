@@ -17,7 +17,7 @@ export async function GET(
     console.log(`[PropertiesAPI] Fetching property for slug: ${params.slug}`);
 
     const property = await prisma.property.findUnique({
-      where: { slug: params.slug },
+      where: { slug: params.slug, publishstatus: 'PUBLISHED' },
       include: {
         image: { select: { id: true, url: true, filepath: true, imagetype: true } },
         feature: { select: { id: true, name: true } },

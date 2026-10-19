@@ -21,6 +21,7 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [accountType, setAccountType] = useState<'BUYER' | 'AGENT'>('BUYER');
   const router = useRouter();
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupFormInputs>();
 
@@ -70,7 +71,7 @@ const SignupPage = () => {
     setIsSubmitting(true);
     setError('');
     try {
-      const response = await axios.post('/api/signup', data);
+      const response = await axios.post('/api/signup', { ...data, accountType });
       console.log("Signup response:", response.data);
 
       await signIn('credentials',{
@@ -81,7 +82,7 @@ const SignupPage = () => {
 
       )
 
-      router.push('/'); // Redirect to homepage
+      router.push(accountType === 'AGENT' ? '/agent' : '/'); // Redirect to agent dashboard or homepage
     } catch (err: any) {
       console.error("Error during signup:", err);
       setError(err.response?.data?.message || 'An error occurred during signup');
@@ -106,6 +107,35 @@ const SignupPage = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium text-zinc-700">I'm signing up as a</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAccountType('BUYER')}
+                  className={`rounded-md border px-3 py-2 text-sm ${
+                    accountType === 'BUYER' ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-gray-200 text-zinc-600'
+                  }`}
+                >
+                  Buyer / Renter
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountType('AGENT')}
+                  className={`rounded-md border px-3 py-2 text-sm ${
+                    accountType === 'AGENT' ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-gray-200 text-zinc-600'
+                  }`}
+                >
+                  Agent / Property owner
+                </button>
+              </div>
+              {accountType === 'AGENT' && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  Listings you submit are reviewed before they go live.
+                </p>
+              )}
+            </div>
+
             <div>
               <Input
                 placeholder="Enter your full name"

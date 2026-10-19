@@ -1,5 +1,5 @@
 // scripts/addNewProperties.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/prisma/generated/client';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';

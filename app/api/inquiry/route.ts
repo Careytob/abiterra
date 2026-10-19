@@ -10,96 +10,63 @@ const isValidUUID = (str: string) => {
   return uuidRegex.test(str);
 };
 
+const isValidEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+
 export async function POST(request: NextRequest) {
   try {
+    // Signing in is optional. If the sender is logged in we trust the
+    // session for who they are; otherwise we require them to tell us.
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "You must be logged in to send an inquiry." },
-        { status: 401 }
-      );
+    const body = await request.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json({ error: "Invalid request format." }, { status: 400 });
     }
-
-    const rawBody = await request.text();
-    console.log("Raw request body:", rawBody);
-
-    let body;
-    try {
-      body = JSON.parse(rawBody);
-    } catch (e) {
-      console.error("Failed to parse JSON body:", e);
-      return NextResponse.json(
-        { error: "Invalid request format." },
-        { status: 400 }
-      );
-    }
-
-    console.log("Parsed request body:", body);
 
     const { message, phone, propertyId } = body;
+    const name = session?.user?.name || body.name;
+    const email = session?.user?.email || body.email;
 
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Name is required." }, { status: 400 });
+    }
+    if (!email || !isValidEmail(email)) {
+      return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
+    }
     if (!phone) {
-      console.log("Missing phone number");
-      return NextResponse.json(
-        { error: "Phone number is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
     }
-
     if (!message) {
-      console.log("Missing message");
-      return NextResponse.json(
-        { error: "Message is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Message is required." }, { status: 400 });
     }
-
     if (!propertyId) {
-      console.log("Missing propertyId");
-      return NextResponse.json(
-        { error: "Property ID is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Property ID is required." }, { status: 400 });
     }
-
-    // Validate propertyId as a UUID
     if (!isValidUUID(propertyId)) {
-      console.log("Invalid propertyId format:", propertyId);
-      return NextResponse.json(
-        { error: "Invalid property ID format." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid property ID format." }, { status: 400 });
     }
 
-    // Verify property exists
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
       select: { id: true },
     });
 
     if (!property) {
-      console.log("Property not found for propertyId:", propertyId);
-      return NextResponse.json(
-        { error: "Property not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Property not found." }, { status: 404 });
     }
-
-    console.log("Creating inquiry with propertyId:", propertyId);
 
     const inquiry = await prisma.inquiry.create({
       data: {
+        name,
+        email,
         phone,
         message,
         propertyid: propertyId,
-        userid: session.user.id,
-        status: 'PENDING',
+        userid: session?.user?.id ?? null,
+        status: "PENDING",
         createdat: new Date(),
       },
     });
-
-    console.log("Inquiry created successfully:", inquiry.id);
 
     return NextResponse.json(
       { message: "Your inquiry was successfully sent!", inquiryId: inquiry.id },

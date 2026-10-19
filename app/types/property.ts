@@ -1,5 +1,5 @@
 // app/types/property.ts
-import { property_type, property_status } from '@prisma/client';
+import { property_type, property_status } from '@/prisma/generated/client';
 
 /**
  * Property interface that matches the database schema with proper typing

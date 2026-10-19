@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
+import { useSession } from 'next-auth/react';
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";  
 import { Textarea } from "@/app/components/ui/textarea";
@@ -21,39 +22,45 @@ interface ContactFormProps {
 }
 
 interface FormData {
+  name: string;
+  email: string;
   message: string;
   phone: string;
 }
 
 const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }) => {
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const isSignedIn = Boolean(session?.user);
   const [isSuccess, setIsSuccess] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: {
+      name: session?.user?.name || '',
+      email: session?.user?.email || '',
+    },
+  });
 
   const onSubmit = async (data: FormData) => {
     try {
-      console.log("Property ID before submission:", propertyId);
-      
       // Validate propertyId as a UUID
       if (!propertyId || !isValidUUID(propertyId)) {
-        console.error("Invalid propertyId:", propertyId);
         throw new Error("Invalid property reference. Please try again later.");
       }
 
       const formData = {
+        name: data.name,
+        email: data.email,
         message: data.message,
         phone: data.phone,
-        propertyId, // Pass as string
+        propertyId,
       };
-
-      console.log("Sending inquiry payload:", JSON.stringify(formData));
 
       const response = await fetch('/api/inquiry', {  
         method: 'POST',
@@ -117,7 +124,31 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
           <pre>{debugInfo}</pre>
         </div>
       )}
-      
+
+      <div>
+        <Input
+          {...register("name", { required: "Name is required" })}
+          placeholder="Your Name"
+          readOnly={isSignedIn}
+          className={`${isSignedIn ? 'bg-gray-50' : ''} ${errors.name ? 'border-red-500' : ''}`}
+        />
+        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+      </div>
+
+      <div>
+        <Input
+          {...register("email", {
+            required: "Email is required",
+            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" },
+          })}
+          type="email"
+          placeholder="Your Email"
+          readOnly={isSignedIn}
+          className={`${isSignedIn ? 'bg-gray-50' : ''} ${errors.email ? 'border-red-500' : ''}`}
+        />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+      </div>
+
       <div>
         <Input
           {...register("phone", {
@@ -138,7 +169,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
         <Textarea
           {...register("message", { required: "Message is required" })}
           placeholder="Your Message"
-          
           className={errors.message ? 'border-red-500' : ''}
         />
         {errors.message && <p className="text-red-500 text-sm">{errors.message.message}</p>}

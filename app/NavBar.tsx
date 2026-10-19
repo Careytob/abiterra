@@ -27,10 +27,15 @@ const NavBar = () => {
     };
   }, [isMenuOpen]);
 
+  // Rentals are a complete, working part of the app (see app/rent) but are
+  // hidden from navigation by default — flip NEXT_PUBLIC_ENABLE_RENTALS to
+  // "true" in your env to turn the module on for a given deployment.
+  const rentalsEnabled = process.env.NEXT_PUBLIC_ENABLE_RENTALS === 'true';
+
   const links = [
     { label: 'Home', href: '/' },
     { label: 'Buy', href: '/buy' },
-    
+    ...(rentalsEnabled ? [{ label: 'Rent', href: '/rent' }] : []),
     { label: 'About Us', href: '/aboutus' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },

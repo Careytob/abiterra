@@ -10,7 +10,15 @@ declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      role: 'USER' | 'AGENT' | 'ADMIN';
     } & DefaultSession['user'];
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string;
+    role: 'USER' | 'AGENT' | 'ADMIN';
   }
 }
 
@@ -55,6 +63,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         };
       },
     }),
@@ -69,12 +78,20 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        // `user` comes either from `authorize()` (credentials) or the
+        // Prisma adapter (OAuth), both of which include `role`.
+        token.role = (user as { role?: 'USER' | 'AGENT' | 'ADMIN' }).role ?? 'USER';
+      } else if (token.id && !token.role) {
+        // Backfill role for sessions issued before this field existed.
+        const dbUser = await prisma.user.findUnique({ where: { id: token.id } });
+        token.role = dbUser?.role ?? 'USER';
       }
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.role = token.role ?? 'USER';
       }
       return session;
     },

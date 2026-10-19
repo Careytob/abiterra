@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password } = body;
+    const { name, email, password, accountType } = body;
 
     // Validate fields
     if (!name || !email || !password) {
@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const role = accountType === 'AGENT' ? 'AGENT' : 'USER';
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, image: '/default-avatar.png', },
+      data: { name, email, password: hashedPassword, image: '/default-avatar.png', role },
     });
 
     return NextResponse.json(

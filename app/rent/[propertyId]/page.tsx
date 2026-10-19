@@ -10,10 +10,12 @@ type PageProps = {
   };
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const property = await prisma.property.findUnique({
-      where: { id: parseInt(params.propertyId, 10) },
+      where: { id: params.propertyId, publishstatus: 'PUBLISHED' },
       select: {
         title: true,
         description: true,
@@ -63,14 +65,12 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     notFound();
   }
 
-  const parsedPropertyId = parseInt(params.propertyId, 10);
-
-  if (isNaN(parsedPropertyId) || parsedPropertyId < 1) {
+  if (!UUID_REGEX.test(params.propertyId)) {
     notFound();
   }
 
   const property = await prisma.property.findUnique({
-    where: { id: parsedPropertyId },
+    where: { id: params.propertyId, publishstatus: 'PUBLISHED' },
     select: {
       id: true,
       price: true,

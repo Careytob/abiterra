@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolvedParams = await params;
   try {
     const property = await prisma.property.findUnique({
-      where: { slug: resolvedParams.slug },
+      where: { slug: resolvedParams.slug, publishstatus: 'PUBLISHED' },
       select: {
         title: true,
         description: true,
@@ -99,7 +99,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
   let property;
   try {
     property = await prisma.property.findUnique({
-      where: { slug: resolvedParams.slug },
+      where: { slug: resolvedParams.slug, publishstatus: 'PUBLISHED' },
       include: {
         image: { select: { id: true, url: true, filepath: true, imagetype: true } },
         feature: { select: { id: true, name: true } },

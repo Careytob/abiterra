@@ -16,6 +16,7 @@ async function getFeaturedProperties() {
       where: {
         availability: true,
         type: 'SALE',
+        publishstatus: 'PUBLISHED',
       },
       select: {
         id: true,
