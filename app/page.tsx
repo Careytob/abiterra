@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from 'next/link';
+import { siteConfig, formatPrice, formatArea, inRegion, absoluteUrl } from '@/lib/site-config';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
 import 'leaflet/dist/leaflet.css';
@@ -86,9 +87,13 @@ async function getFeaturedProperties() {
           type: 'For Sale',
           price: property.price,
           title: property.title,
-          details: `${property.bedrooms} Beds • ${property.bathrooms} Baths • ${property.toilets} Toilets • ${
-            property.area !== null ? `${property.area} sqft` : 'NA'
-          }${property.bq ? ` • ${property.bq} BQ` : ''}`,
+          details: [
+            `${property.bedrooms} Beds`,
+            `${property.bathrooms} Baths`,
+            ...(siteConfig.features.showToilets ? [`${property.toilets} Toilets`] : []),
+            formatArea(property.area, 'N/A'),
+            ...(siteConfig.features.showBQ && property.bq ? [`${property.bq} BQ`] : []),
+          ].join(' • '),
           location: `${property.city}, ${property.state}`,
           image: imageUrl,
           propertyType: property.type,
@@ -103,78 +108,64 @@ async function getFeaturedProperties() {
   }
 }
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 0,
-  }).format(price);
-}
-
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'Abiterra - Luxury Properties for Sale in Lagos, Nigeria',
-  description: 'Discover luxury properties for sale in Lagos, Nigeria. Browse our curated collection of verified homes.',
-  keywords: 'luxury properties, real estate Lagos, homes for sale Nigeria, Abiterra',
+  title: `${siteConfig.name} - Properties for Sale${inRegion()}`,
+  description: siteConfig.description,
   alternates: {
-    canonical: 'https://abiterra.com',
+    canonical: siteConfig.url,
   },
   openGraph: {
-    title: 'Abiterra - Luxury Properties for Sale in Lagos, Nigeria',
-    description: 'Find your dream home with Abiterra. Explore exclusive properties for sale in Lagos, Nigeria.',
-    url: 'https://abiterra.com',
+    title: `${siteConfig.name} - Properties for Sale${inRegion()}`,
+    description: siteConfig.description,
+    url: siteConfig.url,
     images: [
       {
-        url: 'https://abiterra.com/og-image.jpg',
+        url: absoluteUrl('/hero_image.webp'),
         width: 1200,
         height: 630,
-        alt: 'Abiterra Luxury Properties',
+        alt: siteConfig.name,
       },
     ],
-    siteName: 'Abiterra',
+    siteName: siteConfig.name,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Abiterra - Luxury Properties for Sale in Lagos, Nigeria',
-    description: 'Find your dream home with Abiterra',
-    images: ['https://abiterra.com/og-image.jpg'],
+    title: `${siteConfig.name} - Properties for Sale${inRegion()}`,
+    description: siteConfig.description,
+    images: [absoluteUrl('/hero_image.webp')],
   },
 };
 
 export default async function Home() {
   const featuredProperties = await getFeaturedProperties();
 
-  const structuredData = {
+  const sameAs = Object.values(siteConfig.social).filter(Boolean);
+  const structuredData: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
-    name: 'Abiterra',
-    description: 'Find your perfect property for sale in Nigeria',
-    url: 'https://abiterra.com',
+    name: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
     logo: {
       '@type': 'ImageObject',
-      url: 'https://abiterra.com/logo.png',
-      width: 200,
-      height: 60,
+      url: absoluteUrl('/logo.svg'),
     },
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Lagos',
-      addressRegion: 'Lagos',
-      addressCountry: 'NG',
-    },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+2341234567890',
-      contactType: 'customer service',
-      areaServed: 'NG',
-      availableLanguage: 'English',
-    },
-    sameAs: [
-      'https://facebook.com/abiterra',
-      'https://twitter.com/abiterra',
-      'https://instagram.com/abiterra',
-    ],
+    ...(siteConfig.countryCode
+      ? { address: { '@type': 'PostalAddress', addressCountry: siteConfig.countryCode } }
+      : {}),
+    ...(siteConfig.contact.phone
+      ? {
+          contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: siteConfig.contact.phone,
+            contactType: 'customer service',
+            availableLanguage: 'English',
+          },
+        }
+      : {}),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 
   return (
@@ -189,7 +180,7 @@ export default async function Home() {
           <div className="absolute inset-0">
             <img
               src="/hero_image.webp"
-              alt="Luxury property in Lagos, Nigeria"
+              alt={`${siteConfig.name} featured property`}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <div className="absolute inset-0 bg-black/50"></div>
@@ -197,7 +188,7 @@ export default async function Home() {
           <div className="relative max-w-7xl mx-auto px-4 h-full flex flex-col justify-center">
             <div className="max-w-2xl">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-                Find Your Dream Home
+                {siteConfig.tagline}
               </h1>
               <p className="text-xl sm:text-2xl text-white mb-8">
                 Discover exceptional properties for sale
@@ -267,17 +258,17 @@ export default async function Home() {
                 {
                   icon: '🏠',
                   title: 'Wide Selection',
-                  description: 'Thousands of verified properties for sale',
+                  description: 'Browse listings from trusted agents and owners',
                 },
                 {
                   icon: '✓',
                   title: 'Verified Listings',
-                  description: 'All properties are verified by our expert team',
+                  description: 'Every listing is reviewed before it goes live',
                 },
                 {
                   icon: '💼',
                   title: 'Expert Support',
-                  description: 'Professional guidance throughout your journey',
+                  description: 'Enquire directly with the listing agent',
                 },
               ].map((feature, index) => (
                 <div key={index} className="text-center">

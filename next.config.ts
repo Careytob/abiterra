@@ -5,11 +5,6 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'szeqlqhzewvrdeerdamx.supabase.co',
-        pathname: '/storage/v1/object/**',
-      },
-      {
-        protocol: 'https',
         hostname: '*.supabase.co',
         pathname: '/**',
       },
@@ -54,17 +49,16 @@ const nextConfig = {
       },
     ];
   },
+  // Optional: redirect www.<host> -> <host>. Set CANONICAL_HOST (e.g. "example.com")
+  // in your env to enable it. Nothing is redirected when it is unset.
   async redirects() {
+    const canonicalHost = process.env.CANONICAL_HOST?.trim();
+    if (!canonicalHost) return [];
     return [
       {
         source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.abiterra.com',
-          },
-        ],
-        destination: 'https://abiterra.com/:path*',
+        has: [{ type: 'host', value: `www.${canonicalHost}` }],
+        destination: `https://${canonicalHost}/:path*`,
         permanent: true,
       },
     ];

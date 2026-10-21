@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import { formatPrice } from '@/lib/site-config';
 import { Share2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -15,7 +16,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ title, location, price }) => 
   const handleShare = async () => {
     const shareData = {
       title: 'Property Listing',
-      text: `Check out this property: ${title} in ${location} for ₦${price.toLocaleString()}`,
+      text: `Check out this property: ${title} in ${location} for ${formatPrice(price)}`,
       url: window.location.href,
     };
 

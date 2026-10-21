@@ -1,5 +1,6 @@
 // lib/watermark.ts
 import sharp from 'sharp';
+import { watermarkText } from './site-config';
 import fetch from 'node-fetch';
 import * as Sentry from '@sentry/nextjs';
 
@@ -16,7 +17,7 @@ export async function addWatermark(
   options: WatermarkOptions = {}
 ): Promise<Buffer> {
   const {
-    text = 'Abiterra.com',
+    text = watermarkText(),
     opacity = 0.3,
     fontSize = 40,
     color = 'rgba(255, 255, 255, 0.5)',

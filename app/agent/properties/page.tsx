@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatPrice } from '@/lib/site-config';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -21,7 +22,6 @@ type AgentProperty = {
   image: { id: string; url: string; ismain: boolean | null }[];
 };
 
-const currency = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
 const STATUS_STYLES: Record<string, string> = {
   PENDING: 'bg-amber-100 text-amber-700',
@@ -114,7 +114,7 @@ export default function AgentPropertiesPage() {
                     </span>
                   </div>
                   <p className="text-sm text-zinc-500">
-                    {property.type} · ₦{currency.format(property.price)} · {property.city}, {property.state}
+                    {property.type} · {formatPrice(property.price)} · {property.city}, {property.state}
                   </p>
                   {property.publishstatus === 'REJECTED' && property.rejectionreason && (
                     <p className="mt-1 text-sm text-red-600">Reason: {property.rejectionreason}</p>

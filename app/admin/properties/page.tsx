@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { formatPrice } from '@/lib/site-config';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -24,7 +25,6 @@ type AdminProperty = {
   image: { id: string; url: string; ismain: boolean | null }[];
 };
 
-const currency = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
 const TABS = ['All', 'Pending', 'Published', 'Rejected'] as const;
 
@@ -184,7 +184,7 @@ export default function AdminPropertiesPage() {
                     )}
                   </div>
                   <p className="text-sm text-zinc-500">
-                    {property.type} · ₦{currency.format(property.price)} · {property.city}, {property.state}
+                    {property.type} · {formatPrice(property.price)} · {property.city}, {property.state}
                     {property.agent && <> · Listed by {property.agent.name}</>}
                   </p>
                   {property.publishstatus === 'REJECTED' && property.rejectionreason && (

@@ -1,5 +1,6 @@
 //app/bog/category/[category]/page.tsx
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 import Link from 'next/link';
 import { getPostsByCategory, getAllCategories } from '@/lib/blogHelpers';
 import BlogCard from '@/app/components/BlogCard';
@@ -10,22 +11,22 @@ export const revalidate = 3600; // Revalidate every hour
 export async function generateMetadata({ params }) {
   const category = decodeURIComponent(params.category);
   return {
-    title: `${category} | Abiterra Real Estate Blog`,
-    description: `Explore articles on ${category} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
-    keywords: [category.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
+    title: `${category} | ${siteConfig.name} Real Estate Blog`,
+    description: `Explore articles on ${category} in the real estate market, including buying guides, investment tips, and market trends.`,
+    keywords: [category.toLowerCase(), 'property insights'],
     alternates: {
-      canonical: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+      canonical: `${siteConfig.url}/blog/category/${encodeURIComponent(category.toLowerCase())}`,
     },
     openGraph: {
-      title: `${category} | Abiterra Real Estate Blog`,
-      description: `Explore articles on ${category} in the Lagos real estate market.`,
-      url: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+      title: `${category} | ${siteConfig.name} Real Estate Blog`,
+      description: `Explore articles on ${category} in the real estate market.`,
+      url: `${siteConfig.url}/blog/category/${encodeURIComponent(category.toLowerCase())}`,
       images: [
         {
           url: '/images/blog/blog-cover.jpg',
           width: 1200,
           height: 630,
-          alt: `${category} - Abiterra Real Estate Blog`,
+          alt: `${category} - ${siteConfig.name} Real Estate Blog`,
         },
       ],
     },
@@ -42,9 +43,9 @@ export default async function Page({ params, searchParams }) {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${category} - Abiterra Real Estate Blog`,
-    description: `Articles on ${category} in the Lagos real estate market.`,
-    url: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+    name: `${category} - ${siteConfig.name} Real Estate Blog`,
+    description: `Articles on ${category} in the real estate market.`,
+    url: `${siteConfig.url}/blog/category/${encodeURIComponent(category.toLowerCase())}`,
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -52,19 +53,19 @@ export default async function Page({ params, searchParams }) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://abiterra.com',
+          item: `${siteConfig.url}`,
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://abiterra.com/blog',
+          item: `${siteConfig.url}/blog`,
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: category,
-          item: `https://abiterra.com/blog/category/${encodeURIComponent(category.toLowerCase())}`,
+          item: `${siteConfig.url}/blog/category/${encodeURIComponent(category.toLowerCase())}`,
         },
       ],
     },
@@ -90,7 +91,7 @@ export default async function Page({ params, searchParams }) {
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">{category}</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Discover expert insights and guides on {category.toLowerCase()} in Lagos.
+            Discover expert insights and guides on {category.toLowerCase()} .
           </p>
         </div>
 

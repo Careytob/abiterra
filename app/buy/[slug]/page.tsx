@@ -1,5 +1,6 @@
 // app/buy/[slug]/page.tsx
 import { Metadata } from 'next';
+import { siteConfig, formatPrice, absoluteUrl, watermarkText } from '@/lib/site-config';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
@@ -60,18 +61,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       })
     );
 
-    const formattedPrice = new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0,
-    }).format(property.price);
+    const formattedPrice = formatPrice(property.price);
 
     return {
-      title: `${property.title} For Sale | Abiterra`,
+      title: `${property.title} For Sale | ${siteConfig.name}`,
       description: `Property for sale in ${property.location}. ${property.description?.substring(0, 150) || ''}...`,
       openGraph: {
-        title: `${property.title} - ${formattedPrice} | Abiterra`,
-        description: property.description || 'Property for sale at Abiterra',
+        title: `${property.title} - ${formattedPrice} | ${siteConfig.name}`,
+        description: property.description || `Property for sale at ${siteConfig.name}`,
         images: formattedImages.map((image) => ({
           url: image.url,
           width: 1200,
@@ -79,13 +76,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         })),
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/buy/${resolvedParams.slug}`,
+        canonical: absoluteUrl(`/buy/${resolvedParams.slug}`),
       },
     };
   } catch (error) {
     console.error('[PropertyDetailMetadata] Error generating metadata:', error);
     Sentry.captureException(error, { extra: { slug: resolvedParams.slug } });
-    return { title: 'Property For Sale | Abiterra' };
+    return { title: `Property For Sale | ${siteConfig.name}` };
   }
 }
 
@@ -145,7 +142,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
         let watermarkedUrl = data.signedUrl;
         try {
           watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
-            text: 'Abiterra.com',
+            text: watermarkText(),
             opacity: 0.3,
             fontSize: 40,
             color: 'rgba(255, 255, 255, 0.4)',

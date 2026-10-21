@@ -1,5 +1,6 @@
 // app/blog/page.tsx
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getBlogPosts, getAllCategories } from '@/lib/blogHelpers';
@@ -9,48 +10,41 @@ import Pagination from '@/app/components/Pagination';
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata = {
-  title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
-  description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips to help you make informed decisions.',
+  title: `Real Estate Blog | Property Insights & Guides | ${siteConfig.name}`,
+  description: 'Expert insights on the property market, home buying guides, and real estate investment tips to help you make informed decisions.',
   keywords: [
     'real estate blog',
     'property insights',
-    'Lagos real estate',
-    'Nigeria real estate',
     'real estate investment tips',
     'home buying tips',
     'property buying guide',
     'real estate market trends',
-    'Lagos property insights',
     'real estate news',
     'real estate advice',
-    'Buying property in Nigeria',
     'property market',
     'home buying guide',
-    'buying property in Lagos',
-    'Lagos property market trends',
-    'Nigeria real estate investment',
   ],
   alternates: {
-    canonical: 'https://abiterra.com/blog',
+    canonical: `${siteConfig.url}/blog`,
   },
   openGraph: {
-    title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
-    description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips.',
-    url: 'https://abiterra.com/blog',
+    title: `Real Estate Blog | Property Insights & Guides | ${siteConfig.name}`,
+    description: 'Expert insights on the property market, home buying guides, and real estate investment tips.',
+    url: `${siteConfig.url}/blog`,
     type: 'website',
     images: [
       {
         url: '/images/blog/blog-cover.jpg',
         width: 1200,
         height: 630,
-        alt: 'Abiterra Real Estate Blog - Lagos Property Insights',
+        alt: `${siteConfig.name} Real Estate Blog - Property Insights`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Real Estate Blog | Property Insights & Guides | Abiterra',
-    description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips.',
+    title: `Real Estate Blog | Property Insights & Guides | ${siteConfig.name}`,
+    description: 'Expert insights on the property market, home buying guides, and real estate investment tips.',
     images: ['/images/blog/blog-cover.jpg'],
   },
 };
@@ -68,15 +62,15 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const blogStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'Abiterra Real Estate Blog',
-    description: 'Expert insights on the Lagos property market, home buying guides, and real estate investment tips.',
-    url: `https://abiterra.com/blog${currentPage > 1 ? `?page=${currentPage}` : ''}`,
+    name: `${siteConfig.name} Real Estate Blog`,
+    description: 'Expert insights on the property market, home buying guides, and real estate investment tips.',
+    url: `${siteConfig.url}/blog${currentPage > 1 ? `?page=${currentPage}` : ''}`,
     publisher: {
       '@type': 'Organization',
-      name: 'Abiterra',
+      name: siteConfig.name,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://abiterra.com/logo.png',
+        url: `${siteConfig.url}/logo.svg`,
         width: 200,
         height: 60,
       },
@@ -88,13 +82,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://abiterra.com',
+          item: `${siteConfig.url}`,
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://abiterra.com/blog',
+          item: `${siteConfig.url}/blog`,
         },
       ],
     },
@@ -106,7 +100,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         '@type': 'Person',
         name: post.author,
       },
-      url: `https://abiterra.com/blog/${post.slug}`,
+      url: `${siteConfig.url}/blog/${post.slug}`,
       image: {
         '@type': 'ImageObject',
         url: post.coverImage || '/images/blog/default-cover.jpg',
@@ -175,7 +169,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   ) : null}
                   <Image
                     src={blogPosts[0].coverImage || '/images/blog/default-cover.jpg'}
-                    alt={`${blogPosts[0].title} - Lagos real estate guide`}
+                    alt={`${blogPosts[0].title} - real estate guide`}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover"

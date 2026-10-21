@@ -1,6 +1,7 @@
 
 // app/components/Map.tsx
 import React, { useEffect, useState, useRef } from 'react';
+import { formatPrice } from '@/lib/site-config';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import L, { Map } from 'leaflet';
@@ -144,7 +145,7 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
                   <div className="p-2">
                     <h3 className="font-semibold">{property.title}</h3>
                     <p className="text-sm text-gray-600">{property.location}</p>
-                    <p className="text-sm font-bold mt-1">₦{property.price}</p>
+                    <p className="text-sm font-bold mt-1">{formatPrice(property.price)}</p>
                   </div>
                 </Popup>
               </Marker>

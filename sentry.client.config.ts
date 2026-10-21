@@ -5,7 +5,8 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: "https://c0160c02b69b886ce7aabc322868f715@o4508596239597568.ingest.us.sentry.io/4508596254081024",
+  // Set NEXT_PUBLIC_SENTRY_DSN in your env to enable error reporting. With no DSN, Sentry stays disabled.
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || undefined,
 
   // Add optional integrations for additional features
   integrations: [

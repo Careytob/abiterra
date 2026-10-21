@@ -15,10 +15,10 @@ const supabase = createClient(
 
 async function getPublicUrl(imagePath: string): Promise<string> {
   const defaultImage = '/images/blog/default-cover.jpg';
-  if (!imagePath || imagePath.startsWith('http')) {
-    console.warn(`[Blog] Invalid or external image path: ${imagePath}, returning default`);
-    return imagePath || defaultImage;
-  }
+  // Absolute URLs and site-relative paths (e.g. /images/blog/cover.jpg served from
+  // /public) are used as-is. Only bare paths are looked up in Supabase Storage.
+  if (!imagePath) return defaultImage;
+  if (imagePath.startsWith('http') || imagePath.startsWith('/')) return imagePath;
 
   try {
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
@@ -87,7 +87,7 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
           publishDate: data.publishDate || new Date().toISOString(),
           category: data.category || 'Real Estate',
           tags: data.tags || [],
-          excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
+          excerpt: data.excerpt || 'Read our latest real estate insights and guides.',
           coverImage: publicCoverImage,
           readTime: data.readTime || calculateReadTime(content),
         } as BlogPost;
@@ -155,7 +155,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       publishDate: data.publishDate || new Date().toISOString(),
       category: data.category || 'Real Estate',
       tags: data.tags || [],
-      excerpt: data.excerpt || 'Read our latest insights on the Lagos real estate market.',
+      excerpt: data.excerpt || 'Read our latest real estate insights and guides.',
       coverImage: publicCoverImage,
       readTime: data.readTime || calculateReadTime(content),
     } as BlogPost;

@@ -1,12 +1,13 @@
 // app/agent/layout.tsx
 import { getServerSession } from 'next-auth';
+import { siteConfig } from '@/lib/site-config';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import AdminSignOutButton from '../admin/AdminSignOutButton';
 
 export const metadata = {
-  title: 'Agent Dashboard · Abiterra',
+  title: `Agent Dashboard · ${siteConfig.name}`,
   robots: { index: false, follow: false },
 };
 

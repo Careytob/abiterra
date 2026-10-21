@@ -27,7 +27,7 @@ export const propertyInputSchema = z.object({
   bedrooms: z.coerce.number().int().nonnegative(),
   bathrooms: z.coerce.number().int().nonnegative(),
   bq: z.coerce.number().int().nonnegative().default(0),
-  toilets: z.coerce.number().int().nonnegative(),
+  toilets: z.coerce.number().int().nonnegative().default(0),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   latitude: z.coerce.number().nullable().optional(),

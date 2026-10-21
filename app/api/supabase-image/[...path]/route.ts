@@ -1,5 +1,6 @@
 // app/api/supabase-image/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { siteConfig } from '@/lib/site-config';
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
@@ -32,7 +33,7 @@ export async function GET(
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     if (listError) {
       console.error('[API] Supabase storage connection failed:', listError.message);
-      return NextResponse.redirect('https://abiterra.com/api/placeholder/800/600');
+      return NextResponse.redirect(new URL('/images/placeholder.jpg', siteConfig.url));
     }
     console.log('[API] Storage buckets:', buckets.map(b => b.name));
 
@@ -53,18 +54,18 @@ export async function GET(
 
     if (error) {
       console.error(`[API] Error creating signed URL: ${error.message}`, { path });
-      return NextResponse.redirect('https://abiterra.com/api/placeholder/800/600');
+      return NextResponse.redirect(new URL('/images/placeholder.jpg', siteConfig.url));
     }
 
     if (!data?.signedUrl) {
       console.error('[API] No signed URL received from Supabase', { path });
-      return NextResponse.redirect('https://abiterra.com/api/placeholder/800/600');
+      return NextResponse.redirect(new URL('/images/placeholder.jpg', siteConfig.url));
     }
 
     console.log('[API] Signed URL created:', data.signedUrl);
     return NextResponse.redirect(data.signedUrl);
   } catch (error) {
     console.error('[API] Unexpected error:', error);
-    return NextResponse.redirect('https://abiterra.com/api/placeholder/800/600');
+    return NextResponse.redirect(new URL('/images/placeholder.jpg', siteConfig.url));
   }
 }

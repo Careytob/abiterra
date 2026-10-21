@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatPrice, formatArea } from '@/lib/site-config';
 import dynamic from 'next/dynamic';
 import PropertyCard from './PropertyCard';
 import Link from 'next/link';
@@ -77,11 +78,7 @@ export default function ViewModeToggle({ properties }: ViewModeToggleProps) {
                       <span className="line-clamp-1">{property.location}</span>
                     </div>
                     <div className="text-base sm:text-lg font-bold text-gray-900 mt-1">
-                      {new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                      }).format(property.price)}
+                      {formatPrice(property.price)}
                     </div>
                     <dl className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm mt-2">
                       <div className="flex items-center gap-1">
@@ -94,7 +91,7 @@ export default function ViewModeToggle({ properties }: ViewModeToggleProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Square className="w-4 h-4" />
-                        <dd>{property.area ? `${property.area} sqft` : 'N/A'}</dd>
+                        <dd>{formatArea(property.area)}</dd>
                       </div>
                     </dl>
                     <Link

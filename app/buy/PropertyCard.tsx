@@ -2,19 +2,12 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { formatPrice, formatArea } from '@/lib/site-config';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Bed, Bath, Square, ArrowRight, MapPin } from 'lucide-react';
 import { Property } from '@/app/types/property';
 
-const formatPrice = (price: number): string => {
-  const formatter = new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 0,
-  });
-  return formatter.format(price); // Includes ₦
-};
 
 export default function PropertyCard({ property }: { property: Property }) {
   const [imageError, setImageError] = useState(false);
@@ -109,7 +102,7 @@ export default function PropertyCard({ property }: { property: Property }) {
           </div>
           <div className="flex items-center gap-1">
             <Square className="w-4 h-4" />
-            <dd>{property.area ? `${property.area} sqft` : 'N/A'}</dd>
+            <dd>{formatArea(property.area)}</dd>
           </div>
         </dl>
         <Link

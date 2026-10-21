@@ -1,5 +1,6 @@
 // app/blog/tag/[tag]/page.tsx
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { getPostsByTag, getAllCategories } from '@/lib/blogHelpers';
@@ -16,22 +17,22 @@ export async function generateMetadata({
   const tag = decodeURIComponent(params.tag);
 
   return {
-    title: `#${tag} | Abiterra Real Estate Blog`,
-    description: `Explore articles tagged with ${tag} in the Lagos real estate market, including buying guides, investment tips, and market trends.`,
-    keywords: [tag.toLowerCase(), 'lagos real estate', 'property insights', 'nigeria real estate'],
+    title: `#${tag} | ${siteConfig.name} Real Estate Blog`,
+    description: `Explore articles tagged with ${tag} in the real estate market, including buying guides, investment tips, and market trends.`,
+    keywords: [tag.toLowerCase(), 'property insights'],
     alternates: {
-      canonical: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+      canonical: `${siteConfig.url}/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
     },
     openGraph: {
-      title: `#${tag} | Abiterra Real Estate Blog`,
-      description: `Explore articles tagged with ${tag} in the Lagos real estate market.`,
-      url: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+      title: `#${tag} | ${siteConfig.name} Real Estate Blog`,
+      description: `Explore articles tagged with ${tag} in the real estate market.`,
+      url: `${siteConfig.url}/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
       images: [
         {
-          url: 'https://abiterra.com/images/blog/blog-cover.jpg',
+          url: `${siteConfig.url}/images/blog/blog-cover.jpg`,
           width: 1200,
           height: 630,
-          alt: `${tag} - Abiterra Real Estate Blog`,
+          alt: `${tag} - ${siteConfig.name} Real Estate Blog`,
         },
       ],
     },
@@ -54,9 +55,9 @@ export default async function TagPage({
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `#${tag} - Abiterra Real Estate Blog`,
-    description: `Articles tagged with ${tag} in the Lagos real estate market.`,
-    url: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+    name: `#${tag} - ${siteConfig.name} Real Estate Blog`,
+    description: `Articles tagged with ${tag} in the real estate market.`,
+    url: `${siteConfig.url}/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -64,19 +65,19 @@ export default async function TagPage({
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://abiterra.com',
+          item: `${siteConfig.url}`,
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://abiterra.com/blog',
+          item: `${siteConfig.url}/blog`,
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: `#${tag}`,
-          item: `https://abiterra.com/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
+          item: `${siteConfig.url}/blog/tag/${encodeURIComponent(tag.toLowerCase())}`,
         },
       ],
     },
@@ -92,10 +93,10 @@ export default async function TagPage({
       {totalPages > 1 && (
         <>
           {currentPage > 1 && (
-            <link rel="prev" href={`https://abiterra.com/blog/tag/${encodeURIComponent(params.tag)}?page=${currentPage - 1}`} />
+            <link rel="prev" href={`${siteConfig.url}/blog/tag/${encodeURIComponent(params.tag)}?page=${currentPage - 1}`} />
           )}
           {currentPage < totalPages && (
-            <link rel="next" href={`https://abiterra.com/blog/tag/${encodeURIComponent(params.tag)}?page=${currentPage + 1}`} />
+            <link rel="next" href={`${siteConfig.url}/blog/tag/${encodeURIComponent(params.tag)}?page=${currentPage + 1}`} />
           )}
         </>
       )}
@@ -103,7 +104,7 @@ export default async function TagPage({
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">#{tag}</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Discover articles tagged with {tag.toLowerCase()} in Lagos real estate.
+            Discover articles tagged with {tag.toLowerCase()} in real estate.
           </p>
         </div>
 

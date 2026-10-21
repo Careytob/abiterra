@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { siteConfig, formatPrice as formatMoney, formatArea } from '@/lib/site-config';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,16 +67,10 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
 
   const formatPrice = (price: number) => {
     try {
-      const formatter = new Intl.NumberFormat('en-NG', {
-        style: 'currency',
-        currency: 'NGN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      return <span className="text-xl md:text-3xl font-bold">{formatter.format(price)}</span>;
+      return <span className="text-xl md:text-3xl font-bold">{formatMoney(price)}</span>;
     } catch (error) {
       console.error('[BuyPropertyDetailClient] Error formatting price:', error);
-      return '₦0';
+      return formatMoney(0);
     }
   };
 
@@ -247,11 +242,15 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
             { icon: BedDouble, value: property.bq, label: 'BQ' },
             {
               icon: Square,
-              value: property.area != null && property.area > 0 ? `${property.area} sqft` : 'Not Available',
+              value: formatArea(property.area, 'Not Available'),
               label: 'Area',
               fullWidth: true,
             },
-          ].map((detail, index) => (
+          ].filter((d) =>
+            d.label === 'Toilets' ? siteConfig.features.showToilets
+              : d.label === 'BQ' ? siteConfig.features.showBQ
+              : true
+          ).map((detail, index) => (
             <Card
               key={index}
               className={`p-3 md:p-6 bg-white shadow-lg ${detail.fullWidth ? 'md:col-span-2 lg:col-span-2' : ''}`}

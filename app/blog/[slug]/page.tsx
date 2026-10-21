@@ -1,5 +1,6 @@
 // app/blog/[slug]/page.tsx
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 import { getBlogPostBySlug, getRelatedPosts } from '@/lib/blogHelpers';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,8 +10,8 @@ import SocialShareButtons from '@/app/components/SocialShareButtons';
 export const revalidate = 3600; // Revalidate every hour
 
 export const metadata = {
-  title: 'Blog Post | Abiterra Real Estate',
-  description: 'Explore our real estate blog for insights on Lagos property market.',
+  title: `Blog Post | ${siteConfig.name} Real Estate`,
+  description: 'Explore our real estate blog for property insights and buying guides.',
 };
 
 export default async function BlogPostPage({
@@ -56,10 +57,10 @@ export default async function BlogPostPage({
       : undefined,
     publisher: {
       '@type': 'Organization',
-      name: 'Abiterra',
+      name: siteConfig.name,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://abiterra.com/logo.png',
+        url: `${siteConfig.url}/logo.svg`,
         width: 200,
         height: 60,
       },
@@ -68,7 +69,7 @@ export default async function BlogPostPage({
     keywords: post.tags.join(', '),
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://abiterra.com/blog/${post.slug}`,
+      '@id': `${siteConfig.url}/blog/${post.slug}`,
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
@@ -77,19 +78,19 @@ export default async function BlogPostPage({
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://abiterra.com',
+          item: `${siteConfig.url}`,
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Blog',
-          item: 'https://abiterra.com/blog',
+          item: `${siteConfig.url}/blog`,
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: post.title,
-          item: `https://abiterra.com/blog/${post.slug}`,
+          item: `${siteConfig.url}/blog/${post.slug}`,
         },
       ],
     },
@@ -121,7 +122,7 @@ export default async function BlogPostPage({
                 {post.coverImage && console.log(`[BlogPost] Loading cover image: ${post.coverImage}`)}
                 <Image
                   src={post.coverImage}
-                  alt={`${post.title} - Lagos real estate article`}
+                  alt={`${post.title} - real estate article`}
                   width={1200}
                   height={630}
                   className="w-full h-64 object-cover rounded-lg mt-4"
@@ -136,7 +137,7 @@ export default async function BlogPostPage({
         <aside className="md:w-1/3 sticky top-28 self-start">
           <div className="bg-blue-50 p-6 rounded-lg mb-6">
             <h3 className="text-xl font-bold mb-3">Explore Properties</h3>
-            <p className="mb-4">Find your dream home in Lagos today.</p>
+            <p className="mb-4">Find your dream home today.</p>
             <Link href="/buy" className="block bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 mb-2 text-center">
               Browse Properties for Sale
             </Link>

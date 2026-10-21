@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 
 interface SocialShareButtonsProps {
   slug: string;
@@ -8,7 +9,7 @@ interface SocialShareButtonsProps {
 }
 
 export default function SocialShareButtons({ slug, title }: SocialShareButtonsProps) {
-  const url = `https://www.abiterra.com/blog/${slug}`;
+  const url = `${siteConfig.url}/blog/${slug}`;
 
   return (
     <div className="border-t border-b py-6 mb-12">

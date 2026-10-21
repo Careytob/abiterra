@@ -9,7 +9,9 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "build": "prisma generate && prisma migrate deploy && next build --no-lint",
-    "admin:promote": "tsx scripts/promote-admin.ts"
+    "admin:promote": "tsx scripts/promote-admin.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "demo:images": "node scripts/generate-demo-images.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

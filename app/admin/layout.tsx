@@ -1,12 +1,13 @@
 // app/admin/layout.tsx
 import { getServerSession } from 'next-auth';
+import { siteConfig } from '@/lib/site-config';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import AdminSignOutButton from './AdminSignOutButton';
 
 export const metadata = {
-  title: 'Admin · Abiterra',
+  title: `Admin · ${siteConfig.name}`,
   robots: { index: false, follow: false },
 };
 
@@ -25,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="container mx-auto flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6">
             <Link href="/admin/properties" className="text-lg font-semibold text-zinc-900">
-              Abiterra Admin
+              {siteConfig.name} Admin
             </Link>
             <nav className="flex items-center gap-4 text-sm text-zinc-600">
               <Link href="/admin/properties" className="hover:text-teal-600">

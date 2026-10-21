@@ -1,5 +1,6 @@
 //app/layout.tsx
 import "@radix-ui/themes/styles.css";
+import { siteConfig, htmlLang } from "@/lib/site-config";
 import "./theme-config.css";
 import "./globals.css";
 import type { Metadata } from "next";
@@ -31,84 +32,33 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://abiterra.com"),
-  title: "Abiterra Real Estate Platform",
-  description: "Your trusted platform for buying, renting, and investing in properties in Nigeria.",
-  keywords: [
-    "real estate",
-    "buy home",
-    "buy land",
-    "rent property",
-    "Lagos real estate",
-    "Nigeria property",
-    "buying property in Lagos",
-    "Lagos homes for sale",
-    'Abuja properties for sale',
-    "Port Harcourt real estate",
-    "Ibadan real estate",
-    "Nigerian real estate",
-    "property investment",
-    "real estate investment",
-    "luxury properties",
-    "real estate listings",
-    "property management",
-    "real estate agents",
-    "real estate market",
-    "real estate trends",
-    "real estate news",
-    "real estate tips",
-    "real estate advice",
-    "real estate resources",
-    "real estate services",
-    "real estate solutions",
-    "real estate technology",
-    "real estate platform",
-    "real estate website",
-    "real estate app",
-    "real estate tools",
-    "real estate software",
-    "real estate listings in Nigeria",
-    "real estate listings in Lagos",
-    "real estate listings in Abuja",
-    "real estate listings in Port Harcourt",
-    "real estate listings in Ibadan",
-    "real estate listings in Enugu",
-    "real estate listings in Kaduna",
-    "real estate listings in Kano",
-    "real estate listings in Owerri",
-    "real estate listings in Benin City",
-    "real estate listings in Warri",
-    "real estate listings in Uyo",
-    "real estate listings in Aba",
-    "real estate listings in Jos",
-    "real estate listings in Ilorin",
-    "real estate listings in Akure",
-    "real estate listings in Ado-Ekiti",
-    "rentals in Nigeria",
-    "Lagos property investment"
-  ],
+  metadataBase: new URL(siteConfig.url),
+  title: `${siteConfig.name} | ${siteConfig.tagline}`,
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
   alternates: {
-    canonical: "https://abiterra.com"
+    canonical: siteConfig.url,
   },
   openGraph: {
-    title: "Abiterra Real Estate Platform",
-    description: "Find your dream home or investment property in Nigeria.",
-    url: "https://abiterra.com",
+    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
     type: "website",
     images: [
       {
-        url: "/images/hero-image.jpg",
+        url: "/hero_image.webp",
         width: 1200,
         height: 630,
-        alt: "Real Estate - Abiterra",
+        alt: siteConfig.name,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Abiterra Real Estate Platform",
-    description: "Find your dream home or investment property in Nigeria.",
-    images: ["/images/hero-image.jpg"],
+    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    images: ["/hero_image.webp"],
   },
   icons: {
     icon: "/favicon.ico",
@@ -122,7 +72,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang={htmlLang()}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="index, follow" />

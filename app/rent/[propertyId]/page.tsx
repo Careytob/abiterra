@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { siteConfig, formatPrice, absoluteUrl, rentPeriodLabel } from '@/lib/site-config';
 import React from 'react';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
@@ -30,16 +31,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       return { title: 'Property Not Found' };
     }
 
-    const formattedPrice = new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-    }).format(property.price);
+    const formattedPrice = formatPrice(property.price);
 
     return {
-      title: `${property.title} For Rent | Your Brand`,
+      title: `${property.title} For Rent | ${siteConfig.name}`,
       description: `${property.bedrooms} bedroom property for rent in ${property.location}. ${property.description?.substring(0, 150)}...`,
       openGraph: {
-        title: `${property.title} - ${formattedPrice}/Year | Your Brand`, // Includes "/Year"
+        title: `${property.title} - ${formattedPrice}/${rentPeriodLabel().long} | ${siteConfig.name}`,
         description: property.description,
         images: property.images.map((image) => ({
           url: image.url,
@@ -48,14 +46,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         })),
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/rent/${params.propertyId}`,
+        canonical: absoluteUrl(`/rent/${params.propertyId}`),
       },
     };
     
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'Property For Rent | Your Brand',
+      title: `Property For Rent | ${siteConfig.name}`,
     };
   }
 }

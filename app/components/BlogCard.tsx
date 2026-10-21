@@ -1,5 +1,6 @@
 // components/BlogCard.tsx
 import React from 'react';
+import { siteConfig } from '@/lib/site-config';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BlogPost } from '@/types/blog';
@@ -15,7 +16,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
         {post.coverImage && <>{console.log(`[BlogCard] Loading image: ${post.coverImage}`)}</>}
         <Image
           src={post.coverImage || '/images/blog/default-cover.jpg'}
-          alt={`${post.title} - Lagos real estate guide`}
+          alt={`${post.title} - real estate guide`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover"

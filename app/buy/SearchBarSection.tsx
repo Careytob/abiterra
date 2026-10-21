@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { priceLabel } from '@/lib/site-config';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
@@ -152,7 +153,7 @@ export default function SearchBarSection({ defaultSearch = '' }: { defaultSearch
               </div>
               <div>
                 <label htmlFor="priceMin" className="block text-sm font-medium text-gray-700">
-                  Min Price (₦)
+                  {priceLabel('Min Price')}
                 </label>
                 <input
                   id="priceMin"
@@ -160,13 +161,13 @@ export default function SearchBarSection({ defaultSearch = '' }: { defaultSearch
                   type="number"
                   value={filters.priceMin}
                   onChange={handleFilterChange}
-                  placeholder="e.g., 5000000"
+                  placeholder="e.g., 100000"
                   className="mt-1 w-full rounded-md border-gray-200 py-2 text-sm"
                 />
               </div>
               <div>
                 <label htmlFor="priceMax" className="block text-sm font-medium text-gray-700">
-                  Max Price (₦)
+                  {priceLabel('Max Price')}
                 </label>
                 <input
                   id="priceMax"

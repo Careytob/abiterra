@@ -1,5 +1,6 @@
 // app/api/auth/forgot-password/route.ts
 import { prisma } from "@/lib/prisma";
+import { siteConfig } from '@/lib/site-config';
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { sendEmail } from "lib/email"; 
@@ -47,12 +48,12 @@ export async function POST(req: NextRequest) {
     });
 
     // Create the reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${siteConfig.url}/reset-password?token=${resetToken}`;
 
     // Send the email with the reset link
     await sendEmail({
       to: email,
-      subject: "Reset Your Password",
+      subject: `Reset your ${siteConfig.name} password`,
       text: `You requested a password reset. Please click on the following link to reset your password: ${resetUrl}. This link will expire in 1 hour.`,
       html: `
         <div>

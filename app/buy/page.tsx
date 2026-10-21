@@ -1,5 +1,6 @@
 // app/buy/page.tsx
 import { notFound } from 'next/navigation';
+import { siteConfig } from '@/lib/site-config';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import ViewModeToggle from './ViewModeToggle';
@@ -39,7 +40,7 @@ async function fetchProperties(
 
   let baseUrl: string;
   if (isProduction) {
-    baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://abiterra.com';
+    baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || siteConfig.url;
   } else {
     baseUrl = 'http://localhost:3000';
   }

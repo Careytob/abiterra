@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { siteConfig, formatPrice as formatMoney, rentPeriodLabel } from '@/lib/site-config';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,22 +55,15 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
 
   const formatPrice = (price: number) => {
     try {
-      const formatter = new Intl.NumberFormat('en-NG', {
-        style: 'currency',
-        currency: 'NGN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-  
       return (
         <div className="flex flex-col">
-          <span className="text-xl md:text-3xl font-bold">{formatter.format(price)}</span>
-          <span className="text-xs md:text-sm text-gray-600">per year</span>
+          <span className="text-xl md:text-3xl font-bold">{formatMoney(price)}</span>
+          <span className="text-xs md:text-sm text-gray-600">per {rentPeriodLabel().long}</span>
         </div>
       );
     } catch (error) {
       console.error('Error formatting price:', error);
-      return '₦0';
+      return formatMoney(0);
     }
   };
 
@@ -206,8 +200,12 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
             { icon: Bath, value: property.bathrooms, label: 'Bathrooms' },
             { icon: Bath, value: property.toilets, label: 'Toilets' },
             { icon: BedDouble, value: property.bq, label: 'BQ' },
-            { icon: Square, value: property.area, label: 'Sq Ft', fullWidth: true }
-          ].map((detail, index) => (
+            { icon: Square, value: property.area, label: siteConfig.areaUnit === 'sqm' ? 'Sq M' : 'Sq Ft', fullWidth: true }
+          ].filter((d) =>
+            d.label === 'Toilets' ? siteConfig.features.showToilets
+              : d.label === 'BQ' ? siteConfig.features.showBQ
+              : true
+          ).map((detail, index) => (
             <Card 
               key={index} 
               className={`p-3 md:p-6 bg-white shadow-lg ${detail.fullWidth ? 'md:col-span-2 lg:col-span-2' : ''}`}

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { siteConfig, priceLabel, areaUnitLabel } from '@/lib/site-config';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -213,8 +214,8 @@ export default function PropertyForm({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-zinc-700">Price (₦)</label>
-              <Input type="number" step="any" {...register('price')} placeholder="90000000" />
+              <label className="mb-1 block text-sm font-medium text-zinc-700">{priceLabel()}</label>
+              <Input type="number" step="any" {...register('price')} placeholder="250000" />
               {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price.message}</p>}
             </div>
           </div>
@@ -235,7 +236,7 @@ export default function PropertyForm({
         <CardContent className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-zinc-700">Full address / location</label>
-            <Input {...register('location')} placeholder="Ajah, Lekki, Lagos" />
+            <Input {...register('location')} placeholder="123 Main Street, Downtown" />
             {errors.location && <p className="mt-1 text-xs text-red-600">{errors.location.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -245,7 +246,7 @@ export default function PropertyForm({
               {errors.city && <p className="mt-1 text-xs text-red-600">{errors.city.message}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-zinc-700">State</label>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">State / Region</label>
               <Input {...register('state')} />
               {errors.state && <p className="mt-1 text-xs text-red-600">{errors.state.message}</p>}
             </div>
@@ -268,7 +269,7 @@ export default function PropertyForm({
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-sm font-medium text-zinc-700">Bedrooms</label>
               <Input type="number" {...register('bedrooms')} />
@@ -277,16 +278,20 @@ export default function PropertyForm({
               <label className="mb-1 block text-sm font-medium text-zinc-700">Bathrooms</label>
               <Input type="number" {...register('bathrooms')} />
             </div>
+            {siteConfig.features.showToilets && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-700">Toilets</label>
+                <Input type="number" {...register('toilets')} />
+              </div>
+            )}
+            {siteConfig.features.showBQ && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zinc-700">BQ (boys' quarters)</label>
+                <Input type="number" {...register('bq')} />
+              </div>
+            )}
             <div>
-              <label className="mb-1 block text-sm font-medium text-zinc-700">Toilets</label>
-              <Input type="number" {...register('toilets')} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-zinc-700">BQ</label>
-              <Input type="number" {...register('bq')} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-zinc-700">Area (sqm)</label>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Area ({areaUnitLabel()})</label>
               <Input type="number" step="any" {...register('area')} />
             </div>
           </div>
