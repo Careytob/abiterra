@@ -31,6 +31,7 @@ const NavBar = () => {
   // hidden from navigation by default — flip NEXT_PUBLIC_ENABLE_RENTALS to
   // "true" in your env to turn the module on for a given deployment.
   const rentalsEnabled = process.env.NEXT_PUBLIC_ENABLE_RENTALS === 'true';
+  const role = session?.user?.role;
 
   const links = [
     { label: 'Home', href: '/' },
@@ -39,6 +40,12 @@ const NavBar = () => {
     { label: 'About Us', href: '/aboutus' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },
+    // Role-based dashboard link (only shown once signed in as an agent/admin).
+    ...(role === 'ADMIN'
+      ? [{ label: 'Admin', href: '/admin' }]
+      : role === 'AGENT'
+        ? [{ label: 'My Listings', href: '/agent' }]
+        : []),
   ];
 
   return (
@@ -114,6 +121,16 @@ const NavBar = () => {
                   <DropdownMenu.Label>
                     <Text>Welcome {session.user!.name}</Text>
                   </DropdownMenu.Label>
+                  {role === 'ADMIN' && (
+                    <DropdownMenu.Item onClick={() => router.push('/admin')}>
+                      Admin Dashboard
+                    </DropdownMenu.Item>
+                  )}
+                  {(role === 'ADMIN' || role === 'AGENT') && (
+                    <DropdownMenu.Item onClick={() => router.push('/agent')}>
+                      My Listings
+                    </DropdownMenu.Item>
+                  )}
                   <DropdownMenu.Item 
                     color="teal"
                     onClick={() => signOut({ callbackUrl: '/' })}
