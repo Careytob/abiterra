@@ -199,6 +199,13 @@ export default async function Home() {
                     Browse Properties for Sale
                   </button>
                 </Link>
+                {siteConfig.features.rentals && (
+                  <Link href="/rent" className="w-full sm:w-auto">
+                    <button className="w-full border-2 border-white text-white hover:bg-white/10 rounded-xl py-3 px-6 text-lg transition-colors">
+                      Browse Rentals
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -279,6 +286,41 @@ export default async function Home() {
                   <p className="text-gray-600">{feature.description}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* For agents & owners */}
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-teal-700 rounded-2xl px-6 py-12 sm:px-12 text-white">
+              <h2 className="text-3xl font-bold mb-3">Are you an agent or property owner?</h2>
+              <p className="text-teal-50 text-lg mb-8 max-w-2xl">
+                List your properties on {siteConfig.name} and receive enquiries directly. Every listing is
+                reviewed by our team before it goes live.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                {[
+                  { step: '1', title: 'Create an agent account', text: 'Sign up in a minute, no fees to get started.' },
+                  { step: '2', title: 'Submit your listing', text: 'Add details and photos from your dashboard.' },
+                  { step: '3', title: 'Get approved & get enquiries', text: 'Once approved, buyers contact you directly.' },
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-4">
+                    <span className="flex-shrink-0 w-9 h-9 rounded-full bg-white text-teal-700 font-bold flex items-center justify-center">
+                      {item.step}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold">{item.title}</h3>
+                      <p className="text-teal-50 text-sm">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/signup?type=agent">
+                <button className="bg-white text-teal-700 hover:bg-teal-50 font-semibold rounded-xl py-3 px-6 transition-colors">
+                  List Your Property
+                </button>
+              </Link>
             </div>
           </div>
         </section>

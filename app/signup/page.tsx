@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import axios from 'axios';
@@ -23,6 +23,14 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState<'BUYER' | 'AGENT'>('BUYER');
   const router = useRouter();
+
+  // Allow deep links such as /signup?type=agent (used by the homepage "List Your Property" button).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('type') === 'agent') {
+      setAccountType('AGENT');
+    }
+  }, []);
+
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupFormInputs>();
 
   const checkPasswordStrength = (password: string) => {
