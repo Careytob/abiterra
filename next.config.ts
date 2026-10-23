@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // Expose Vercel's production domain to client code (used as a siteConfig.url fallback).
+  env: {
+    NEXT_PUBLIC_VERCEL_PROD_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL ?? '',
+  },
   images: {
     remotePatterns: [
       {

@@ -1,5 +1,6 @@
 // app/buy/page.tsx
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { siteConfig } from '@/lib/site-config';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import { ViewModeProvider } from './ViewModeContext';
 import { Property } from '../types/property';
 import SearchBarSection from './SearchBarSection';
 import RefreshButton from './RefreshButton';
+import RetryButton from './RetryButton';
 
 interface PaginationInfo {
   currentPage: number;
@@ -38,11 +40,15 @@ async function fetchProperties(
 
   const isProduction = process.env.NODE_ENV === 'production';
 
-  let baseUrl: string;
-  if (isProduction) {
-    baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || siteConfig.url;
-  } else {
-    baseUrl = 'http://localhost:3000';
+  // This server component calls its own API route. Unless NEXT_PUBLIC_API_BASE_URL
+  // is set, build the URL from the incoming request so it works on any domain
+  // (Vercel, custom domain, localhost) without extra configuration.
+  let baseUrl: string | undefined = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!baseUrl) {
+    const h = await headers();
+    const host = h.get('x-forwarded-host') ?? h.get('host');
+    const proto = h.get('x-forwarded-proto') ?? (host?.startsWith('localhost') ? 'http' : 'https');
+    baseUrl = host ? `${proto}://${host}` : siteConfig.url;
   }
 
   baseUrl = baseUrl.replace(/\/$/, '');
@@ -301,12 +307,7 @@ export default async function BuyPage({ searchParams }: BuyPageProps) {
               )}
               <div className="mt-4 flex justify-center gap-4">
                 <RefreshButton />
-                <button
-                  onClick={() => window.location.reload()}
-                  className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors text-sm sm:text-base"
-                >
-                  Retry Now
-                </button>
+                <RetryButton />
                 <Link
                   href="/contact"
                   className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"

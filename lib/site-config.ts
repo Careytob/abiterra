@@ -32,8 +32,14 @@ function num(value: string | undefined, fallback: number): number {
   return clean(value) !== '' && Number.isFinite(n) ? n : fallback;
 }
 
+// On Vercel, fall back to the project's production domain (injected via next.config.ts)
+// so a fresh deploy doesn't advertise http://localhost:3000 in canonical URLs and emails.
+const vercelHost = clean(process.env.NEXT_PUBLIC_VERCEL_PROD_URL);
+
 const siteUrl = str(
-  process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL,
+  process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    (vercelHost ? `https://${vercelHost}` : ''),
   'http://localhost:3000'
 ).replace(/\/+$/, '');
 
