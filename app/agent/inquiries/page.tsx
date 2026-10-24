@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Spinner from '@/app/components/Spinner';
 
 type Inquiry = {
@@ -19,6 +20,23 @@ type Inquiry = {
 export default function AgentInquiriesPage() {
   const [inquiries, setInquiries] = useState<Inquiry[] | null>(null);
   const [error, setError] = useState('');
+  const router = useRouter();
+
+  async function setStatus(id: string, status: 'PENDING' | 'CONTACTED') {
+    try {
+      const res = await fetch(`/api/agent/inquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Could not update the inquiry');
+      setInquiries((prev) => prev?.map((i) => (i.id === id ? { ...i, status } : i)) ?? prev);
+      router.refresh(); // refresh the "new" count in the header
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update the inquiry');
+    }
+  }
 
   useEffect(() => {
     fetch('/api/agent/inquiries')
@@ -69,12 +87,46 @@ export default function AgentInquiriesPage() {
                     </Link>
                   )}
                 </div>
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
-                  {inquiry.status}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    inquiry.status === 'PENDING'
+                      ? 'bg-amber-100 text-amber-800'
+                      : inquiry.status === 'CONTACTED'
+                        ? 'bg-teal-100 text-teal-800'
+                        : 'bg-zinc-100 text-zinc-700'
+                  }`}
+                >
+                  {inquiry.status === 'PENDING' ? 'NEW' : inquiry.status}
                 </span>
               </div>
               <p className="whitespace-pre-wrap text-sm text-zinc-700">{inquiry.message}</p>
               <p className="mt-2 text-xs text-zinc-400">{new Date(inquiry.createdat).toLocaleString()}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                <a
+                  href={`mailto:${inquiry.email}?subject=${encodeURIComponent(`Re: ${inquiry.property?.title ?? 'your enquiry'}`)}`}
+                  className="rounded-md border px-3 py-1 text-zinc-700 hover:bg-zinc-50"
+                >
+                  Reply by email
+                </a>
+                <a href={`tel:${inquiry.phone}`} className="rounded-md border px-3 py-1 text-zinc-700 hover:bg-zinc-50">
+                  Call
+                </a>
+                {inquiry.status !== 'CONTACTED' ? (
+                  <button
+                    onClick={() => setStatus(inquiry.id, 'CONTACTED')}
+                    className="rounded-md bg-teal-600 px-3 py-1 text-white hover:bg-teal-700"
+                  >
+                    Mark as contacted
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setStatus(inquiry.id, 'PENDING')}
+                    className="rounded-md px-3 py-1 text-zinc-500 hover:bg-zinc-50"
+                  >
+                    Mark as new
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

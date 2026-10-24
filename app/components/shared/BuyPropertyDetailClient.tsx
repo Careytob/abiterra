@@ -338,7 +338,7 @@ const BuyPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ property
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>
                 <div className="bg-teal-500">
-                  <ContactDialog propertyId={property.id} />
+                  <ContactDialog propertyId={property.id} ownerId={property.listedby ?? null} />
                 </div>
               </CardContent>
             </Card>

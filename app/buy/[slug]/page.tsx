@@ -194,6 +194,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
     updatedat: (property.updatedat || new Date()).toISOString(),
     isfeatured: property.isfeatured || false,
     agentid: property.agentid,
+    listedby: property.listedby ?? null,
     images: formattedImages,
     features: property.feature.map((f) => ({ id: f.id, name: f.name })),
   };

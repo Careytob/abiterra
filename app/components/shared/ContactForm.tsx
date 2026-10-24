@@ -55,8 +55,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
       }
 
       const formData = {
-        name: data.name,
-        email: data.email,
+        name: data.name || session?.user?.name || '',
+        email: data.email || session?.user?.email || '',
         message: data.message,
         phone: data.phone,
         propertyId,
@@ -125,29 +125,38 @@ const ContactForm: React.FC<ContactFormProps> = ({ propertyId, onSubmitSuccess }
         </div>
       )}
 
-      <div>
-        <Input
-          {...register("name", { required: "Name is required" })}
-          placeholder="Your Name"
-          readOnly={isSignedIn}
-          className={`${isSignedIn ? 'bg-gray-50' : ''} ${errors.name ? 'border-red-500' : ''}`}
-        />
-        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
-      </div>
+      {isSignedIn ? (
+        <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+          Sending as <span className="font-medium text-gray-900">{session?.user?.name}</span>
+          <br />
+          <span className="text-gray-500">{session?.user?.email}</span>
+          <p className="mt-1 text-xs text-gray-400">The agent will reply to this email address.</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <Input
+              {...register("name", { required: "Name is required" })}
+              placeholder="Your Name"
+              className={errors.name ? 'border-red-500' : ''}
+            />
+            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+          </div>
 
-      <div>
-        <Input
-          {...register("email", {
-            required: "Email is required",
-            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" },
-          })}
-          type="email"
-          placeholder="Your Email"
-          readOnly={isSignedIn}
-          className={`${isSignedIn ? 'bg-gray-50' : ''} ${errors.email ? 'border-red-500' : ''}`}
-        />
-        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-      </div>
+          <div>
+            <Input
+              {...register("email", {
+                required: "Email is required",
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" },
+              })}
+              type="email"
+              placeholder="Your Email"
+              className={errors.email ? 'border-red-500' : ''}
+            />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          </div>
+        </>
+      )}
 
       <div>
         <Input

@@ -6,9 +6,10 @@ interface EmailOptions {
   subject: string;
   text: string;
   html: string;
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, text, html }: EmailOptions) {
+export async function sendEmail({ to, subject, text, html, replyTo }: EmailOptions) {
   // Create a transporter object using SMTP
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_SERVER_HOST,
@@ -27,6 +28,7 @@ export async function sendEmail({ to, subject, text, html }: EmailOptions) {
     subject,
     text,
     html,
+    ...(replyTo ? { replyTo } : {}),
   });
 
   return info;

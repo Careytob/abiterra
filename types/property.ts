@@ -30,6 +30,8 @@ export interface Property {
   updatedat?: string;
   isfeatured?: boolean;
   agentid: string;
+  /** User id of the agent who listed this property, when listed via an agent account. */
+  listedby?: string | null;
   image_url?: string;
   image_id?: string;
 }

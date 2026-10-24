@@ -120,6 +120,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           latitude: property.latitude ?? siteConfig.map.latitude,
           longitude: property.longitude ?? siteConfig.map.longitude,
           area: property.area ?? 0,
+          listedby: property.listedby ?? null,
           features: property.feature,
           images: images.length ? images : [{ url: FALLBACK_IMAGE }],
         }}

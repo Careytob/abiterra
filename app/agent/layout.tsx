@@ -1,6 +1,7 @@
 // app/agent/layout.tsx
 import { getServerSession } from 'next-auth';
 import { siteConfig } from '@/lib/site-config';
+import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
@@ -20,6 +21,11 @@ export default async function AgentLayout({ children }: { children: React.ReactN
     redirect('/login?callbackUrl=/agent');
   }
 
+  // Number of new (unhandled) enquiries on this agent's listings, shown as a badge.
+  const newInquiries = await prisma.inquiry
+    .count({ where: { status: 'PENDING', property: { listedby: session.user.id } } })
+    .catch(() => 0);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
@@ -34,6 +40,11 @@ export default async function AgentLayout({ children }: { children: React.ReactN
               </Link>
               <Link href="/agent/inquiries" className="hover:text-teal-600">
                 Inquiries
+                {newInquiries > 0 && (
+                  <span className="ml-1.5 rounded-full bg-teal-600 px-1.5 py-0.5 text-xs font-medium text-white">
+                    {newInquiries}
+                  </span>
+                )}
               </Link>
               <Link href="/" className="hover:text-teal-600">
                 View site

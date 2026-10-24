@@ -34,6 +34,7 @@ interface Property {
   bathrooms: number;
   toilets: number;
   area: number;
+  listedby?: string | null;
   features: { name: string }[];
 }
 
@@ -280,7 +281,7 @@ const RentPropertyDetailClient: React.FC<PropertyDetailClientProps> = ({ propert
               <CardContent className="p-4 md:p-8">
                 <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-6">Interested?</h2>
                 <div className='bg-teal-500'>
-                  <ContactDialog propertyId={property.id.toString()} />
+                  <ContactDialog propertyId={property.id.toString()} ownerId={property.listedby ?? null} />
                 </div>
               </CardContent>
             </Card>

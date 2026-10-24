@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import AdminSignOutButton from './AdminSignOutButton';
+import prisma from '@/lib/prisma';
 
 export const metadata = {
   title: `Admin · ${siteConfig.name}`,
@@ -20,6 +21,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login?callbackUrl=/admin');
   }
 
+  const newInquiries = await prisma.inquiry.count({ where: { status: 'PENDING' } }).catch(() => 0);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
@@ -34,6 +37,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </Link>
               <Link href="/admin/inquiries" className="hover:text-teal-600">
                 Inquiries
+                {newInquiries > 0 && (
+                  <span className="ml-1.5 rounded-full bg-teal-600 px-1.5 py-0.5 text-xs font-medium text-white">
+                    {newInquiries}
+                  </span>
+                )}
               </Link>
               <Link href="/admin/messages" className="hover:text-teal-600">
                 Messages
