@@ -1,6 +1,6 @@
 // app/page.tsx
 import Link from 'next/link';
-import { siteConfig, formatPrice, formatArea, inRegion, absoluteUrl } from '@/lib/site-config';
+import { siteConfig, formatPrice, formatArea, inRegion, absoluteUrl, rentPeriodLabel } from '@/lib/site-config';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
 import 'leaflet/dist/leaflet.css';
@@ -10,13 +10,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function getFeaturedProperties() {
+async function getFeaturedProperties(listingType: 'SALE' | 'RENT' = 'SALE', take = 6) {
   try {
     const saleProperties = await prisma.property.findMany({
-      take: 6,
+      take,
       where: {
         availability: true,
-        type: 'SALE',
+        type: listingType,
         publishstatus: 'PUBLISHED',
       },
       select: {
@@ -84,7 +84,7 @@ async function getFeaturedProperties() {
         return {
           id: property.id,
           slug: property.slug,
-          type: 'For Sale',
+          type: listingType === 'RENT' ? 'For Rent' : 'For Sale',
           price: property.price,
           title: property.title,
           details: [
@@ -106,6 +106,57 @@ async function getFeaturedProperties() {
     console.error('[HomePage] Error fetching properties:', error);
     return [];
   }
+}
+
+type HomeProperty = {
+  id: string;
+  slug: string;
+  type: string;
+  price: number;
+  title: string;
+  details: string;
+  location: string;
+  image: string;
+};
+
+function HomePropertyCard({
+  property,
+  href,
+  priceSuffix = '',
+}: {
+  property: HomeProperty;
+  href: string;
+  priceSuffix?: string;
+}) {
+  return (
+    <article className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="relative h-48">
+        <img
+          src={property.image}
+          alt={`${property.title} in ${property.location}`}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <span className="bg-teal-100 text-black px-3 py-1 rounded-full text-sm">{property.type}</span>
+          <div className="font-bold text-xl">
+            {formatPrice(property.price)}
+            {priceSuffix && <span className="text-sm font-normal text-gray-600">{priceSuffix}</span>}
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold mb-2">{property.title}</h3>
+        <p className="text-gray-600 mb-2">{property.details}</p>
+        <p className="text-gray-500 mb-4">{property.location}</p>
+        <Link
+          href={href}
+          className="block text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition-colors"
+        >
+          View Details
+        </Link>
+      </div>
+    </article>
+  );
 }
 
 export const revalidate = 300; // 5 min, so a transient DB error or fresh seed doesn't stay cached for long
@@ -140,6 +191,8 @@ export const metadata = {
 
 export default async function Home() {
   const featuredProperties = await getFeaturedProperties();
+  // Run sequentially (not Promise.all) to be gentle on pooled database connections.
+  const featuredRentals = siteConfig.features.rentals ? await getFeaturedProperties('RENT', 3) : [];
 
   const sameAs = Object.values(siteConfig.social).filter(Boolean);
   const structuredData: Record<string, unknown> = {
@@ -217,34 +270,7 @@ export default async function Home() {
             <h2 className="text-3xl font-bold mb-12">Featured Properties</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredProperties.map((property) => (
-                <article key={property.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="relative h-48">
-                    <img
-                      src={property.image}
-                      alt={`${property.title} in ${property.location}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="bg-teal-100 text-black px-3 py-1 rounded-full text-sm">
-                        {property.type}
-                      </span>
-                      <div className="font-bold text-xl">
-                        {formatPrice(property.price)}
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{property.title}</h3>
-                    <p className="text-gray-600 mb-2">{property.details}</p>
-                    <p className="text-gray-500 mb-4">{property.location}</p>
-                    <Link
-                      href={`/buy/${property.slug}`}
-                      className="block text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded transition-colors"
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </article>
+                <HomePropertyCard key={property.id} property={property} href={`/buy/${property.slug}`} />
               ))}
             </div>
             <div className="text-center mt-12">
@@ -256,6 +282,32 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Featured Rentals (only when the rentals module is enabled) */}
+        {siteConfig.features.rentals && featuredRentals.length > 0 && (
+          <section className="pb-16">
+            <div className="max-w-7xl mx-auto px-4">
+              <h2 className="text-3xl font-bold mb-12">Properties for Rent</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredRentals.map((property) => (
+                  <HomePropertyCard
+                    key={property.id}
+                    property={property}
+                    href={`/rent/${property.id}`}
+                    priceSuffix={`/${rentPeriodLabel().short}`}
+                  />
+                ))}
+              </div>
+              <div className="text-center mt-12">
+                <Link href="/rent">
+                  <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-3 rounded-lg transition-colors">
+                    View All Rentals
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Features Section */}
         <section className="bg-gray-50 py-16">

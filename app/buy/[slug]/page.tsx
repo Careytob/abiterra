@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       (property.image || []).map(async (image) => {
         if (!image.filepath || typeof image.filepath !== 'string') {
           console.warn(`[PropertyDetailMetadata] Invalid filepath for image:`, image);
-          return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
+          return { url: '/images/placeholder.jpg', type: image.imagetype || 'unknown' };
         }
         try {
           const { data, error } = await supabase.storage
@@ -50,13 +50,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (error || !data?.signedUrl) {
             console.error(`[PropertyDetailMetadata] Signed URL error for ${image.filepath}:`, error?.message);
             Sentry.captureException(error, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
-            return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
+            return { url: '/images/placeholder.jpg', type: image.imagetype || 'unknown' };
           }
           return { url: data.signedUrl, type: image.imagetype || 'unknown' };
         } catch (err) {
           console.error(`[PropertyDetailMetadata] Error generating signed URL for ${image.filepath}:`, err);
           Sentry.captureException(err, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
-          return { url: '/placeholder-property.jpg', type: image.imagetype || 'unknown' };
+          return { url: '/images/placeholder.jpg', type: image.imagetype || 'unknown' };
         }
       })
     );
@@ -119,7 +119,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
         console.warn(`[PropertyDetailPage] Invalid filepath for image:`, image);
         return {
           id: image.id,
-          url: '/placeholder-property.jpg',
+          url: '/images/placeholder.jpg',
           imageType: image.imagetype || undefined,
         } as PropertyImage;
       }
@@ -133,7 +133,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           Sentry.captureException(error, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
           return {
             id: image.id,
-            url: '/placeholder-property.jpg',
+            url: '/images/placeholder.jpg',
             imageType: image.imagetype || undefined,
           } as PropertyImage;
         }
@@ -163,7 +163,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
         Sentry.captureException(err, { extra: { filepath: image.filepath, slug: resolvedParams.slug } });
         return {
           id: image.id,
-          url: '/placeholder-property.jpg',
+          url: '/images/placeholder.jpg',
           imageType: image.imagetype || undefined,
         } as PropertyImage;
       }

@@ -21,7 +21,7 @@ const MapView = dynamic(() => import('@/app/components/Map'), {
 });
 
 interface Property {
-  id: number;
+  id: string;
   price: number;
   images: { url: string }[];
   title: string;

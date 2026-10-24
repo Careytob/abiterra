@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { currencySymbol, rentPeriodLabel } from '@/lib/site-config';
+import { currencySymbol, rentPeriodLabel, formatArea } from '@/lib/site-config';
 import { Search, SlidersHorizontal, MapPin, LayoutGrid, Map, Bed, Bath, Square, Heart, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,22 +21,21 @@ const MapView = dynamic(() => import('../components/Map'), {
 
 // Type definitions
 interface Property {
-  id: number;
+  id: string;
   title: string;
   description: string;
   price: string | number;
   location: string;
   latitude: number | null;
   longitude: number | null;
-  images: string;
+  images: { id?: string; url: string }[];
   type: string;
-  specs: {
-    area: string;
-    beds: number;
-    baths: number;
-    size: number;
-  };
+  bedrooms: number;
+  bathrooms: number;
+  area: number | null;
 }
+
+const ITEMS_PER_PAGE = 12;
 
 interface PaginationInfo {
   currentPage: number;
@@ -65,19 +64,18 @@ const PropertyCard = ({ property }: { property: Property }) => {
         {/* Check if images exist, then display the first image */}
         {property.images && property.images.length > 0 ? (
           <Image 
-            src={property.images[0]}  // Using the first image in the array
+            src={property.images[0].url}
             alt={property.title}
             fill
+            sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover group-hover:scale-110 transition-transform duration-300"
             onError={(e) => {
-              console.error('Image load error:', e);
-              // @ts-ignore
-              e.target.src = '/placeholder.jpg';
+              e.currentTarget.src = '/images/placeholder.jpg';
             }}
           />
         ) : (
           <Image
-            src="/placeholder.jpg"  // Fallback image if no images exist
+            src="/images/placeholder.jpg"  // Fallback image if no images exist
             alt="No image available"
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-300"
@@ -105,22 +103,20 @@ const PropertyCard = ({ property }: { property: Property }) => {
           <MapPin className="w-4 h-4" />
           {property.location}
         </div>
-        {property.specs && (
-          <dl className="flex items-center gap-6 text-gray-600 mt-2">
-            <div className="flex items-center gap-1.5">
-              <Bed className="w-4 h-4" />
-              <dd>{property.specs.beds} beds</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Bath className="w-4 h-4" />
-              <dd>{property.specs.baths} baths</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Square className="w-4 h-4" />
-              <dd>{property.specs.area}</dd>
-            </div>
-          </dl>
-        )}
+        <dl className="flex items-center gap-6 text-gray-600 mt-2">
+          <div className="flex items-center gap-1.5">
+            <Bed className="w-4 h-4" />
+            <dd>{property.bedrooms} beds</dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Bath className="w-4 h-4" />
+            <dd>{property.bathrooms} baths</dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Square className="w-4 h-4" />
+            <dd>{formatArea(property.area)}</dd>
+          </div>
+        </dl>
         <Link href={`/rent/${property.id}`} className="mt-3 inline-flex items-center gap-2 text-teal-600 font-medium group-hover:gap-3 transition-all">
           View Details 
           <ArrowRight className="w-4 h-4" />
@@ -142,7 +138,7 @@ export default function RentPage() {
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 12,
+    itemsPerPage: ITEMS_PER_PAGE,
     hasNextPage: false,
     hasPreviousPage: false
   });
@@ -153,7 +149,7 @@ export default function RentPage() {
     setError(null);
     try {
       const searchParam = search?.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
-      const url = `/api/properties?type=${type}&page=${page}&limit=${pagination.itemsPerPage}${searchParam}`;
+      const url = `/api/properties?type=${type}&page=${page}&limit=${ITEMS_PER_PAGE}${searchParam}`;
       console.log('Fetching properties from:', url);
   
       const response = await fetch(url);
@@ -174,14 +170,24 @@ export default function RentPage() {
       
       console.log('Setting properties:', data.properties.length, 'items');
       setProperties(data.properties);
-      setPagination(data.pagination);
+      // The API only returns { pages }, so derive the rest here (replacing the whole
+      // pagination object caused itemsPerPage to become undefined -> 400 + refetch loop).
+      const totalPages = data.pagination?.pages ?? 0;
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: page,
+        totalPages,
+        totalItems: data.total ?? data.properties.length,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }));
     } catch (err) {
       console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.itemsPerPage]);
+  }, []);
 
   const debouncedSearch = useCallback(
     debounce((search: string) => {

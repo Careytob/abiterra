@@ -6,7 +6,18 @@ import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import L, { Map } from 'leaflet';
 import { useMap } from 'react-leaflet';
-import { Property } from '@/app/types/property';
+
+// The map only needs these fields, so any listing-like object can be passed in.
+type MapProperty = {
+  id: string | number;
+  title: string;
+  price: number | string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // callers may pass full listing objects
+};
 
 // Fix default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -37,12 +48,12 @@ const Popup = dynamic(
 );
 
 interface MapProps {
-  properties: Property | Property[];
+  properties: MapProperty | MapProperty[];
   zoom?: number;
   className?: string;
 }
 
-const MapUpdater: React.FC<{ properties: Property | Property[]; zoom: number }> = ({
+const MapUpdater: React.FC<{ properties: MapProperty | MapProperty[]; zoom: number }> = ({
   properties,
   zoom,
 }) => {
@@ -145,7 +156,7 @@ const MapView: React.FC<MapProps> = ({ properties, zoom = 15, className }) => {
                   <div className="p-2">
                     <h3 className="font-semibold">{property.title}</h3>
                     <p className="text-sm text-gray-600">{property.location}</p>
-                    <p className="text-sm font-bold mt-1">{formatPrice(property.price)}</p>
+                    <p className="text-sm font-bold mt-1">{formatPrice(Number(property.price))}</p>
                   </div>
                 </Popup>
               </Marker>

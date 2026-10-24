@@ -7,8 +7,9 @@ import { PrismaClient } from '../prisma/generated/client';
 function resolveDatabaseUrl(): string | undefined {
   const raw = process.env.DATABASE_URL;
   if (!raw) return undefined;
-  const viaTransactionPooler = /:6543(\/|\?|$)/.test(raw);
-  if (!viaTransactionPooler || /[?&]pgbouncer=/.test(raw)) return raw;
+  // Any Supabase pooler host, or the transaction-pooler port, or an explicit pgbouncer host.
+  const viaPooler = /:6543(\/|\?|$)/.test(raw) || /pooler\.supabase\.com/i.test(raw) || /pgbouncer/i.test(raw);
+  if (!viaPooler || /[?&]pgbouncer=/.test(raw)) return raw;
   const sep = raw.includes('?') ? '&' : '?';
   const limit = /[?&]connection_limit=/.test(raw) ? '' : '&connection_limit=1';
   return `${raw}${sep}pgbouncer=true${limit}`;
