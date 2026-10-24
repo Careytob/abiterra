@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from 'zod';
-import { PrismaClient } from '@/prisma/generated/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 const createRegisterSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }).max(255, { message: "Name is too long." }),

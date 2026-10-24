@@ -108,7 +108,7 @@ async function getFeaturedProperties() {
   }
 }
 
-export const revalidate = 3600;
+export const revalidate = 300; // 5 min, so a transient DB error or fresh seed doesn't stay cached for long
 
 export const metadata = {
   title: `${siteConfig.name} - Properties for Sale${inRegion()}`,

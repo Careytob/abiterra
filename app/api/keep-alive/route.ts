@@ -1,7 +1,6 @@
-import { PrismaClient } from '@/prisma/generated/client';
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -14,7 +13,5 @@ export async function GET() {
       { status: 'error', message: 'Keep-alive ping failed' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
