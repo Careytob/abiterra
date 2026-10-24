@@ -48,6 +48,7 @@ Set these in `.env` and rebuild. Full list in `.env.example`.
 | `NEXT_PUBLIC_RENT_PERIOD` | `month` | Rent wording |
 | `NEXT_PUBLIC_DEFAULT_LAT/LNG` | `-1.2921` / `36.8219` | Map default centre |
 | `NEXT_PUBLIC_ENABLE_RENTALS` | `true` | Shows the rentals module |
+| `NEXT_PUBLIC_ENABLE_WATERMARK` | `false` | Photo watermark. Off by default: it needs system fonts and crashes on font-less serverless hosts such as Vercel |
 
 Then replace `public/logo.svg` and `public/hero_image.webp`, and review the **privacy policy and terms pages. They are templates, not legal advice.**
 

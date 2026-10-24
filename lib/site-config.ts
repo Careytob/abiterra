@@ -121,6 +121,12 @@ export const siteConfig = {
     rentals: bool(process.env.NEXT_PUBLIC_ENABLE_RENTALS, false),
     /** "Toilets" count — common in West Africa; most markets don't list it separately. */
     showToilets: bool(process.env.NEXT_PUBLIC_SHOW_TOILETS, false),
+    /**
+     * Stamp listing photos with a text watermark. OFF by default: it renders text with
+     * sharp/librsvg, which crashes (SIGSEGV) on serverless hosts that have no fonts or
+     * fontconfig (e.g. Vercel) unless you bundle fonts. Enable only on hosts you've tested.
+     */
+    watermark: bool(process.env.NEXT_PUBLIC_ENABLE_WATERMARK, false),
     /** "BQ" (boys' quarters) — specific to Nigerian listings. */
     showBQ: bool(process.env.NEXT_PUBLIC_SHOW_BQ, false),
   },

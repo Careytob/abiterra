@@ -141,7 +141,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
         // Apply watermark with error handling
         let watermarkedUrl = data.signedUrl;
         try {
-          watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
+          if (siteConfig.features.watermark) watermarkedUrl = await getWatermarkedImageUrl(data.signedUrl, {
             text: watermarkText(),
             opacity: 0.3,
             fontSize: 40,

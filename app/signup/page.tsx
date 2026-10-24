@@ -82,15 +82,21 @@ const SignupPage = () => {
       const response = await axios.post('/api/signup', { ...data, accountType });
       console.log("Signup response:", response.data);
 
-      await signIn('credentials',{
+      const result = await signIn('credentials', {
         redirect: false,
         email: data.email,
         password: data.password,
+      });
+
+      if (result?.error) {
+        setError('Your account was created, but automatic sign-in failed. Please log in.');
+        router.push('/login');
+        return;
       }
 
-      )
-
-      router.push(accountType === 'AGENT' ? '/agent' : '/'); // Redirect to agent dashboard or homepage
+      // Full page navigation (not router.push) so the freshly issued session cookie is
+      // sent with the very first request to the protected dashboard.
+      window.location.assign(accountType === 'AGENT' ? '/agent/properties' : '/');
     } catch (err: any) {
       console.error("Error during signup:", err);
       setError(err.response?.data?.message || 'An error occurred during signup');
