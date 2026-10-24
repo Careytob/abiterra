@@ -2,10 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+// NextAuth names its session cookie differently over HTTPS ("__Secure-next-auth.session-token")
+// than over HTTP ("next-auth.session-token"), and getToken() guesses which one to read from
+// NEXTAUTH_URL. If NEXTAUTH_URL is http:// but the site is served over https (or the reverse),
+// the guess is wrong and logged-in users get bounced to /login. Checking both makes route
+// protection work regardless of how NEXTAUTH_URL is set.
+async function readToken(request: NextRequest) {
+  const secret = process.env.NEXTAUTH_SECRET;
+  return (
+    (await getToken({ req: request, secret, secureCookie: true })) ??
+    (await getToken({ req: request, secret, secureCookie: false }))
+  );
+}
+
 // /admin (and /api/admin) is ADMIN-only — full moderation & catalog access.
 // /agent (and /api/agent) is for self-service listers — AGENT or ADMIN.
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  const token = await readToken(request);
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith('/api/');
 
