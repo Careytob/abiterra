@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { siteConfig } from '@/lib/site-config';
 import { usePathname, useRouter } from 'next/navigation';
 import classNames from 'classnames';
 import { Avatar, Box, Button, DropdownMenu, Flex, Text } from '@radix-ui/themes';
@@ -30,7 +31,7 @@ const NavBar = () => {
   // Rentals are a complete, working part of the app (see app/rent) but are
   // hidden from navigation by default — flip NEXT_PUBLIC_ENABLE_RENTALS to
   // "true" in your env to turn the module on for a given deployment.
-  const rentalsEnabled = process.env.NEXT_PUBLIC_ENABLE_RENTALS === 'true';
+  const rentalsEnabled = siteConfig.features.rentals;
   const role = session?.user?.role;
 
   const links = [

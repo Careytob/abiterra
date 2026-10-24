@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
 import { siteConfig, formatPrice, absoluteUrl, rentPeriodLabel } from '@/lib/site-config';
+import { loadSiteConfig } from '@/lib/site-settings';
 import RentPropertyDetailClient from '@/app/components/shared/RentPropertyDetailClient';
 
 type PageProps = {
@@ -19,6 +20,7 @@ const supabase = createClient(
 );
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  await loadSiteConfig(); // apply admin-saved currency/units settings
   const { propertyId } = await params;
   const fallback: Metadata = { title: `Property For Rent | ${siteConfig.name}` };
   if (!UUID_REGEX.test(propertyId)) return fallback;

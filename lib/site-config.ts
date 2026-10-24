@@ -45,8 +45,8 @@ const siteUrl = str(
 
 const siteName = str(process.env.NEXT_PUBLIC_SITE_NAME, 'Abiterra');
 
-export type AreaUnit = 'sqft' | 'sqm';
-export type RentPeriod = 'week' | 'month' | 'year';
+import type { AreaUnit, RentPeriod } from './market-presets';
+export type { AreaUnit, RentPeriod };
 
 const rentPeriodRaw = clean(process.env.NEXT_PUBLIC_RENT_PERIOD).toLowerCase();
 const rentPeriod: RentPeriod =
@@ -130,7 +130,124 @@ export const siteConfig = {
     /** "BQ" (boys' quarters) — specific to Nigerian listings. */
     showBQ: bool(process.env.NEXT_PUBLIC_SHOW_BQ, false),
   },
-} as const;
+};
+
+// ---------------------------------------------------------------------------
+// Runtime market settings (editable from Admin -> Settings)
+// ---------------------------------------------------------------------------
+//
+// The values above come from environment variables and act as the DEFAULTS. The admin
+// Settings page stores overrides in the database; the server loads them (see
+// lib/site-settings.ts) and calls applySiteSettings(), and a tiny client component does
+// the same in the browser, so every formatPrice()/formatArea() call picks them up.
+
+/** The settings a non-technical admin can change without touching code or redeploying. */
+export interface MarketSettings {
+  currency: string;
+  locale: string;
+  areaUnit: AreaUnit;
+  rentPeriod: RentPeriod;
+  rentals: boolean;
+  showToilets: boolean;
+  showBQ: boolean;
+}
+
+/** Values derived from env vars at build time: what "reset to defaults" returns to. */
+export const envDefaults: MarketSettings = {
+  currency: siteConfig.currency,
+  locale: siteConfig.locale,
+  areaUnit: siteConfig.areaUnit,
+  rentPeriod: siteConfig.rentPeriod,
+  rentals: siteConfig.features.rentals,
+  showToilets: siteConfig.features.showToilets,
+  showBQ: siteConfig.features.showBQ,
+};
+
+/** True for a real ISO-4217 currency code that this runtime can format. */
+export function isValidCurrency(code: unknown): code is string {
+  if (typeof code !== 'string' || !/^[A-Za-z]{3}$/.test(code)) return false;
+  try {
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: code.toUpperCase() }).format(1);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True for a well-formed BCP-47 locale tag that this runtime supports. */
+export function isValidLocale(tag: unknown): tag is string {
+  if (typeof tag !== 'string' || tag.length > 35 || !/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(tag)) return false;
+  try {
+    Intl.getCanonicalLocales(tag);
+    return Intl.NumberFormat.supportedLocalesOf(tag).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** Turn stored text rows into typed settings. Anything invalid is ignored (falls back to the default). */
+export function parseStoredSettings(raw: Record<string, string>): Partial<MarketSettings> {
+  const out: Partial<MarketSettings> = {};
+  if (isValidCurrency(raw.currency)) out.currency = raw.currency.toUpperCase();
+  if (isValidLocale(raw.locale)) out.locale = raw.locale;
+  if (raw.areaUnit === 'sqft' || raw.areaUnit === 'sqm') out.areaUnit = raw.areaUnit;
+  if (raw.rentPeriod === 'week' || raw.rentPeriod === 'month' || raw.rentPeriod === 'year') {
+    out.rentPeriod = raw.rentPeriod;
+  }
+  for (const k of ['rentals', 'showToilets', 'showBQ'] as const) {
+    if (raw[k] === 'true') out[k] = true;
+    else if (raw[k] === 'false') out[k] = false;
+  }
+  return out;
+}
+
+/** The market settings currently in effect. */
+export function getMarketSettings(): MarketSettings {
+  return {
+    currency: siteConfig.currency,
+    locale: siteConfig.locale,
+    areaUnit: siteConfig.areaUnit,
+    rentPeriod: siteConfig.rentPeriod,
+    rentals: siteConfig.features.rentals,
+    showToilets: siteConfig.features.showToilets,
+    showBQ: siteConfig.features.showBQ,
+  };
+}
+
+/**
+ * Make `overrides` the active settings. Any field that is missing or invalid falls back to
+ * the env default, so deleting an override and re-applying genuinely restores the default.
+ * Safe to call many times with the same input (it is called during render).
+ */
+export function applySiteSettings(overrides: Partial<MarketSettings> = {}): void {
+  const o = overrides ?? {};
+  siteConfig.currency = isValidCurrency(o.currency) ? o.currency.toUpperCase() : envDefaults.currency;
+  siteConfig.locale = isValidLocale(o.locale) ? o.locale : envDefaults.locale;
+  siteConfig.areaUnit = o.areaUnit === 'sqm' || o.areaUnit === 'sqft' ? o.areaUnit : envDefaults.areaUnit;
+  siteConfig.rentPeriod =
+    o.rentPeriod === 'week' || o.rentPeriod === 'month' || o.rentPeriod === 'year' ? o.rentPeriod : envDefaults.rentPeriod;
+  siteConfig.features.rentals = typeof o.rentals === 'boolean' ? o.rentals : envDefaults.rentals;
+  siteConfig.features.showToilets = typeof o.showToilets === 'boolean' ? o.showToilets : envDefaults.showToilets;
+  siteConfig.features.showBQ = typeof o.showBQ === 'boolean' ? o.showBQ : envDefaults.showBQ;
+}
+
+/** Pure formatter used by the live preview in the Settings page (does not touch the active config). */
+export function formatPriceWith(
+  amount: number,
+  locale: string,
+  currency: string
+): string {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers

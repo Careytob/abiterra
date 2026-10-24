@@ -38,12 +38,21 @@ Sign in and open `/admin` (or `/agent`).
 
 ## Configure for your market
 
+**Easiest: Admin -> Settings.** Sign in as an admin and open **Settings** to choose your country (or set the
+currency, number format, size unit and rent period yourself), switch rentals on or off, and see a live preview.
+No code, no environment variables and no redeploy. Saved values override the defaults below. **Reset to defaults**
+returns to the environment values. The text of the site stays in English; the number format only changes how
+numbers and currency are written.
+
+The environment variables below set the **defaults** (used until someone saves Settings) and also control
+branding, which is not yet editable from the admin area.
+
 Set these in `.env` and rebuild. Full list in `.env.example`.
 
 | Variable | Example | Effect |
 |---|---|---|
 | `NEXT_PUBLIC_SITE_NAME` | `Harbour Homes` | Brand name everywhere (titles, footer, emails, watermark) |
-| `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | `KES` / `en-KE` | Price formatting |
+| `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | `KES` / `en-KE` | Default price formatting (override in Admin -> Settings) |
 | `NEXT_PUBLIC_AREA_UNIT` | `sqm` | Area display and form label |
 | `NEXT_PUBLIC_RENT_PERIOD` | `month` | Rent wording |
 | `NEXT_PUBLIC_DEFAULT_LAT/LNG` | `-1.2921` / `36.8219` | Map default centre |

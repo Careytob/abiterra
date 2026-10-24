@@ -214,3 +214,11 @@ enum property_status {
   SOLD
   RENTED
 }
+
+/// Admin-editable settings (currency, number format, units...). One row per setting key.
+/// Values are stored as text; see lib/site-settings.ts for parsing and validation.
+model site_setting {
+  key       String   @id @db.VarChar(100)
+  value     String
+  updatedat DateTime @default(now()) @db.Timestamptz(6)
+}

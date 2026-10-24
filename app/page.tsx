@@ -1,6 +1,7 @@
 // app/page.tsx
 import Link from 'next/link';
 import { siteConfig, formatPrice, formatArea, inRegion, absoluteUrl, rentPeriodLabel } from '@/lib/site-config';
+import { loadSiteConfig } from '@/lib/site-settings';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '@/lib/prisma';
 import 'leaflet/dist/leaflet.css';
@@ -190,6 +191,7 @@ export const metadata = {
 };
 
 export default async function Home() {
+  await loadSiteConfig(); // apply admin-saved currency/units/rentals settings first
   const featuredProperties = await getFeaturedProperties();
   // Run sequentially (not Promise.all) to be gentle on pooled database connections.
   const featuredRentals = siteConfig.features.rentals ? await getFeaturedProperties('RENT', 3) : [];

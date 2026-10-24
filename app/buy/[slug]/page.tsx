@@ -1,6 +1,7 @@
 // app/buy/[slug]/page.tsx
 import { Metadata } from 'next';
 import { siteConfig, formatPrice, absoluteUrl, watermarkText } from '@/lib/site-config';
+import { loadSiteConfig } from '@/lib/site-settings';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { createClient } from '@supabase/supabase-js';
@@ -19,6 +20,7 @@ const supabase = createClient(
 );
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  await loadSiteConfig(); // apply admin-saved currency/units settings
   const resolvedParams = await params;
   try {
     const property = await prisma.property.findUnique({

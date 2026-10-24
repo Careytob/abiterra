@@ -1,6 +1,8 @@
 //app/layout.tsx
 import "@radix-ui/themes/styles.css";
-import { siteConfig, htmlLang } from "@/lib/site-config";
+import { siteConfig, htmlLang, getMarketSettings } from "@/lib/site-config";
+import { loadSiteConfig } from "@/lib/site-settings";
+import SiteSettingsHydrator from "./components/SiteSettingsHydrator";
 import "./theme-config.css";
 import "./globals.css";
 import type { Metadata } from "next";
@@ -66,11 +68,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Apply the admin-saved market settings (currency, locale, units...) before anything renders.
+  await loadSiteConfig();
+
   return (
     <html lang={htmlLang()}>
       <head>
@@ -80,6 +85,8 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Must come first: sets the browser copy of the settings before siblings render. */}
+        <SiteSettingsHydrator settings={getMarketSettings()} />
         <AuthProvider>
           <Theme>
             <NavBar />

@@ -2,8 +2,10 @@
 import Link from 'next/link';
 import React from 'react';
 import { siteConfig, inRegion } from '@/lib/site-config';
+import { loadSiteConfig } from '@/lib/site-settings';
 
-const Footer = () => {
+const Footer = async () => {
+  await loadSiteConfig();
   const { contact, social, features } = siteConfig;
   const socials = [
     { label: 'Instagram', href: social.instagram },
