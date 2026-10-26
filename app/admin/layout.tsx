@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const newInquiries = await prisma.inquiry.count({ where: { status: 'PENDING' } }).catch(() => 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-28">{/* pt-28 clears the fixed site menu (~103px) */}
       <header className="border-b bg-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6">

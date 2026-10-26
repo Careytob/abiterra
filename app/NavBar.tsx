@@ -124,6 +124,11 @@ const NavBar = () => {
                       Admin Dashboard
                     </DropdownMenu.Item>
                   )}
+                  {role === 'ADMIN' && (
+                    <DropdownMenu.Item onClick={() => router.push('/admin/settings')}>
+                      Settings
+                    </DropdownMenu.Item>
+                  )}
                   {(role === 'ADMIN' || role === 'AGENT') && (
                     <DropdownMenu.Item onClick={() => router.push('/agent')}>
                       My Listings
