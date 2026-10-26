@@ -43,7 +43,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/sitemap:path*', // Handles dynamic sitemaps if you have them
+        source: '/sitemap-:index.xml', // numbered sitemaps (e.g. /sitemap-1.xml), if you add any
         headers: [
           {
             key: 'Content-Type',
