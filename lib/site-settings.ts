@@ -1,5 +1,4 @@
-// lib/site-settings.ts  (SERVER ONLY: do not import from client components)
-//
+// lib/site-settings.ts  
 // Loads and saves the admin-editable market settings (currency, locale, units, feature
 // switches). Environment variables are the defaults; rows in the `site_setting` table
 // override them. See lib/site-config.ts for the active-config helpers.

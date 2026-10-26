@@ -73,7 +73,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Apply the admin-saved market settings (currency, locale, units...) before anything renders.
+ 
   await loadSiteConfig();
 
   return (
@@ -85,7 +85,7 @@ export default async function RootLayout({
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Must come first: sets the browser copy of the settings before siblings render. */}
+         
         <SiteSettingsHydrator settings={getMarketSettings()} />
         <AuthProvider>
           <Theme>

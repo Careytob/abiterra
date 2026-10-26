@@ -28,9 +28,6 @@ const NavBar = () => {
     };
   }, [isMenuOpen]);
 
-  // Rentals are a complete, working part of the app (see app/rent) but are
-  // hidden from navigation by default — flip NEXT_PUBLIC_ENABLE_RENTALS to
-  // "true" in your env to turn the module on for a given deployment.
   const rentalsEnabled = siteConfig.features.rentals;
   const role = session?.user?.role;
 
@@ -41,7 +38,7 @@ const NavBar = () => {
     { label: 'About Us', href: '/aboutus' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },
-    // Role-based dashboard link (only shown once signed in as an agent/admin).
+  
     ...(role === 'ADMIN'
       ? [{ label: 'Admin', href: '/admin' }]
       : role === 'AGENT'

@@ -1,16 +1,4 @@
 // lib/site-config.ts
-//
-// Single source of truth for everything that makes a deployment "yours":
-// brand name, URL, currency, locale, units, contact details, map defaults and
-// small regional feature flags. Everything is driven by environment variables
-// so one codebase can be white-labelled for any market without code changes.
-//
-// IMPORTANT: Next.js inlines NEXT_PUBLIC_* variables at build time, and only
-// when they are written out literally (process.env.NEXT_PUBLIC_X). That is why
-// every variable below is referenced by its full name instead of via a loop.
-// Change a value in your env, then rebuild/redeploy.
-//
-// This file is safe to import from both server and client components.
 
 function clean(value: string | undefined): string {
   return (value ?? '').trim();
@@ -32,8 +20,6 @@ function num(value: string | undefined, fallback: number): number {
   return clean(value) !== '' && Number.isFinite(n) ? n : fallback;
 }
 
-// On Vercel, fall back to the project's production domain (injected via next.config.ts)
-// so a fresh deploy doesn't advertise http://localhost:3000 in canonical URLs and emails.
 const vercelHost = clean(process.env.NEXT_PUBLIC_VERCEL_PROD_URL);
 
 const siteUrl = str(
@@ -83,7 +69,6 @@ export const siteConfig = {
   /** How rents are quoted: 'month' (default), 'year' or 'week'. */
   rentPeriod,
 
-  // --- Region (optional marketing copy + structured data) -----------------
   /** Human readable market, e.g. "Nairobi, Kenya". Leave empty for region-neutral copy. */
   regionName: clean(process.env.NEXT_PUBLIC_REGION_NAME),
   /** ISO-3166 alpha-2 country code, used only in schema.org structured data. */
@@ -121,11 +106,7 @@ export const siteConfig = {
     rentals: bool(process.env.NEXT_PUBLIC_ENABLE_RENTALS, false),
     /** "Toilets" count — common in West Africa; most markets don't list it separately. */
     showToilets: bool(process.env.NEXT_PUBLIC_SHOW_TOILETS, false),
-    /**
-     * Stamp listing photos with a text watermark. OFF by default: it renders text with
-     * sharp/librsvg, which crashes (SIGSEGV) on serverless hosts that have no fonts or
-     * fontconfig (e.g. Vercel) unless you bundle fonts. Enable only on hosts you've tested.
-     */
+   
     watermark: bool(process.env.NEXT_PUBLIC_ENABLE_WATERMARK, false),
     /** "BQ" (boys' quarters) — specific to Nigerian listings. */
     showBQ: bool(process.env.NEXT_PUBLIC_SHOW_BQ, false),
@@ -135,13 +116,7 @@ export const siteConfig = {
 // ---------------------------------------------------------------------------
 // Runtime market settings (editable from Admin -> Settings)
 // ---------------------------------------------------------------------------
-//
-// The values above come from environment variables and act as the DEFAULTS. The admin
-// Settings page stores overrides in the database; the server loads them (see
-// lib/site-settings.ts) and calls applySiteSettings(), and a tiny client component does
-// the same in the browser, so every formatPrice()/formatArea() call picks them up.
 
-/** The settings a non-technical admin can change without touching code or redeploying. */
 export interface MarketSettings {
   currency: string;
   locale: string;
@@ -152,7 +127,7 @@ export interface MarketSettings {
   showBQ: boolean;
 }
 
-/** Values derived from env vars at build time: what "reset to defaults" returns to. */
+
 export const envDefaults: MarketSettings = {
   currency: siteConfig.currency,
   locale: siteConfig.locale,
