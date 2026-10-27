@@ -1,5 +1,5 @@
 ---
-title: The True Cost of Buying a Home (Beyond the Asking Price)
+title: "The True Cost of Buying a Home (Beyond the Asking Price)"
 author: Editorial Team
 publishDate: 'October 8, 2026'
 category: Buying Guide

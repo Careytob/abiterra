@@ -66,8 +66,9 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
     let files = await fs.readdir(BLOG_DIR);
     files = files.filter(filename => filename.endsWith('.mdx') || filename.endsWith('.md'));
 
-    const allPosts = await Promise.all(
+    const parsed = await Promise.all(
       files.map(async filename => {
+       try {
         const filePath = path.join(BLOG_DIR, filename);
         const fileContent = await fs.readFile(filePath, 'utf8');
         const { data, content } = matter(fileContent);
@@ -91,8 +92,14 @@ export async function getBlogPosts(page = 1, limit = 9): Promise<{
           coverImage: publicCoverImage,
           readTime: data.readTime || calculateReadTime(content),
         } as BlogPost;
+       } catch (err) {
+        // A malformed post (e.g. invalid front matter) is skipped instead of hiding every post.
+        console.error(`[Blog] Skipping ${filename}: ${err instanceof Error ? err.message.split('\n')[0] : err}`);
+        return null;
+       }
       })
     );
+    const allPosts = parsed.filter((post): post is BlogPost => post !== null);
 
     const sortedPosts = allPosts.sort((a, b) => {
       return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();

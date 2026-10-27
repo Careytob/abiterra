@@ -1,5 +1,5 @@
 ---
-title: How to Inspect a Property Before You Buy: A Practical Checklist
+title: "How to Inspect a Property Before You Buy: A Practical Checklist"
 author: Editorial Team
 publishDate: 'October 1, 2026'
 category: Buying Guide

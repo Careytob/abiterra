@@ -62,10 +62,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: ["/hero_image.webp"],
   },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
+  // Favicons come from app/icon.png and app/apple-icon.png (Next.js picks them up automatically).
 };
 
 export default async function RootLayout({

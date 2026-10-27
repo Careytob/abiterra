@@ -1,5 +1,5 @@
 ---
-title: Rent or Buy? A Simple Framework for Deciding
+title: "Rent or Buy? A Simple Framework for Deciding"
 author: Editorial Team
 publishDate: 'October 15, 2026'
 category: Market Insights

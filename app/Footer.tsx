@@ -30,7 +30,7 @@ const Footer = async () => {
               {features.rentals && (
                 <li><Link href="/rent" className="text-gray-400 hover:text-white">Apartments for Rent</Link></li>
               )}
-              <li><Link href="/buy?featured=true" className="text-gray-400 hover:text-white">Featured Listings</Link></li>
+              <li><Link href="/#featured" className="text-gray-400 hover:text-white">Featured Listings</Link></li>
             </ul>
           </div>
           <div className="text-center sm:text-left">

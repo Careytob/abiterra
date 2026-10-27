@@ -1,19 +1,18 @@
+// app/robots.txt/route.ts
+import { absoluteUrl } from '@/lib/site-config';
 
-//app/robots.txt/route.ts
 export async function GET() {
-    const robots = `
-  User-agent: *
-  Allow: /
-  Allow: /blog
-  Allow: /blog/*
-  Allow: /buy
-  Allow: /rent
-  Disallow: /api/*
-  Disallow: /auth/*
-  Sitemap: https://abiterra.com/sitemap.xml
-    `;
-  
-    return new Response(robots, {
-      headers: { 'Content-Type': 'text/plain' },
-    });
-  }
+  const robots = [
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    'Disallow: /admin',
+    'Disallow: /agent',
+    'Disallow: /login',
+    'Disallow: /signup',
+    `Sitemap: ${absoluteUrl('/sitemap.xml')}`,
+    '',
+  ].join('\n');
+
+  return new Response(robots, { headers: { 'Content-Type': 'text/plain' } });
+}

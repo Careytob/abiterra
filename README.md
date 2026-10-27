@@ -1,74 +1,65 @@
 # Abiterra: Multi-Agent Real Estate Marketplace
 
-A white-label property marketplace built with **Next.js 15, TypeScript, Prisma, PostgreSQL (Supabase) and NextAuth**.
-Agents submit listings, an admin approves them, and visitors browse and enquire as guests.
+A white-label property marketplace. Agents and owners submit listings, an admin approves them, and visitors browse, search,
+view a map and send enquiries without needing an account. Built with **Next.js 15, TypeScript, Prisma, PostgreSQL (Supabase) and NextAuth**.
 
-## Features
+> **Scope in one line:** listings are entered manually (there is no MLS/IDX or portal feed), and the site text is English.
+> See [Known limitations](docs/KNOWN-LIMITATIONS.md) for the full, honest list.
 
-- **Three roles:** buyer (USER), AGENT (self-service listings) and ADMIN.
-- **Moderation workflow:** new or edited agent listings stay `PENDING` until an admin approves or rejects them (with a reason shown to the agent).
-- **Admin dashboard (`/admin`):** full listing CRUD with photo upload, status tabs, inquiries and contact messages, and a "log inquiry" form for phone/WhatsApp leads.
-- **Agent dashboard (`/agent`):** manage own listings and see enquiries for them.
-- **Guest enquiries:** no sign-up wall; signed-in users are pre-filled.
-- **Search, filters, map view, blog (Markdown), SEO metadata, sitemap and robots.**
-- **Rentals module** behind a feature flag.
-- **Fully configurable branding, currency, locale, units and region** via env vars. No code changes needed to white-label.
+## What it does
+
+- **Three roles:** visitor/buyer, agent or property owner, and admin.
+- **Moderation workflow:** new or edited agent listings stay **Pending** until an admin approves or rejects them (with a reason).
+- **Admin dashboard:** listings with photo upload, status tabs, enquiries and contact messages, a form to log phone leads, and a **Settings** page.
+- **Agent dashboard:** own listings, enquiries with Reply / Call / Mark contacted actions, and a "new" badge.
+- **Guest enquiries:** no sign-up wall. The listing agent is notified in the dashboard and by email (if email is configured).
+- **Browse and search:** filters, map view, featured listings, sale and (optionally) rental listings.
+- **Market settings without code:** currency, number format, size unit, rent period and feature switches in **Admin → Settings**,
+  with country presets and a live preview.
+- **Blog** from Markdown files, SEO metadata, sitemap and robots.txt.
 
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env        # fill in DATABASE_URL, Supabase and NextAuth values
+cp .env.example .env          # fill in the database, Supabase and NextAuth values
 npx prisma migrate deploy
-npm run seed:demo           # optional: 12 generic sample listings
+npm run seed:demo             # optional: 12 sample listings
 npm run dev
 ```
 
-Create an account at `/signup`, then promote it:
+Then create an account at `/signup` and make it an admin:
 
 ```bash
-npm run admin:promote -- you@example.com            # ADMIN
-npm run admin:promote -- agent@example.com AGENT    # AGENT
+npm run admin:promote -- you@example.com
 ```
 
-Sign in and open `/admin` (or `/agent`).
+Log out and in again, and open **Admin**. Full instructions: [docs/SETUP.md](docs/SETUP.md). Requires **Node.js 20+**.
 
-### Demo data
-`npm run seed:demo` is safe to re-run with `-- --reset`. It only touches listings whose slug starts with `demo-`, and refuses to run against a database that already holds real listings. `-- --accounts` creates demo ADMIN/AGENT logins (needs `DEMO_PASSWORD`). Replace the illustrations in `scripts/seed-assets/` with real photos if you like.
+## Documentation
 
-## Configure for your market
+| Guide | For |
+|---|---|
+| [Setup guide](docs/SETUP.md) | Installing, configuring and deploying (about 45 minutes) |
+| [Admin and agent guide](docs/ADMIN-GUIDE.md) | Running the site day to day |
+| [Configuration reference](docs/CONFIGURATION.md) | Every environment variable and setting |
+| [Customizing](docs/CUSTOMIZING.md) | Logo, colours, wording, blog, map |
+| [Architecture](docs/ARCHITECTURE.md) | How the code is organised (for developers) |
+| [Security guide](docs/SECURITY.md) | Secrets, database lock-down, known gaps |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Fixes for the problems most likely to appear |
+| [Known limitations](docs/KNOWN-LIMITATIONS.md) | What it does not do and the technical debt |
+| [Third-party licences](docs/THIRD-PARTY-LICENSES.md) | Dependency licences |
 
-**Easiest: Admin -> Settings.** Sign in as an admin and open **Settings** to choose your country (or set the
-currency, number format, size unit and rent period yourself), switch rentals on or off, and see a live preview.
-No code, no environment variables and no redeploy. Saved values override the defaults below. **Reset to defaults**
-returns to the environment values. The text of the site stays in English; the number format only changes how
-numbers and currency are written.
+## Scripts
 
-The environment variables below set the **defaults** (used until someone saves Settings) and also control
-branding, which is not yet editable from the admin area.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start locally |
+| `npm run build` | Generate the database client, apply migrations, build |
+| `npm run seed:demo` | Add generic sample listings (safe to re-run with `-- --reset`) |
+| `npm run admin:promote -- email [ROLE]` | Give an account the ADMIN (default) or AGENT role |
+| `npm run demo:images` | Regenerate the illustrated sample photos |
 
-Set these in `.env` and rebuild. Full list in `.env.example`.
+## Licence
 
-| Variable | Example | Effect |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_NAME` | `Harbour Homes` | Brand name everywhere (titles, footer, emails, watermark) |
-| `NEXT_PUBLIC_CURRENCY` / `NEXT_PUBLIC_LOCALE` | `KES` / `en-KE` | Default price formatting (override in Admin -> Settings) |
-| `NEXT_PUBLIC_AREA_UNIT` | `sqm` | Area display and form label |
-| `NEXT_PUBLIC_RENT_PERIOD` | `month` | Rent wording |
-| `NEXT_PUBLIC_DEFAULT_LAT/LNG` | `-1.2921` / `36.8219` | Map default centre |
-| `NEXT_PUBLIC_ENABLE_RENTALS` | `true` | Shows the rentals module |
-| `NEXT_PUBLIC_ENABLE_WATERMARK` | `false` | Photo watermark. Off by default: it needs system fonts and crashes on font-less serverless hosts such as Vercel |
-
-Then replace `public/logo.svg` and `public/hero_image.webp`, and review the **privacy policy and terms pages. They are templates, not legal advice.**
-
-## Deploy (Vercel)
-
-1. Import the repo, add the env vars above, and set `NEXTAUTH_URL` / `NEXT_PUBLIC_SITE_URL` to your domain.
-2. The build runs `prisma migrate deploy`, so `DATABASE_URL` must be reachable at build time.
-3. Create a private Storage bucket named `properties` (the seed script does this automatically).
-
-## Notes
-
-- Listings are entered manually. There is no MLS/IDX or portal data-feed integration.
-- Photos are served from a private Supabase bucket via 1-year signed URLs.
-- Never commit `.env` or your service-role key.
+Not open source. Use is governed by your licence agreement; see [LICENSE.md](LICENSE.md).

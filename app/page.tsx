@@ -50,9 +50,8 @@ async function getFeaturedProperties(listingType: 'SALE' | 'RENT' = 'SALE', take
           },
         },
       },
-      orderBy: {
-        createdat: 'desc',
-      },
+      // Listings flagged "Featured" in the admin come first, then the newest.
+      orderBy: [{ isfeatured: 'desc' }, { createdat: 'desc' }],
     });
 
     const formattedProperties = await Promise.all(
@@ -267,7 +266,7 @@ export default async function Home() {
         </section>
 
         {/* Featured Properties */}
-        <section className="py-16">
+        <section id="featured" className="py-16">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-3xl font-bold mb-12">Featured Properties</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
